@@ -1,5 +1,5 @@
 window.LUMEN_CONFIG = {
-  SUPABASE_URL: "TEMPEL_PROJECT_URL_DI_SINI",
-  SUPABASE_ANON_KEY: "TEMPEL_ANON_KEY_DI_SINI",
+  SUPABASE_URL: "https://aglzcaqazhbgntahkfyy.supabase.co/rest/v1/",
+  SUPABASE_ANON_KEY: "sb_publishable_KtkW8tGuZBS-OxBeA59MdQ_yUwnA0DA",
   FUNCTIONS_URL: "https://PROJECT_REF.supabase.co/functions/v1/drive"
 };
