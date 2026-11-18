@@ -1,0 +1,3 @@
+# Fungsi 'drive' memverifikasi JWT sendiri (callback OAuth dari Google tidak membawa JWT).
+[functions.drive]
+verify_jwt = false
