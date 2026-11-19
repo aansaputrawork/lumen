@@ -14,23 +14,78 @@ sb.auth.onAuthStateChange(ev=>{
   }
 });
 
-async function sign(rows,raw){const P=[];raw.forEach(r=>{if(r.storage_provider=="supabase"&&r.storage_path)P.push(r.storage_path);if(r.data.tid)P.push(r.data.tid)});const M={};
-if(P.length){const{data}=await sb.storage.from("photos").createSignedUrls([...new Set(P)],86400);(data||[]).forEach(x=>{if(x.signedUrl)M[x.path]=x.signedUrl})}
-rows.forEach((x,i)=>{const r=raw[i];x.doc.th=r.data.tid?M[r.data.tid]||"":"";x.doc.url=r.storage_provider=="supabase"?(M[r.storage_path]||""):x.doc.th})}
-async function load(n){const{data,error}=await sb.from(n).select("*");if(error)throw error;
-const rows=data.map(r=>({id:r.id,doc:n=="photos"?{...r.data,sp:r.storage_provider,bs:r.backup_status,bid:r.backup_drive_file_id,gid:r.google_drive_file_id}:r.data}));
-if(n=="photos")await sign(rows,data);R[n]=rows;(L[n]||[]).forEach(f=>f(rows));return rows}
+async function sign(rows,raw){
+ const P=[];
+ raw.forEach(r=>{
+  if(r.storage_path)P.push(r.storage_path);
+  if(r.data?.tid)P.push(r.data.tid);
+ });
+ const M={};
+ if(P.length){
+  const{data}=await sb.storage.from("photos").createSignedUrls([...new Set(P)],86400);
+  (data||[]).forEach(x=>{
+   if(x.signedUrl)M[x.path]=x.signedUrl;
+  });
+ }
+ rows.forEach((x,i)=>{
+  const r=raw[i];
+  x.doc.th=r.data.tid?M[r.data.tid]||"":"";
+  x.doc.sp=r.storage_path?"supabase":r.google_drive_file_id?"drive":"";
+  x.doc.bs=r.storage_path&&r.google_drive_file_id?"done":"none";
+  x.doc.gid=r.google_drive_file_id||"";
+  x.doc.url=r.storage_path?(M[r.storage_path]||""):x.doc.th;
+ });
+}
+
+async function load(n){
+ const{data,error}=await sb.from(n).select("*");
+ if(error)throw error;
+ const rows=data.map(r=>({
+  id:r.id,
+  doc:n=="photos"?{...r.data}:r.data
+ }));
+ if(n=="photos")await sign(rows,data);
+ R[n]=rows;
+ (L[n]||[]).forEach(f=>f(rows));
+ return rows;
+}
 const rl=n=>{clearTimeout(TM[n]);TM[n]=setTimeout(()=>load(n).catch(()=>{}),250)};
 function watch(n,f,er){(L[n]=L[n]||[]).push(f);if(R[n])f(R[n]);else load(n).catch(er||(()=>{}));
 if(!RT.has(n)){RT.add(n);sb.channel("lumen_"+n).on("postgres_changes",{event:"*",schema:"public",table:n},()=>rl(n)).subscribe()}return()=>{}}
-async function put(n,id,d){let data=d,cols=null;
-if(n=="photos"){const{url,th,sp,bs,bid,gid,...rest}=d;data=rest;const m=META.get(d.aid);
- if(m)cols={storage_provider:m.prov,storage_path:m.prov=="supabase"?d.aid:null,google_drive_file_id:m.prov=="drive"?m.did:null,backup_drive_file_id:m.prov=="supabase"?m.did||null:null,backup_status:m.bs,mime_type:d.type,file_size:d.size,original_file_name:d.name}}
-const{data:u,error:e1}=await sb.from(n).update({data}).eq("id",id).eq("user_id",uid).select("id");if(e1)throw e1;
-if(!u.length){const row={id,user_id:uid,data,...(cols||{})},{error}=await sb.from(n).insert(row);
- if(error){if(cols&&(cols.google_drive_file_id||cols.backup_drive_file_id)){setOr([...orph().filter(o=>o.id!=id),row]);window.LDrive&&LDrive.orphanWarn()}throw error}
- if(d.aid)META.delete(d.aid)}
-rl(n)}
+async function put(n,id,d){
+ let data=d,cols={};
+
+ if(n=="photos"){
+  const{url,th,sp,bs,bid,gid,...rest}=d;
+  data=rest;
+
+  const m=META.get(d.aid);
+  if(m){
+   cols={
+    storage_path:m.prov=="supabase"?d.aid:null,
+    google_drive_file_id:m.prov=="drive"?m.did:
+     m.prov=="supabase"?m.did||null:null
+   };
+  }
+ }
+
+ const{data:u,error:e1}=await sb.from(n)
+  .update({data,...cols})
+  .eq("id",id)
+  .eq("user_id",uid)
+  .select("id");
+
+ if(e1)throw e1;
+
+ if(!u.length){
+  const row={id,user_id:uid,data,...cols};
+  const{error}=await sb.from(n).insert(row);
+  if(error)throw error;
+ }
+
+ if(d.aid)META.delete(d.aid);
+ rl(n);
+}
 const coll=n=>({doc:id=>({set:d=>put(n,id,d),async delete(){const{error}=await sb.from(n).delete().eq("id",id).eq("user_id",uid);if(error)throw error;rl(n)},
  onSnapshot:(cb,er)=>watch(n,rows=>{const r=rows.find(x=>x.id===id);cb({data:()=>r?r.doc:undefined})},er)}),
  onSnapshot:(cb,er)=>watch(n,rows=>cb({docs:rows.map(r=>({id:r.id,data:()=>r.doc}))}),er)});
