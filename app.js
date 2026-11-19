@@ -81,11 +81,12 @@ function vtNext(){
   })();
  }
 }
-
-
-
-function vtEnsure(p)
-
+function vtEnsure(p){
+ if(!isVid(p)||p.th||VT[p.id]||VTB.has(p.id))return;
+ if(!p.url&&!(p.sp=="drive"&&p.aid))return;
+ VTB.add(p.id);
+ VTQ.push(p);
+ setTimeout(vtNext,0);
 }
 {if(!isVid(p)||p.th||VT[p.id]||VTB.has(p.id)||!p.url)return;VTB.add(p.id);VTQ.push(p);setTimeout(vtNext,0)}
 async function mkVThumb(f){const o=URL.createObjectURL(f);try{const g=await vtGrab(o,false),b=await new Promise(r=>g.cv.toBlob(r,"image/jpeg",.8));if(!b)return null;return{file:Object.assign(new File([b],"t_"+f.name+".jpg",{type:"image/jpeg"}),{_th:1}),w:g.w,h:g.h,dur:g.dur}}catch(e){return null}finally{setTimeout(()=>URL.revokeObjectURL(o),2000)}}
