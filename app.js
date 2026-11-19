@@ -38,10 +38,50 @@ function vtGrab(src,cors){return new Promise((ok,no)=>{const v=document.createEl
  tm=setTimeout(()=>end(new Error("timeout")),12000);v.src=src})}
 function vtPaint(id,url,w,h){document.querySelectorAll(`[data-vt="${id}"]`).forEach(e=>{if(e.tagName=="IMG"){e.src=url;if(w&&h)e.style.aspectRatio=w+"/"+h}else e.style.backgroundImage=`url('${url}')`})}
 function vtFail(id){const p=S.photos.find(x=>x.id==id);if(!p)return;document.querySelectorAll(`img[data-vt="${id}"]`).forEach(e=>{const v=document.createElement("video");v.className=e.className;v.setAttribute("style",e.getAttribute("style")||"");v.dataset.vt=id;v.muted=true;v.playsInline=true;v.preload="metadata";v.src=p.url+"#t=0.1";v.addEventListener("loadedmetadata",()=>v.classList.add("l"));e.replaceWith(v)})}
-function vtNext(){while(VTN<2&&VTQ.length){const p=VTQ.shift();VTN++;
- vtGrab(p.url,true).then(g=>{const u=g.cv.toDataURL("image/jpeg",.78);VT[p.id]=u;if(!p.w||!p.h){p.w=g.w;p.h=g.h}if(!p.dur&&g.dur)p.dur=g.dur;vtPaint(p.id,u,p.w,p.h);
-   if(!S.demo)g.cv.toBlob(async b=>{if(!b)return;try{const f=Object.assign(new File([b],"t_"+(p.name||"video")+".jpg",{type:"image/jpeg"}),{_th:1}),tr=await assets.upload(f);p.th=tr.url;p.tid=tr.id;await save(null,p.id,{...p},"photos")}catch(e){}},"image/jpeg",.8)})
-  .catch(()=>vtFail(p.id)).finally(()=>{VTN--;vtNext()})}}
+
+function vtNext(){
+ while(VTN<2&&VTQ.length){
+  const p=VTQ.shift();
+  VTN++;
+  (async()=>{
+   let src=p.url,own=false;
+   try{
+    if(p.sp=="drive"){
+     const b=await getBlob(p);
+     src=URL.createObjectURL(b);
+     own=true;
+    }
+    const g=await vtGrab(src,!own);
+    const u=g.cv.toDataURL("image/jpeg",.78);
+    VT[p.id]=u;
+    if(!p.w||!p.h){p.w=g.w;p.h=g.h}
+    if(!p.dur&&g.dur)p.dur=g.dur;
+    vtPaint(p.id,u,p.w,p.h);
+    if(!S.demo)g.cv.toBlob(async b=>{
+     if(!b)return;
+     try{
+      const f=Object.assign(
+       new File([b],"t_"+(p.name||"video")+".jpg",{type:"image/jpeg"}),
+       {_th:1}
+      );
+      const tr=await assets.upload(f);
+      p.th=tr.url;
+      p.tid=tr.id;
+      await save(null,p.id,{...p},"photos");
+     }catch(e){}
+    },"image/jpeg",.8);
+   }catch(e){
+    console.error("MIKA THUMB ERROR",p.name,e);
+    vtFail(p.id);
+   }finally{
+    if(own)URL.revokeObjectURL(src);
+    VTN--;
+    vtNext();
+   }
+  })();
+ }
+}
+
 function vtEnsure(p){if(!isVid(p)||p.th||VT[p.id]||VTB.has(p.id)||!p.url)return;VTB.add(p.id);VTQ.push(p);setTimeout(vtNext,0)}
 async function mkVThumb(f){const o=URL.createObjectURL(f);try{const g=await vtGrab(o,false),b=await new Promise(r=>g.cv.toBlob(r,"image/jpeg",.8));if(!b)return null;return{file:Object.assign(new File([b],"t_"+f.name+".jpg",{type:"image/jpeg"}),{_th:1}),w:g.w,h:g.h,dur:g.dur}}catch(e){return null}finally{setTimeout(()=>URL.revokeObjectURL(o),2000)}}
 async function exifGps(f){try{if(!/jpe?g/i.test(f.type))return null;const d=new DataView(await f.slice(0,262144).arrayBuffer());if(d.getUint16(0)!=0xFFD8)return null;let o=2;while(o<d.byteLength-4){const m=d.getUint16(o),l=d.getUint16(o+2);if(m==0xFFE1&&d.getUint32(o+4)==0x45786966){const t=o+10,le=d.getUint16(t)==0x4949,g16=x=>d.getUint16(x,le),g32=x=>d.getUint32(x,le),find=(p,tag)=>{const n=g16(p);for(let i=0;i<n;i++){const e=p+2+i*12;if(g16(e)==tag)return e}return -1};const i0=t+g32(t+4),ge=find(i0,0x8825);if(ge<0)return null;const gp=t+g32(ge+8),ref=tag=>{const e=find(gp,tag);return e<0?"":String.fromCharCode(d.getUint8(e+8))},rat=tag=>{const e=find(gp,tag);if(e<0)return null;const q=t+g32(e+8),r=[];for(let i=0;i<3;i++){const nu=g32(q+i*8),de=g32(q+i*8+4);r.push(de?nu/de:0)}return r[0]+r[1]/60+r[2]/3600};let la=rat(2),lo=rat(4);if(la==null||lo==null||isNaN(la)||isNaN(lo)||(!la&&!lo))return null;if(ref(1)=="S")la=-la;if(ref(3)=="W")lo=-lo;return{lat:la,lng:lo}}if((m&0xFF00)!=0xFF00)break;o+=2+l}}catch(e){}return null}
