@@ -8,7 +8,7 @@ const hdr=async()=>{const{data:{session}}=await sb.auth.getSession();return{"Con
 async function raw(action,body={}){if(!navigator.onLine)throw E("offline");try{return await fetch(FN,{method:"POST",headers:await hdr(),body:JSON.stringify({action,...body})})}catch(e){throw E("offline")}}
 async function call(action,body){const r=await raw(action,body),j=await r.json().catch(()=>({}));if(!r.ok)throw E(j.code||"error",j.message);return j}
 
-D.up=async f=>{
+D.up=async (f,onProgress)=>{
  const mime=f.type||"application/octet-stream";
  const {uploadUrl}=await call("init_upload",{name:f.name,mime,size:f.size});
 
@@ -20,9 +20,9 @@ D.up=async f=>{
   x.upload.onprogress=e=>{
    if(e.lengthComputable){
     const percent=Math.round(e.loaded/e.total*100);
-    if(typeof D.onProgress==="function"){
-     D.onProgress(f,percent,e.loaded,e.total);
-    }
+    if(onProgress){
+ onProgress(percent,e.loaded,e.total);
+}
    }
   };
 
