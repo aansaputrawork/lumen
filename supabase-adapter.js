@@ -35,21 +35,123 @@ const coll=n=>({doc:id=>({set:d=>put(n,id,d),async delete(){const{error}=await s
  onSnapshot:(cb,er)=>watch(n,rows=>{const r=rows.find(x=>x.id===id);cb({data:()=>r?r.doc:undefined})},er)}),
  onSnapshot:(cb,er)=>watch(n,rows=>cb({docs:rows.map(r=>({id:r.id,data:()=>r.doc}))}),er)});
 const DB={doc:()=>({collection:coll}),collection:coll};
-const BIG=6291456,tusUp=(key,f)=>new Promise(async res=>{const s=(await sb.auth.getSession()).data.session;
- const u=new tus.Upload(f,{endpoint:C.SUPABASE_URL+"/storage/v1/upload/resumable",retryDelays:[0,2000,5000,10000,20000],headers:{authorization:"Bearer "+s.access_token,"x-upsert":"false"},uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,chunkSize:BIG,metadata:{bucketName:"photos",objectName:key,contentType:f.type||"application/octet-stream",cacheControl:"3600"},onError:e=>res({error:e}),onSuccess:()=>res({error:null})});
- u.findPreviousUploads().then(p=>{if(p.length)u.resumeFromPreviousUpload(p[0]);u.start()})});
+
+const BIG=6291456;
+
+const tusUp=(key,f,onProgress)=>new Promise(async res=>{
+ const s=(await sb.auth.getSession()).data.session;
+ const u=new tus.Upload(f,{
+  endpoint:C.SUPABASE_URL+"/storage/v1/upload/resumable",
+  retryDelays:[0,2000,5000,10000,20000],
+  headers:{authorization:"Bearer "+s.access_token,"x-upsert":"false"},
+  uploadDataDuringCreation:true,
+  removeFingerprintOnSuccess:true,
+  chunkSize:BIG,
+  metadata:{
+   bucketName:"photos",
+   objectName:key,
+   contentType:f.type||"application/octet-stream",
+   cacheControl:"3600"
+  },
+  onProgress:(sent,total)=>{
+   if(onProgress)onProgress(Math.round(sent/total*100),sent,total);
+  },
+  onError:e=>res({error:e}),
+  onSuccess:()=>res({error:null})
+ });
+ u.findPreviousUploads().then(p=>{
+  if(p.length)u.resumeFromPreviousUpload(p[0]);
+  u.start();
+ }).catch(e=>res({error:e}));
+});
+
+const xhrUp=(key,f,onProgress)=>new Promise(resolve=>{
+ const s=sb.auth.getSession();
+ s.then(({data:{session}})=>{
+  const x=new XMLHttpRequest();
+  const path=key.split("/").map(encodeURIComponent).join("/");
+  x.open("POST",C.SUPABASE_URL+"/storage/v1/object/photos/"+path);
+  x.setRequestHeader("Authorization","Bearer "+session.access_token);
+  x.setRequestHeader("apikey",C.SUPABASE_ANON_KEY);
+  x.setRequestHeader("Content-Type",f.type||"application/octet-stream");
+  x.setRequestHeader("x-upsert","false");
+
+  x.upload.onprogress=e=>{
+   if(e.lengthComputable&&onProgress){
+    onProgress(Math.round(e.loaded/e.total*100),e.loaded,e.total);
+   }
+  };
+
+  x.onload=()=>{
+   if(x.status>=200&&x.status<300)resolve({error:null});
+   else{
+    let msg=x.responseText||"Upload failed";
+    try{msg=JSON.parse(msg).message||msg}catch(e){}
+    resolve({error:Object.assign(new Error(msg),{status:x.status})});
+   }
+  };
+  x.onerror=()=>resolve({error:off()});
+  x.send(f);
+ }).catch(e=>resolve({error:e}));
+});
+
 const off=()=>Object.assign(new Error("You're offline. Check your connection and try again."),{code:"offline"});
-const AS={async upload(f){if(!navigator.onLine)throw off();await ses();
- const mode=f._th?"supabase":(window.LUMEN_MODE||"supabase");
- if(mode=="drive"){if(f.type.startsWith("video"))throw new Error("Videos aren't supported in Google Drive only mode. Choose Supabase or Supabase + Drive.");
-  const did=await LDrive.up(f);META.set(did,{prov:"drive",did,bs:"done"});return{id:did,url:"",sizeBytes:f.size}}
- const big=!f._th&&f.size>BIG&&window.tus,key=`${uid}/${f._th?"thumbs/":""}${big?f.lastModified+"_"+f.size:Date.now()+"_"+Math.random().toString(36).slice(2,7)}_${f.name.replace(/[^\w.-]/g,"_")}`;
- const{error}=big?await tusUp(key,f):await sb.storage.from("photos").upload(key,f,{contentType:f.type||"application/octet-stream"});if(error)throw navigator.onLine?error:off();
- const{data}=await sb.storage.from("photos").createSignedUrl(key,3600);
- if(!f._th){const m={prov:"supabase",bs:"none"};
-  if(mode=="both"){try{m.did=await LDrive.up(f);m.bs="done"}catch(e){m.bs="failed";LDrive.uf++;LDrive.lastErr=e.message}}META.set(key,m)}
- return{id:key,url:data.signedUrl,sizeBytes:f.size}},
- async delete(id){if(id&&id.includes("/")){const{error}=await sb.storage.from("photos").remove([id]);if(error)throw error}}};
+
+const AS={
+ async upload(f,onProgress){
+  if(!navigator.onLine)throw off();
+  await ses();
+
+  const mode=f._th?"supabase":(window.LUMEN_MODE||"supabase");
+
+  if(mode=="drive"){
+   if(f.type.startsWith("video"))throw new Error("Videos aren't supported in Google Drive only mode. Choose Supabase or Supabase + Drive.");
+   const did=await LDrive.up(f,(p,l,t)=>onProgress&&onProgress(p,l,t));
+   META.set(did,{prov:"drive",did,bs:"done"});
+   return{id:did,url:"",sizeBytes:f.size};
+  }
+
+  const big=!f._th&&f.size>BIG&&window.tus;
+  const key=`${uid}/${f._th?"thumbs/":""}${big?f.lastModified+"_"+f.size:Date.now()+"_"+Math.random().toString(36).slice(2,7)}_${f.name.replace(/[^\w.-]/g,"_")}`;
+
+  const report=(p,l,t)=>{
+   if(onProgress)onProgress(p,l,t);
+  };
+
+  const result=big
+   ?await tusUp(key,f,report)
+   :await xhrUp(key,f,report);
+
+  if(result.error)throw navigator.onLine?result.error:off();
+
+  const{data}=await sb.storage.from("photos").createSignedUrl(key,3600);
+
+  if(!f._th){
+   const m={prov:"supabase",bs:"none"};
+   if(mode=="both"){
+    try{
+     m.did=await LDrive.up(f,(p,l,t)=>onProgress&&onProgress(50+p/2,l,t));
+     m.bs="done";
+    }catch(e){
+     m.bs="failed";
+     LDrive.uf++;
+     LDrive.lastErr=e.message;
+    }
+   }
+   META.set(key,m);
+  }
+
+  return{id:key,url:data.signedUrl,sizeBytes:f.size};
+ },
+
+ async delete(id){
+  if(id&&id.includes("/")){
+   const{error}=await sb.storage.from("photos").remove([id]);
+   if(error)throw error;
+  }
+ }
+};
+
 const DL={save:async({filename,data})=>{const a=document.createElement("a"),u=URL.createObjectURL(data);a.href=u;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),6e4)}};
 window.claude={use:async n=>{const s=await ses();if(n=="user")return{id:async()=>s.user.id,me:async()=>({name:s.user.user_metadata?.name||"",email:s.user.email})};return{db:DB,assets:AS,downloads:DL}[n]||null}};
 window.LSB={reload:n=>load(n),orphans:()=>orph().length,
