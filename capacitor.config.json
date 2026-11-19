@@ -1,1 +1,1 @@
-{ "appId": "com.lumen.photos", "appName": "MIKA", "webDir": "www", "server": { "androidScheme": "https" } }
+{ "appId": "com.mika.cloud", "appName": "MIKA", "webDir": "www", "server": { "androidScheme": "https" } }
