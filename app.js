@@ -208,7 +208,24 @@ function viewer(id,l,el){return window.LViewer?LViewer(id,l,el):viewerLegacy(id)
 function viewerLegacy(id){IC.play="M7 4l13 8-13 8z";IC.pause="M8 5v14M16 5v14";
   let list=[...document.querySelectorAll("[data-id]")].map(e=>S.photos.find(p=>p.id==e.dataset.id)).filter(Boolean),i=Math.max(0,list.findIndex(p=>p.id==id));
  const v=$(`<div class=view><div class=bar><button data-c>${ico("x",24)}</button><div style="text-align:center"><div id=t style="font-weight:600"></div><div id=m class=mu style="font-size:12px"></div></div><span style="width:24px"></span></div><div class=st>${list.map(p=>`<div class=sl>${isVid(p)?`<video ${p.sp=="drive"?`data-drive-video="${p.id}"`:`src="${p.url}"`} controls playsinline></video>`:`<img src="${p.url}" data-z>`}</div>`).join("")}</div><div class="bar b"><button data-f>${ico("heart",24)}</button><button data-p>${ico("play",24)}</button><button data-s>${ico("sh",24)}</button><button data-a>${ico("alb",24)}</button><button data-d>${ico("dl",24)}</button><button data-t style="color:#ff6b6b">${ico("tr",24)}</button></div></div>`);
- document.body.append(v);v.querySelectorAll("button").forEach(b=>{const k=Object.keys(b.dataset)[0];b.setAttribute("aria-label",{c:"Close",f:"Favorite",s:"Share",a:"Add to album",d:"Download",t:"Delete",p:"Slideshow"}[k]||"Button")});const st=v.querySelector(".st");st.scrollLeft=i*st.clientWidth;
+ document.body.append(v);
+v._driveVideoUrls=[];
+v.querySelectorAll("video[data-drive-video]").forEach(async el=>{
+ const p=list.find(x=>x.id===el.dataset.driveVideo);
+ if(!p)return;
+ try{
+  const blob=await getBlob(p);
+  const url=URL.createObjectURL(blob);
+  v._driveVideoUrls.push(url);
+  if(document.body.contains(el)){
+   el.src=url;
+   el.load();
+  }else URL.revokeObjectURL(url);
+ }catch(e){
+  toast("Couldn't load video from Google Drive");
+ }
+});
+v.querySelectorAll("button").forEach(b=>{const k=Object.keys(b.dataset)[0];b.setAttribute("aria-label",{c:"Close",f:"Favorite",s:"Share",a:"Add to album",d:"Download",t:"Delete",p:"Slideshow"}[k]||"Button")});const st=v.querySelector(".st");st.scrollLeft=i*st.clientWidth;
  const info=()=>{const p=list[i];if(!p)return;v.querySelector("#t").textContent=p.name;v.querySelector("#m").textContent=`${D(p).toLocaleDateString(undefined,{dateStyle:"long"})} · ${p.w?p.w+"×"+p.h+" · ":""}${mb(p.size)} · ${p.cat}${hasLoc(p)?" · "+placeOf(p):""}${lLoc(p)}`;v.querySelector("[data-f] svg").setAttribute("fill",p.fav?"#ff5a6e":"none")};info();
  const mm=v.querySelector("#m");mm.style.cursor="pointer";mm.onclick=()=>{const p=list[i];if(p&&hasLoc(p)){S.mv={lat:p.lat,lng:p.lng,z:15};v.remove();S.view="map";render()}};const tt=v.querySelector("#t");tt.style.cursor="pointer";tt.title="Rename";tt.onclick=()=>{const p=list[i];if(!p)return;ask("Rename photo",p.name,async n=>{p.name=n;info();await save(null,p.id,{...p},"photos")})};
  let z=1,tx=0,ty=0,d0=0,z0=1,sx=0,sy=0,dy=0,md="",mv=0,ts=0,lt=0;
