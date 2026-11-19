@@ -241,14 +241,85 @@ addEventListener("gesturestart",e=>e.preventDefault());
 addEventListener("hashchange",()=>{document.querySelectorAll(".view,.sheet").forEach(e=>e.remove());const h=location.hash.slice(1);if(!S.ready||h==S.view)return;const ok={home:1,alb:1,me:1,map:1,search:1,col:S.mon!=null,album:!!S.album,albsm:!!S.sm,albtrash:1};if(ok[h]){S.view=h;render()}});
 let _r=0;const rr=()=>{if(_r)return;_r=requestAnimationFrame(()=>{_r=0;render()})};
 {const h0=location.hash.slice(1);if(["home","alb","me","map","search"].includes(h0))S.view=h0}
-(async()=>{S.demo=true;S.year=2026;S.photos=DEMO.map(p=>({...p}));S.albums=DEMOALB.map(a=>({...a}));S.trash=[["t1","f2","People",3],["t2","f3","Architecture",20],["t3","r2","People",27]].map(([id,k,c,d])=>({id,name:"IMG_"+(3000+d),url:REF[k],type:"image/jpeg",size:3e6,cat:c,date:Date.now(),del:Date.now()-d*864e5}));S.me={name:"",email:""};S.prefs={notif:true};S.ready=true;render();
- const cl=window.claude;if(!cl){app.innerHTML=`<div class=empty style="padding-top:30vh">Isi config.js (SUPABASE_URL &amp; SUPABASE_ANON_KEY) &mdash; lihat docs/SETUP.md</div>`;return}
- const [u,d,a]=await Promise.all([cl.use("user"),cl.use("db"),cl.use("assets")]);db=d;assets=a;
- if(!u||!d){app.innerHTML=`<div class=empty style="padding-top:30vh">Silakan masuk untuk membuka library Anda.</div>`;return}
- uid=await u.id();LDrive.init();let me={};try{me=await u.me()}catch(e){}S.me={name:me.name||"",email:me.email||""};
- const t=setTimeout(()=>{S.ready=true;render()},10000),ok=()=>{clearTimeout(t);S.ready=true;rr()};
- col("profile").doc("me").onSnapshot(s=>{if(s.data?.())S.me={...S.me,...s.data()};rr()},()=>{});
- col("settings").doc("prefs").onSnapshot(s=>{if(s.data?.())S.prefs=s.data();rr()},()=>{});
- col("photos").onSnapshot(s=>{const all=s.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>b.date-a.date),r=all.filter(p=>!p.del);if(all.length){if(S.demo)S.albums=S.albums.filter(a=>!/^da\d/.test(a.id));S.demo=false;S.photos=r;if(r.length&&!r.some(p=>D(p).getFullYear()==S.year))S.year=Math.max(...r.map(p=>D(p).getFullYear()));S.trash=all.filter(p=>p.del);const old=S.trash.filter(p=>Date.now()-p.del>30*864e5);if(old.length){S.trash=S.trash.filter(p=>!old.includes(p));purge(old)}}else if(!S.demo){S.demo=true;S.year=2026;S.photos=DEMO.map(p=>({...p}))}ok()},()=>{S.demo=true;S.year=2026;S.photos=DEMO.map(p=>({...p}));ok()});
- col("albums").onSnapshot(s=>{const r=s.docs.map(x=>({id:x.id,...x.data()}));S.albums=S.demo?[...S.albums.filter(a=>/^da\d/.test(a.id)),...r]:r;rr()},()=>{});
+
+(async()=>{
+ S.demo=false;
+ S.year=new Date().getFullYear();
+ S.photos=[];
+ S.albums=[];
+ S.trash=[];
+ S.me={name:"",email:""};
+ S.prefs={notif:true};
+ S.ready=true;
+ render();
+
+ const cl=window.claude;
+ if(!cl){
+  app.innerHTML=`<div class=empty style="padding-top:30vh">Isi config.js (SUPABASE_URL &amp; SUPABASE_ANON_KEY) &mdash; lihat docs/SETUP.md</div>`;
+  return;
+ }
+
+ const [u,d,a]=await Promise.all([cl.use("user"),cl.use("db"),cl.use("assets")]);
+ db=d;
+ assets=a;
+
+ if(!u||!d){
+  app.innerHTML=`<div class=empty style="padding-top:30vh">Silakan masuk untuk membuka library Anda.</div>`;
+  return;
+ }
+
+ uid=await u.id();
+ LDrive.init();
+
+ let me={};
+ try{me=await u.me()}catch(e){}
+ S.me={name:me.name||"",email:me.email||""};
+
+ const t=setTimeout(()=>{S.ready=true;render()},10000);
+ const ok=()=>{
+  clearTimeout(t);
+  S.ready=true;
+  rr();
+ };
+
+ col("profile").doc("me").onSnapshot(s=>{
+  if(s.data?.())S.me={...S.me,...s.data()};
+  rr();
+ },()=>{});
+
+ col("settings").doc("prefs").onSnapshot(s=>{
+  if(s.data?.())S.prefs=s.data();
+  rr();
+ },()=>{});
+
+ col("photos").onSnapshot(s=>{
+  const all=s.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>b.date-a.date);
+  const r=all.filter(p=>!p.del);
+
+  S.demo=false;
+  S.photos=r;
+  S.trash=all.filter(p=>p.del);
+
+  if(r.length&&!r.some(p=>D(p).getFullYear()==S.year)){
+   S.year=Math.max(...r.map(p=>D(p).getFullYear()));
+  }
+
+  const old=S.trash.filter(p=>Date.now()-p.del>30*864e5);
+  if(old.length){
+   S.trash=S.trash.filter(p=>!old.includes(p));
+   purge(old);
+  }
+  ok();
+ },()=>{
+  S.demo=false;
+  S.photos=[];
+  S.trash=[];
+  ok();
+ });
+
+ col("albums").onSnapshot(s=>{
+  S.albums=s.docs.map(x=>({id:x.id,...x.data()}));
+  rr();
+ },()=>{});
+
 })();
