@@ -43,7 +43,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-dr]");if(b
 window.driveCard=()=>{const s=D.st,P=S.photos,done=P.filter(p=>p.sp=="supabase"&&p.bs=="done").length,fail=P.filter(p=>p.bs=="failed").length,todo=P.filter(p=>p.sp=="supabase"&&p.bs!="done").length,only=P.filter(p=>p.sp=="drive").length;
  const R=(a,b,x="")=>`<div class=row${x}><span>${a}</span>${b}</div>`,B=(k,t)=>`<button class=chip data-dr=${k}>${t}</button>`;let h;
  if(!s)h=R("Status",'<span class=mu>Checking…</span>',' style="border:0"');
- else if(!s.connected)h=R('<span class=dot></span>Not connected',B("connect","Connect"),' style="border:0"')+`<p class=mu style="font-size:11px;margin:4px 0 0">Access is limited to files created by MIKA Photos. Nothing is ever made public.</p>`;
+ else if(!s.connected)h=R('<span class=dot></span>Not connected',B("connect","Connect"),' style="border:0"')+`<p class=mu style="font-size:11px;margin:4px 0 0">Access is limited to files created by MIKA. Nothing is ever made public.</p>`;
  else if(s.status=="expired")h=R('<span class="dot r"></span>Session expired',B("connect","Reconnect"))+R("Account",B("disc","Disconnect"),' style="border:0"');
  else h=R('<span class="dot g"></span>Connected',`<span class="mu v">${esc(s.email||"")}</span>`)+R("Folder",`<span style="display:flex;gap:6px;align-items:center"><span class="mu v">${esc(s.folder_name||"—")}</span>${B("folder","Change")}</span>`)
   +R("Open / share folder",`<span style="display:flex;gap:6px">${B("open","Open")}${B("share","Share")}</span>`)+R("Auto backup",B("auto",s.auto_backup?"On":"Off"))
