@@ -7,10 +7,41 @@ const D=window.LDrive={st:null,busy:false,uf:0,ff:[],lastErr:""};
 const hdr=async()=>{const{data:{session}}=await sb.auth.getSession();return{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token,apikey:C.SUPABASE_ANON_KEY}};
 async function raw(action,body={}){if(!navigator.onLine)throw E("offline");try{return await fetch(FN,{method:"POST",headers:await hdr(),body:JSON.stringify({action,...body})})}catch(e){throw E("offline")}}
 async function call(action,body){const r=await raw(action,body),j=await r.json().catch(()=>({}));if(!r.ok)throw E(j.code||"error",j.message);return j}
-D.up=async f=>{const mime=f.type||"application/octet-stream",{uploadUrl}=await call("init_upload",{name:f.name,mime,size:f.size});let r;
- try{r=await fetch(uploadUrl,{method:"PUT",headers:{"Content-Type":mime},body:f})}catch(e){throw E("offline")}
- if(!r.ok){const t=await r.text().catch(()=>"");throw E(/quota/i.test(t)?"quota":r.status==401?"token_expired":r.status==404?"folder_missing":"upload_failed")}
- return(await r.json()).id};
+
+D.up=async f=>{
+ const mime=f.type||"application/octet-stream";
+ const {uploadUrl}=await call("init_upload",{name:f.name,mime,size:f.size});
+
+ return new Promise((resolve,reject)=>{
+  const x=new XMLHttpRequest();
+  x.open("PUT",uploadUrl);
+  x.setRequestHeader("Content-Type",mime);
+
+  x.upload.onprogress=e=>{
+   if(e.lengthComputable){
+    const percent=Math.round(e.loaded/e.total*100);
+    if(typeof D.onProgress==="function"){
+     D.onProgress(f,percent,e.loaded,e.total);
+    }
+   }
+  };
+
+  x.onload=()=>{
+   if(x.status>=200&&x.status<300){
+    try{resolve(JSON.parse(x.responseText).id)}
+    catch(e){reject(E("upload_failed"))}
+   }else{
+    const t=x.responseText||"";
+    reject(E(/quota/i.test(t)?"quota":x.status===401?"token_expired":x.status===404?"folder_missing":"upload_failed"));
+   }
+  };
+
+  x.onerror=()=>reject(E("offline"));
+  x.onabort=()=>reject(E("upload_failed"));
+  x.send(f);
+ });
+};
+
 D.refresh=async()=>{try{D.st=await call("status")}catch(e){D.st={connected:false,err:e.code}}rr()};
 D.init=()=>{const q=new URLSearchParams(location.search),r=q.get("drive");if(r){history.replaceState(null,"",location.pathname+location.hash);toast(r=="connected"?"Google Drive connected":"Couldn't connect Google Drive ("+(q.get("reason")||"error")+")")}D.refresh();if(LSB.orphans())D.orphanWarn()};
 D.orphanWarn=()=>toast("The file is in Google Drive, but saving its details failed.",{l:"Retry",f:async()=>{try{toast("Recovered: "+await LSB.retryOrphans())}catch(e){toast("Failed: "+e.message)}}});
