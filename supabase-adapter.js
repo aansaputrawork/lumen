@@ -105,7 +105,7 @@ const AS={
   const mode=f._th?"supabase":(window.LUMEN_MODE||"supabase");
 
   if(mode=="drive"){
-   if(f.type.startsWith("video"))throw new Error("Videos aren't supported in Google Drive only mode. Choose Supabase or Supabase + Drive.");
+   
    const did=await LDrive.up(f,(p,l,t)=>onProgress&&onProgress(p,l,t));
    META.set(did,{prov:"drive",did,bs:"done"});
    return{id:did,url:"",sizeBytes:f.size};
