@@ -7,7 +7,13 @@ window.sb=sb;let uid,SP;const R={},L={},TM={},RT=new Set(),META=new Map();
 const OR="lumen_orphans",orph=()=>{try{return JSON.parse(localStorage.getItem(OR)||"[]")}catch(e){return[]}},setOr=a=>{try{localStorage.setItem(OR,JSON.stringify(a))}catch(e){}};
 const login=()=>LumenLogin.show(sb); // UI ada di login.js; autentikasi tetap Supabase (signInWithPassword/signUp)
 const ses=()=>SP||(SP=sb.auth.getSession().then(async r=>{const s=r.data.session||await login();uid=s.user.id;return s}));
-sb.auth.onAuthStateChange(ev=>{if(ev=="SIGNED_OUT"&&uid)location.reload()});
+
+sb.auth.onAuthStateChange(ev=>{
+  if(ev=="SIGNED_OUT"&&uid){
+    location.replace(location.pathname+location.search+"#home");
+  }
+});
+
 async function sign(rows,raw){const P=[];raw.forEach(r=>{if(r.storage_provider=="supabase"&&r.storage_path)P.push(r.storage_path);if(r.data.tid)P.push(r.data.tid)});const M={};
 if(P.length){const{data}=await sb.storage.from("photos").createSignedUrls([...new Set(P)],86400);(data||[]).forEach(x=>{if(x.signedUrl)M[x.path]=x.signedUrl})}
 rows.forEach((x,i)=>{const r=raw[i];x.doc.th=r.data.tid?M[r.data.tid]||"":"";x.doc.url=r.storage_provider=="supabase"?(M[r.storage_path]||""):x.doc.th})}
