@@ -84,13 +84,7 @@ function vtNext(){
 
 
 
-function vtEnsure(p){
- if(!isVid(p)||p.th||VT[p.id]||VTB.has(p.id))return;
- if(!p.url&&!(p.sp=="drive"&&p.aid))return;
- VTB.add(p.id);
- VTQ.push(p);
- setTimeout(vtNext,0);
-}
+function vtEnsure(p)
 
 }
 {if(!isVid(p)||p.th||VT[p.id]||VTB.has(p.id)||!p.url)return;VTB.add(p.id);VTQ.push(p);setTimeout(vtNext,0)}
