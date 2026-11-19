@@ -1,4 +1,4 @@
-# Setup Lumen Photos + Supabase + Google Drive
+# Setup MIKA Photos + Supabase + Google Drive
 
 Isi ZIP tidak memuat secret apa pun. Semua nilai di bawah **Anda isi sendiri**.
 
@@ -46,7 +46,7 @@ Produksi: host di Netlify/Vercel/Cloudflare Pages/GitHub Pages.
 - Token: refresh token Google dienkripsi AES-GCM di tabel `drive_connections` (tidak bisa dibaca klien). Browser hanya menyimpan sesi Supabase standar.
 
 ## Batasan yang perlu Anda ketahui
-- Scope **drive.file** (paling terbatas): aplikasi hanya melihat file/folder yang ia buat sendiri. Maka "pilih folder" = pilih/buat folder buatan Lumen Photos; folder lama Anda tidak muncul. Alternatif (Google Picker) butuh API key & token di browser dan tidak dipakai demi keamanan.
+- Scope **drive.file** (paling terbatas): aplikasi hanya melihat file/folder yang ia buat sendiri. Maka "pilih folder" = pilih/buat folder buatan MIKA Photos; folder lama Anda tidak muncul. Alternatif (Google Picker) butuh API key & token di browser dan tidak dipakai demi keamanan.
 - **Berbagi folder**: tombol *Bagikan* membuka folder di Google Drive, lalu Anda memakai tombol Bagikan resmi Drive. Aplikasi tidak mengubah izin dan tidak pernah membuat apa pun publik.
 - Video belum didukung untuk mode *Drive saja* (hanya gambar).
 - Menghapus permanen foto tidak menghapus salinan di Google Drive (disengaja, agar aman).
@@ -56,7 +56,24 @@ Produksi: host di Netlify/Vercel/Cloudflare Pages/GitHub Pages.
 
 ## Checklist uji
 1. Daftar/masuk → upload foto "Supabase saja" → muncul di galeri, bisa dibuka/diunduh.
-2. Profil → Google Drive → Hubungkan → izinkan → status "Terhubung" dan folder "Lumen Photos" ada di Drive.
+2. Profil → Google Drive → Hubungkan → izinkan → status "Terhubung" dan folder "MIKA Photos" ada di Drive.
 3. Upload "Supabase + Drive" → file muncul di Supabase dan di folder Drive; lencana "S + Drive".
 4. Upload "Drive saja" → file hanya di Drive; lencana "Drive"; Download mengembalikan file asli.
 5. Putus internet saat upload → pesan koneksi + tombol Ulangi. Cabut akses di myaccount.google.com/permissions → status "Sesi kedaluwarsa" + Hubungkan ulang. Hapus folder di Drive → pesan "Folder tidak ditemukan".
+
+## 5. Login Google (baru)
+1. Google Cloud → OAuth client **Web** (boleh yang sama dengan Drive, atau baru). Tambahkan Authorized redirect URI: `https://<PROJECT_REF>.supabase.co/auth/v1/callback`.
+2. Supabase → Authentication → Providers → **Google**: aktifkan, isi Client ID & Secret.
+3. Supabase → Authentication → URL Configuration: **Site URL** = alamat aplikasi; **Redirect URLs** = alamat aplikasi (dan `com.lumen.photos://login-callback` untuk aplikasi native).
+4. Klien memakai alur PKCE (`?code=`), jadi tautan reset password dan login Google kembali ke halaman yang sama.
+Catatan: login Google (identitas) terpisah dari "Hubungkan Google Drive" (izin file). Keduanya perlu dihubungkan sendiri-sendiri.
+
+## 6. Migrasi 003 (paket, kuota, metadata, admin)
+Jalankan `supabase/migrations/003_cloud_foundation.sql` setelah 001 dan 002. Fitur: tabel `plans` (contoh Free/Pro/Business), `user_accounts`, kuota & batas ukuran file di database, kolom metadata terstruktur, `devices`, `shared_links`, `subscriptions`, `payments`, dan fungsi `admin_usage()`.
+Jadikan akun admin: `update public.user_accounts set role='admin' where user_id='<UUID>';` lalu buka `admin.html`.
+Upload file >6 MB memakai TUS (resumable) lewat `tus-js-client`; batas ukuran per file tetap mengikuti **Storage → Settings → Upload file size limit** di Supabase.
+
+## Cakupan fitur (jujur)
+Sudah berfungsi di kode: kuota per paket, pengelompokan otomatis (AI di browser), upload resumable >6 MB, "Wi-Fi saja" (Chrome Android), duplikat, daftar perangkat, login Google, dasbor admin sederhana.
+Hanya skema database (belum ada UI/server): tautan berbagi, password album, album privat, langganan, pembayaran. Pembayaran (mis. Midtrans/Xendit untuk IDR) butuh akun merchant dan webhook Edge Function yang menulis `subscriptions`/`payments`.
+Belum ada: backup latar belakang & notifikasi (native), build Android/iOS, import dari Drive, pencarian pintar berbasis isi foto.

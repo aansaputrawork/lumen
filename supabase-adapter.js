@@ -1,16 +1,11 @@
 // Adapter: menyediakan API window.claude.use("user"|"db"|"assets"|"downloads") di atas Supabase,
-// sehingga seluruh logika UI Lumen Photos yang lama tetap berjalan tanpa diubah.
+// sehingga seluruh logika UI MIKA Photos yang lama tetap berjalan tanpa diubah.
 (()=>{const C=window.LUMEN_CONFIG||{};
 if(!C.SUPABASE_URL||!C.SUPABASE_ANON_KEY){window.claude=null;return}
-const sb=supabase.createClient(C.SUPABASE_URL,C.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const sb=supabase.createClient(C.SUPABASE_URL,C.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
 window.sb=sb;let uid,SP;const R={},L={},TM={},RT=new Set(),META=new Map();
 const OR="lumen_orphans",orph=()=>{try{return JSON.parse(localStorage.getItem(OR)||"[]")}catch(e){return[]}},setOr=a=>{try{localStorage.setItem(OR,JSON.stringify(a))}catch(e){}};
-function login(){return new Promise(ok=>{const s=document.createElement("div");s.className="sheet";
-s.innerHTML=`<div><h3 style="margin-top:0">Masuk ke Lumen Photos</h3><input id=le type=email placeholder=Email autocomplete=email style="margin-bottom:8px"><input id=lp type=password placeholder=Password autocomplete=current-password style="margin-bottom:10px"><div id=lm class=mu style="min-height:20px;margin-bottom:8px;font-size:13px"></div><div style="display:flex;gap:8px"><button class=chip id=lr style="flex:1">Daftar</button><button class=btn id=li style="flex:2">Masuk</button></div></div>`;
-document.body.append(s);const m=s.querySelector("#lm"),go=async up=>{const c={email:s.querySelector("#le").value.trim(),password:s.querySelector("#lp").value};if(!c.email||!c.password){m.textContent="Isi email dan password.";return}m.textContent="Memproses…";
-let r;try{r=up?await sb.auth.signUp(c):await sb.auth.signInWithPassword(c)}catch(e){m.textContent="Koneksi internet terputus.";return}
-if(r.error){m.textContent=r.error.message;return}if(!r.data.session){m.textContent="Cek email untuk konfirmasi, lalu masuk.";return}s.remove();ok(r.data.session)};
-s.querySelector("#li").onclick=()=>go(0);s.querySelector("#lr").onclick=()=>go(1);s.querySelector("#lp").onkeydown=e=>{if(e.key=="Enter")go(0)}})}
+const login=()=>LumenLogin.show(sb); // UI ada di login.js; autentikasi tetap Supabase (signInWithPassword/signUp)
 const ses=()=>SP||(SP=sb.auth.getSession().then(async r=>{const s=r.data.session||await login();uid=s.user.id;return s}));
 sb.auth.onAuthStateChange(ev=>{if(ev=="SIGNED_OUT"&&uid)location.reload()});
 async function sign(rows,raw){const P=[];raw.forEach(r=>{if(r.storage_provider=="supabase"&&r.storage_path)P.push(r.storage_path);if(r.data.tid)P.push(r.data.tid)});const M={};
@@ -34,13 +29,16 @@ const coll=n=>({doc:id=>({set:d=>put(n,id,d),async delete(){const{error}=await s
  onSnapshot:(cb,er)=>watch(n,rows=>{const r=rows.find(x=>x.id===id);cb({data:()=>r?r.doc:undefined})},er)}),
  onSnapshot:(cb,er)=>watch(n,rows=>cb({docs:rows.map(r=>({id:r.id,data:()=>r.doc}))}),er)});
 const DB={doc:()=>({collection:coll}),collection:coll};
-const off=()=>Object.assign(new Error("Koneksi internet terputus. Periksa jaringan lalu coba lagi."),{code:"offline"});
+const BIG=6291456,tusUp=(key,f)=>new Promise(async res=>{const s=(await sb.auth.getSession()).data.session;
+ const u=new tus.Upload(f,{endpoint:C.SUPABASE_URL+"/storage/v1/upload/resumable",retryDelays:[0,2000,5000,10000,20000],headers:{authorization:"Bearer "+s.access_token,"x-upsert":"false"},uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,chunkSize:BIG,metadata:{bucketName:"photos",objectName:key,contentType:f.type||"application/octet-stream",cacheControl:"3600"},onError:e=>res({error:e}),onSuccess:()=>res({error:null})});
+ u.findPreviousUploads().then(p=>{if(p.length)u.resumeFromPreviousUpload(p[0]);u.start()})});
+const off=()=>Object.assign(new Error("You're offline. Check your connection and try again."),{code:"offline"});
 const AS={async upload(f){if(!navigator.onLine)throw off();await ses();
  const mode=f._th?"supabase":(window.LUMEN_MODE||"supabase");
- if(mode=="drive"){if(f.type.startsWith("video"))throw new Error("Video belum didukung untuk mode Google Drive saja. Pilih Supabase atau Supabase + Drive.");
+ if(mode=="drive"){if(f.type.startsWith("video"))throw new Error("Videos aren't supported in Google Drive only mode. Choose Supabase or Supabase + Drive.");
   const did=await LDrive.up(f);META.set(did,{prov:"drive",did,bs:"done"});return{id:did,url:"",sizeBytes:f.size}}
- const key=`${uid}/${f._th?"thumbs/":""}${Date.now()}_${Math.random().toString(36).slice(2,7)}_${f.name.replace(/[^\w.-]/g,"_")}`;
- const{error}=await sb.storage.from("photos").upload(key,f,{contentType:f.type||"application/octet-stream"});if(error)throw navigator.onLine?error:off();
+ const big=!f._th&&f.size>BIG&&window.tus,key=`${uid}/${f._th?"thumbs/":""}${big?f.lastModified+"_"+f.size:Date.now()+"_"+Math.random().toString(36).slice(2,7)}_${f.name.replace(/[^\w.-]/g,"_")}`;
+ const{error}=big?await tusUp(key,f):await sb.storage.from("photos").upload(key,f,{contentType:f.type||"application/octet-stream"});if(error)throw navigator.onLine?error:off();
  const{data}=await sb.storage.from("photos").createSignedUrl(key,3600);
  if(!f._th){const m={prov:"supabase",bs:"none"};
   if(mode=="both"){try{m.did=await LDrive.up(f);m.bs="done"}catch(e){m.bs="failed";LDrive.uf++;LDrive.lastErr=e.message}}META.set(key,m)}

@@ -1,0 +1,11 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MIKA Admin</title>
+<link rel="stylesheet" href="login.css"><style>body{font:14px system-ui;margin:0;padding:24px;background:#0C0A0B;color:#F5F1F2;color-scheme:dark}
+table{border-collapse:collapse;width:100%;max-width:960px}th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(128,128,128,.25)}.bar{height:6px;background:rgba(128,128,128,.25);border-radius:9px;min-width:90px}.bar i{display:block;height:100%;background:#CD0921;border-radius:9px}</style></head><body>
+<h1>MIKA Admin · Storage usage</h1><p id="s">Loading…</p><div style="overflow-x:auto"><table id="t"></table></div>
+<script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script><script src="login-config.js"></script><script src="login.js"></script>
+<script>(async()=>{const C=LUMEN_CONFIG,sb=supabase.createClient(C.SUPABASE_URL,C.SUPABASE_ANON_KEY,{auth:{flowType:"pkce",detectSessionInUrl:true}});
+const e=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),gb=b=>(b/1e9).toFixed(2)+" GB";
+let r=await sb.auth.getSession();if(!r.data.session)await LumenLogin.show(sb);
+const{data,error}=await sb.rpc("admin_usage");if(error){s.textContent=error.message.includes("forbidden")?"This account is not an admin.":"Failed: "+error.message;return}
+const tot=data.reduce((a,x)=>a+x.used_bytes,0);s.textContent=data.length+" users · total "+gb(tot);
+t.innerHTML="<tr><th>Email</th><th>Plan</th><th>Used</th><th>Quota</th><th>Photos/videos</th><th>Last upload</th></tr>"+data.map(x=>`<tr><td>${e(x.email)}</td><td>${e(x.plan_id)}</td><td>${gb(x.used_bytes)}<div class=bar><i style="width:${Math.min(100,x.used_bytes/x.quota_bytes*100)}%"></i></div></td><td>${gb(x.quota_bytes)}</td><td>${x.photo_count}</td><td>${x.last_upload?new Date(x.last_upload).toLocaleDateString():"—"}</td></tr>`).join("")})()</script></body></html>

@@ -1,0 +1,126 @@
+/* =====================================================================
+   GALERI KALENDER (detail bulan) + PREVIEW FOTO
+   - Detail bulan: grid kalender 7 kolom, satu kotak per hari, bulan menumpuk ke bawah.
+   - Preview foto: latar blur dari foto, tombol kaca, strip thumbnail, bar aksi kaca.
+   Logika ada di gallery.js. Gaya kaca memakai token --pg-* dari popup.css.
+   ===================================================================== */
+
+/* ---------- detail bulan: grid kalender ---------- */
+.cgd{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.dy{position:relative;display:block;width:100%;aspect-ratio:1;padding:0;border:0;border-radius:16px;overflow:visible;
+ color:#fff;font-size:13px;font-weight:600;letter-spacing:-.01em;
+ background:var(--sf) center/cover no-repeat;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),0 8px 16px -8px rgba(0,0,0,.5);
+ animation:dyin .6s var(--e) both;animation-delay:min(calc(var(--i,0)*14ms),420ms);
+ transition:transform .45s var(--e),box-shadow .45s var(--e),opacity .3s}
+.dy span{position:absolute;left:0;right:0;bottom:4px;z-index:2;text-align:center;pointer-events:none;text-shadow:0 1px 8px rgba(0,0,0,.75)}
+/* hari berfoto: kilau kaca + gradasi bawah supaya angka terbaca */
+.dy.has{cursor:pointer;border-radius:16px}
+.dy.has::before{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;
+ background:linear-gradient(145deg,rgba(255,255,255,.26),transparent 38%),linear-gradient(transparent 50%,rgba(0,0,0,.58))}
+.dy.has:active{transform:scale(.92)}
+/* hari kosong: redup, hanya garis tipis */
+.dy.em{background:rgba(128,128,128,.07);box-shadow:inset 0 0 0 1px rgba(128,128,128,.22);color:var(--mu);font-weight:500;opacity:.6;pointer-events:none}
+.dy.em span{text-shadow:none}
+.dy.td.em{opacity:1;color:var(--tx);box-shadow:inset 0 0 0 1.5px var(--tx)}
+/* hari terpilih: bingkai putih + cahaya hangat (sama seperti referensi) */
+.dy.on{transform:scale(1.09);z-index:3;
+ box-shadow:inset 0 0 0 1.6px rgba(255,255,255,.95),0 0 0 1.6px rgba(255,255,255,.7),0 0 26px 4px rgba(205,9,33,.7)}
+/* hanya video di hari itu */
+.dy.vd{background:linear-gradient(135deg,#2e1d22,#140e10)}
+.dy.vd::after{content:"▶";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:#fff;opacity:.75;padding-bottom:10px}
+/* jumlah foto jika lebih dari satu */
+.dy .n{position:absolute;top:4px;right:4px;z-index:2;min-width:17px;height:17px;padding:0 5px;border-radius:9px;font-style:normal;font-size:10px;font-weight:700;
+ display:grid;place-items:center;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.35)}
+@keyframes dyin{from{opacity:0;transform:scale(.8)}}
+/* nama hari di atas grid */
+.cwk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:0 0 8px;text-align:center;font-size:11px;font-weight:600;color:var(--mu);letter-spacing:.04em}
+.cm{padding-bottom:20px}
+
+/* ---------- preview foto ---------- */
+.view.pv{background:#000;animation:pvfade .35s var(--e)}
+@keyframes pvfade{from{opacity:0}}
+@keyframes pvtop{from{opacity:0;transform:translateY(-16px)}}
+@keyframes pvbot{from{opacity:0;transform:translateY(22px)}}
+
+.pv-bgw{position:absolute;inset:0;overflow:hidden;background:#070405;pointer-events:none}
+.pv-bgw::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.5),transparent 30%,transparent 52%,rgba(0,0,0,.7))}
+.pv-bg{position:absolute;inset:-14%;background:#111 center/cover no-repeat;filter:blur(48px) saturate(1.5) brightness(.52);opacity:0;transition:opacity .6s var(--e)}
+.pv-bg.in{opacity:1}
+
+.pv .st{position:absolute;inset:0;z-index:1}
+.pv .sl{padding:calc(76px + env(safe-area-inset-top,0px)) 14px calc(172px + env(safe-area-inset-bottom,0px))}
+.pv .pw{position:relative;align-self:stretch;justify-self:stretch;min-width:0;min-height:0;display:grid;place-items:center;will-change:transform,opacity}
+.pv .pw img,.pv .pw video{max-width:100%;max-height:100%;border-radius:26px;object-fit:contain;background:#111;
+ box-shadow:0 28px 70px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.14);
+ transition:transform .3s,border-radius .35s var(--e),box-shadow .35s;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+.pv.zm .pw img{border-radius:0;box-shadow:none}
+
+.pc{transition:opacity .35s var(--e),transform .5s var(--e)}
+.pv.hb .pv-top{opacity:0;transform:translateY(-14px);pointer-events:none}
+.pv.hb .pv-bot{opacity:0;transform:translateY(16px);pointer-events:none}
+
+.pv-top{position:absolute;left:0;right:0;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:10px;
+ padding:calc(12px + env(safe-area-inset-top,0px)) 14px 0;animation:pvtop .55s var(--e)}
+.pv-b,.pv-t{color:#fff;background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);border:1.3px solid rgba(255,255,255,.4)}
+.pv-b{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
+.pv-t{min-width:0;max-width:calc(100% - 120px);display:grid;justify-items:center;gap:1px;padding:7px 18px;border-radius:99px}
+.pv-t b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600}
+.pv-t span{font-size:11px;opacity:.72;white-space:nowrap}
+
+.pv-bot{position:absolute;left:0;right:0;bottom:0;z-index:3;display:grid;justify-items:center;gap:10px;
+ padding:0 0 calc(14px + env(safe-area-inset-bottom,0px));animation:pvbot .55s var(--e)}
+.pv-fs{position:relative;display:flex;gap:6px;width:100%;overflow-x:auto;scrollbar-width:none;padding:8px calc(50% - 22px);
+ -webkit-mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent)}
+.pv-fs::-webkit-scrollbar{display:none}
+.ft{flex:none;position:relative;width:44px;height:58px;border-radius:13px;overflow:hidden;background:#222;opacity:.5;transform:scale(.86);
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:transform .45s var(--e),opacity .3s,box-shadow .3s}
+.ft img{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;border-radius:0;pointer-events:none}
+.ft.a{opacity:1;transform:scale(1.05);box-shadow:0 0 0 1.5px #fff,0 6px 18px rgba(0,0,0,.5)}
+.fv{display:grid;place-items:center;height:100%;font-size:11px;color:#fff}
+
+.pv-bar{display:flex;gap:2px;padding:6px;border-radius:99px;
+ background:var(--pg-bg,rgba(28,30,34,.58));-webkit-backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));
+ border:var(--pg-bw,1.3px) solid var(--pg-line,rgba(255,255,255,.5))}
+.pv-bar button{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.pv-bar button:active{background:rgba(255,255,255,.18)}
+.pv-bar svg{display:block}
+
+/* info foto (sheet kaca) */
+.pvi .row{padding:12px 0}
+.pvi .v{max-width:62%;text-align:right;overflow-wrap:anywhere}
+.pvi .chip{border:1px solid rgba(255,255,255,.3);padding:7px 14px;font-size:13px}
+
+/* pil kategori di atas strip thumbnail */
+.pv-cat{display:inline-flex;align-items:center;padding:7px 18px;border-radius:99px;font-size:13px;font-weight:600;letter-spacing:.01em;color:#fff;
+ background:var(--pg-bg,rgba(28,30,34,.58));-webkit-backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));
+ border:var(--pg-bw,1.3px) solid var(--pg-line,rgba(255,255,255,.5))}
+.pv-cat.pop{animation:catpop .45s var(--e)}
+@keyframes catpop{from{opacity:0;transform:translateY(8px) scale(.94)}}
+
+/* tombol play melayang di tengah video + penggeser waktu */
+.pv .pw .vpl{position:absolute;left:50%;top:50%;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;display:grid;place-items:center;color:#fff;
+ background:var(--pg-bg,rgba(28,30,34,.58));-webkit-backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));
+ border:var(--pg-bw,1.3px) solid var(--pg-line,rgba(255,255,255,.5));box-shadow:0 10px 30px rgba(0,0,0,.35);transition:opacity .3s,transform .45s var(--e)}
+.pv .pw .vpl svg{margin-left:4px}
+.pv .pw .vpl:active{transform:scale(.93)}
+.pv .sl.playing .vpl{opacity:0;transform:scale(.8);pointer-events:none}
+.pv .pw .vsk{position:absolute;left:8%;right:8%;bottom:6px;width:84%;height:26px;margin:0;padding:0;border:0;background:none;-webkit-appearance:none;appearance:none;touch-action:none;cursor:pointer;transition:opacity .35s}
+.pv.hb .vsk{opacity:0;pointer-events:none}
+.vsk::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:rgba(255,255,255,.32)}
+.vsk::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:#fff;border:0;box-shadow:0 1px 6px rgba(0,0,0,.5)}
+.vsk::-moz-range-track{height:4px;border-radius:2px;background:rgba(255,255,255,.32)}
+.vsk::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:#fff}
+
+/* tarik ke bawah / sedang menutup: kontrol memudar, animasi lain tidak bentrok */
+.pv.dg .pc,.pv.pcl .pc{opacity:0;pointer-events:none}
+.pv.pcl .pv-top,.pv.pcl .pv-bot{animation:none}
+.pv.pcl .pw img,.pv.pcl .pw video{box-shadow:none}
+.pv.pcl .vpl,.pv.pcl .vsk{opacity:0}
+
+/* tombol favorit (hati) & detail di bar aksi preview */
+.pv-bar button{transition:color .25s,background-color .25s,transform .35s var(--e)}
+.pv-bar button[data-f].on{color:#FF4B5C}
+.pv-bar button[data-f].on svg{filter:drop-shadow(0 0 8px rgba(205,9,33,.65))}
+.pv-t{pointer-events:none}
+.pv-sp{flex:none;width:44px;height:44px}
