@@ -214,8 +214,11 @@ v.querySelectorAll("video[data-drive-video]").forEach(async el=>{
  const p=list.find(x=>x.id===el.dataset.driveVideo);
  if(!p)return;
  try{
-  const blob=await getBlob(p);
-  const url=URL.createObjectURL(blob);
+  const data=await getBlob(p);
+const blob=data.type.startsWith("video/")
+ ? data
+ : new Blob([data],{type:p.type||"video/mp4"});
+const url=URL.createObjectURL(blob);
   v._driveVideoUrls.push(url);
   if(document.body.contains(el)){
    el.src=url;
