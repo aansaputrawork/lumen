@@ -215,6 +215,13 @@ v.querySelectorAll("video[data-drive-video]").forEach(async el=>{
  if(!p)return;
  try{
   const data=await getBlob(p);
+  console.log("MIKA VIDEO DEBUG",{
+ type:p.type,
+ blobType:data.type,
+ size:data.size
+});
+el.onerror=()=>console.error("VIDEO ERROR",el.error);
+el.onloadedmetadata=()=>console.log("VIDEO METADATA",el.videoWidth,el.videoHeight,el.duration);
 const blob=data.type.startsWith("video/")
  ? data
  : new Blob([data],{type:p.type||"video/mp4"});
