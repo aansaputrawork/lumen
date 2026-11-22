@@ -61,7 +61,7 @@ window.lBadge=p=>p.sp=="drive"?'<i class=lb>Drive</i>':p.bs=="done"?'<i class=lb
 window.lLoc=p=>p.sp=="drive"?" · Google Drive":p.bs=="done"?" · Supabase + Drive":p.bs=="failed"?" · Supabase (Drive backup failed)":p.sp=="supabase"?" · Supabase":"";
 window.storagePicker=()=>{const d=dflt(),o=ok(),a=o&&d&&d.auto_backup,L=live();
  const dc=L.length>1?`<label class=mu>Google Drive account</label><select id=dc style="margin-bottom:6px">${L.map(x=>`<option value="${esc(x.id)}" ${x.is_default?"selected":""}>${esc(x.email||"")}${x.is_default?" (default)":""}</option>`).join("")}</select>`:"";
- return`<label class=mu>Storage</label><select id=sm style="margin-bottom:6px"><option value=both ${o?"":"disabled"} ${a?"selected":""}>Mika Cloud + Google Drive</option><option value=supabase ${a?"":"selected"}>Mika cloud</option><option value=drive ${o?"":"disabled"}>Google Drive</option></select>${o?"":`<div class=mu style="font-size:12px;margin-bottom:6px">Connect Google Drive in Profile to use the Drive options.</div>`}${dc}`};
+ return`<label class=mu>Storage</label><select id=sm style="margin-bottom:6px"><option value=both ${o?"":"disabled"} ${a?"selected":""}>MIKA Cloud + Google Drive</option><option value=supabase ${a?"disabled":""} ${a?"":"selected"}>MIKA Cloud${a?" (automatic backup is ON)":""}</option><option value=drive ${o?"":"disabled"}>Google Drive only</option></select>${a?`<div class=mu style="font-size:12px;margin-bottom:6px">Automatic backup is ON. New uploads are saved to MIKA Cloud and Google Drive.</div>`:o?"":`<div class=mu style="font-size:12px;margin-bottom:6px">Connect Google Drive in Profile to use the Drive options.</div>`}${dc}`};
 window.lMode=s=>{const m=(s.querySelector("#sm")||{}).value||"supabase";D.ff.length=0;D.uf=0;if(m!="supabase"&&!ok()){toast(MSG[drives().some(x=>x.status=="expired")?"token_expired":"not_connected"]);return null}window.LUMEN_DRIVE=(s.querySelector("#dc")||{}).value||"";return m};
 window.lSuffix=()=>(D.ff.length?" · failed: "+D.ff.length:"")+(D.uf?" · Drive backup failed: "+D.uf:"");
 window.lAct=()=>{if(D.ff.length){const l=D.ff.splice(0);D.uf=0;return{l:"Retry",f:()=>upload(l)}}if(D.uf){D.uf=0;return{l:"Retry",f:()=>backup(S.photos.filter(p=>p.bs=="failed"))}}};
@@ -70,6 +70,17 @@ async function backup(l){if(D.busy||!l.length)return;D.busy=true;window.LUMEN_DR
   catch(e){bad++;last=e;await sb.from("photos").update({backup_status:"failed"}).eq("id",p.id);if(["token_expired","not_connected","quota","offline","folder_missing"].includes(e.code))break}}
  D.busy=false;await LSB.reload("photos");D.refresh();toast(bad?`${n} backed up, ${bad} failed: ${last.message}`:`${n} photo${n==1?"":"s"} backed up to Google Drive`)}
 const furl=d=>"https://drive.google.com/drive/folders/"+d.folder_id;
+function manualBackup(){
+ const items=S.photos.filter(p=>p.sp=="supabase"&&p.bs!="done");
+ if(!items.length)return toast("All MIKA Cloud files are already backed up");
+ const chosen=new Set(),s=document.createElement("div");s.className="sheet";
+ s.innerHTML=`<div class="mbsheet" style="max-width:680px;max-height:90vh"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div><h3 style="margin:0">Manual backup</h3><div class="mu" style="font-size:12px;margin-top:4px">Choose photos and videos from your MIKA Cloud library</div></div><button class="chip" data-mb-close>Close</button></div><div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 10px;gap:8px"><span class="mu" id="mbcount">0 selected</span><button class="chip" data-mb-all>Select all</button></div><div class="mbgrid">${items.map(p=>`<div class="mi" data-mb-id="${esc(p.id)}" style="margin:0;position:relative;overflow:hidden;border-radius:16px;outline:2px solid transparent;cursor:pointer">${media(p)}<span class="mbcheck" style="position:absolute;right:8px;top:8px;width:24px;height:24px;border-radius:50%;border:2px solid white;background:rgba(0,0,0,.3);display:grid;place-items:center;color:white;font-size:14px">✓</span><span style="position:absolute;left:6px;right:6px;bottom:6px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,.55);color:white;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name||"Untitled")}</span></div>`).join("")}</div><div class="mu" style="font-size:11px;margin-top:8px">${items.length} files available to back up</div><button class="btn" data-mb-go disabled style="width:100%;margin-top:14px">Back up selected files</button></div>`;
+ document.body.append(s);
+ const count=s.querySelector("#mbcount"),go=s.querySelector("[data-mb-go]"),all=s.querySelector("[data-mb-all]");
+ const paint=()=>{count.textContent=chosen.size+" selected";go.disabled=!chosen.size;go.textContent=chosen.size?`Back up ${chosen.size} selected file${chosen.size==1?"":"s"}`:"Back up selected files";s.querySelectorAll("[data-mb-id]").forEach(el=>{const on=chosen.has(el.dataset.mbId);el.style.outline=on?"3px solid var(--ac)":"2px solid transparent";el.querySelector(".mbcheck").style.background=on?"var(--ac)":"rgba(0,0,0,.3)";el.querySelector(".mbcheck").style.borderColor=on?"var(--ac)":"white"})};
+ s.addEventListener("click",e=>{if(e.target.closest("[data-mb-close]")||e.target===s){closeS(s);return}if(e.target.closest("[data-mb-all]")){if(chosen.size===items.length)chosen.clear();else items.forEach(p=>chosen.add(p.id));all.textContent=chosen.size===items.length?"Clear selection":"Select all";paint();return}const el=e.target.closest("[data-mb-id]");if(el){const id=el.dataset.mbId;chosen.has(id)?chosen.delete(id):chosen.add(id);all.textContent=chosen.size===items.length?"Clear selection":"Select all";paint()}});
+ go.onclick=()=>{const picked=items.filter(p=>chosen.has(p.id));closeS(s);backup(picked)};
+}
 const A={
  async connect(){try{location.href=(await call("start")).url}catch(e){toast("Failed: "+e.message)}},
  disc(id){const d=dr(id);actSheet("Disconnect "+(d.email||"Google Drive")+"?","Its access token is deleted from the server. Files in Drive are not deleted. Photos stored only in this Drive can't be opened or downloaded in full until you reconnect it.","Disconnect",async()=>{try{await call("disconnect",{conn_id:d.id});toast("Disconnected");D.refresh()}catch(e){toast("Failed: "+e.message)}})},
@@ -81,6 +92,7 @@ const A={
  async auto(id){const d=dr(id);try{await call("set_auto",{conn_id:d.id,value:!d.auto_backup});D.refresh()}catch(e){toast("Failed: "+e.message)}},
  retry(){backup(S.photos.filter(p=>p.bs=="failed"))},
  all(){backup(S.photos.filter(p=>p.sp=="supabase"&&p.bs!="done"))},
+ manual(){manualBackup()},
  async orph(){try{toast("Recovered: "+await LSB.retryOrphans())}catch(e){toast("Failed: "+e.message)}},
  imp(){D.imp()},
  logout(){LSB.logout()}};
@@ -98,12 +110,14 @@ D.imp=async cid=>{const L=live();if(!L.length)return toast(MSG.not_connected);
  if(cid==null)cid=L[0].id;
  let k;try{k=await call("pick_token",{conn_id:cid})}catch(e){return toast(e.code=="picker_not_configured"?MSG.picker_not_configured:"Failed: "+e.message)}
  try{await loadPicker()}catch(e){return toast("Failed: "+e.message)}
- const v=new google.picker.DocsView(google.picker.ViewId.DOCS_IMAGES_AND_VIDEOS).setIncludeFolders(true).setSelectFolderEnabled(false);
- new google.picker.PickerBuilder().addView(v).enableFeature(google.picker.Feature.MULTISELECT_ENABLED).setOAuthToken(k.token).setDeveloperKey(k.api_key).setAppId(k.app_id)
-  .setCallback(d=>{if(d.action==google.picker.Action.PICKED)D.doImport(k.conn_id,(d.docs||[]).map(x=>x.id))}).build().setVisible(true)};
-D.doImport=async(cid,ids)=>{if(!ids.length)return;if(!assets)return toast("Imports need editor access to this page");
- try{toast("Reading files…");const have=new Set([...S.photos,...S.trash].map(p=>p.aid)),{files}=await call("import_info",{conn_id:cid,ids});
-  const todo=files.filter(f=>!have.has(f.id));if(!todo.length)return toast(files.length?"Already in your library":"No photos or videos selected");
+ const v=new google.picker.DocsView(google.picker.ViewId.DOCS_IMAGES_AND_VIDEOS).setIncludeFolders(false).setSelectFolderEnabled(false).setEnableDrives(true);
+ const builder=new google.picker.PickerBuilder().addView(v).enableFeature(google.picker.Feature.MULTISELECT_ENABLED).enableFeature(google.picker.Feature.SUPPORT_DRIVES).setOAuthToken(k.token).setDeveloperKey(k.api_key).setAppId(String(k.app_id)).setOrigin(location.protocol+"//"+location.host)
+  .setCallback(d=>{if(d.action==google.picker.Action.PICKED){const docs=d[google.picker.Response.DOCUMENTS]||d.docs||[],ids=docs.map(x=>x[google.picker.Document.ID]||x.id).filter(Boolean);if(!ids.length)return toast("Google Picker did not return any selected files. Select photos/videos and press Open.");D.doImport(k.conn_id,ids)}});
+ builder.build().setVisible(true)};
+D.doImport=async(cid,ids)=>{if(!Array.isArray(ids)||!ids.length)return toast("No files were returned by Google Picker");if(!assets)return toast("Imports need editor access to this page");
+ try{toast("Reading files…");const have=new Set([...S.photos,...S.trash].map(p=>p.aid)),{files=[],skipped=[]}=await call("import_info",{conn_id:cid,ids});
+  if(!files.length){console.warn("MIKA Drive import: no readable media returned",{selected:ids.length,skipped});return toast(skipped.length?`Google Drive couldn't read the selected file (${skipped[0].code||"access error"}). Check Drive API access and try reconnecting the account.`:"The selected items are not supported photos or videos.")}
+  const todo=files.filter(f=>!have.has(f.id));if(!todo.length)return toast("Already in your MIKA library");
   let n=0,bad=0;
   for(const f of todo){toast(`Importing ${n+bad+1}/${todo.length}…`);
    try{let w=f.w,h=f.h,dur=f.dur,th="",tid="",cat=f.mime.startsWith("video")?"Motion":(S.prefs&&S.prefs.cat&&S.prefs.cat!="Auto"?S.prefs.cat:"Auto");
@@ -129,7 +143,8 @@ window.driveCard=()=>{const s=D.st,P=S.photos,done=P.filter(p=>p.sp=="supabase"&
   +R("Add another Google Drive",B("connect","Add"))
   +R("Import from Google Drive",B("imp","Import"))
   +R("Backup status",`<span class=mu>${done} backed up${only?` · ${only} Drive only`:""}${fail?` · <b style="color:var(--ac2)">${fail} failed</b>`:""}</span>`)
-  +(fail||todo?R(todo?`${todo} not backed up yet`:"",`<span style="display:flex;gap:6px">${fail?B("retry","Retry"):""}${todo?B("all","Back up"):""}</span>`):"")
+  +(fail||todo?R(todo?`${todo} not backed up yet`:"",`<span style="display:flex;gap:6px">${fail?B("retry","Retry"):""}${todo?B("all","Back up all"):""}</span>`):"")
+  +(todo?R("Manual backup",B("manual","Choose files")):"")
   +(LSB.orphans()?R("Pending details",B("orph","Recover")):"")+R("Sign out of MIKA",B("logout","Sign out"),' style="border:0"');
  return`<div class=gp><div class=tt>Google Drive</div>${h}</div>`};
 })();

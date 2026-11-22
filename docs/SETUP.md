@@ -88,7 +88,7 @@ Belum ada: backup latar belakang & notifikasi (native), build Android/iOS, impor
 File di Drive tidak bisa dijelajahi bebas karena scope `drive.file` (sengaja dibatasi). Impor memakai **Google Picker**: file yang Anda pilih di jendela Picker otomatis boleh diakses aplikasi. File **tidak disalin**; hanya dicatat di perpustakaan (thumbnail dibuat), dan menghapusnya dari MIKA tidak menghapus file di Drive.
 Konfigurasi sekali saja:
 1. Google Cloud Console (project yang sama dengan OAuth): **APIs & Services > Library** > aktifkan **Google Picker API**.
-2. **Credentials > Create credentials > API key**. Batasi key: *Websites* = alamat aplikasi Anda, *API restrictions* = Google Picker API.
+2. **Credentials > Create credentials > API key**. Batasi key: *Websites* = alamat aplikasi Anda dan `https://docs.google.com/*`; *API restrictions* = Google Picker API dan Google Drive API. Pastikan kedua API tersebut aktif di project yang sama.
 3. Catat **Project number** (Dashboard > Project info).
 4. Set secret lalu deploy ulang:
 ```

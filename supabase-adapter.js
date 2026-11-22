@@ -31,7 +31,11 @@ async function sign(rows,raw){
   const r=raw[i];
   x.doc.th=r.data.tid?M[r.data.tid]||"":"";
   x.doc.sp=r.storage_path?"supabase":r.google_drive_file_id?"drive":"";
-  x.doc.bs=r.storage_path&&r.google_drive_file_id?"done":"none";
+  // Older builds stored a Supabase+Drive backup in google_drive_file_id.
+  // Prefer the dedicated backup_drive_file_id, but keep legacy rows readable.
+  const backupId=r.backup_drive_file_id||(r.storage_path?r.google_drive_file_id:"");
+  x.doc.bs=r.storage_path?(backupId?"done":(r.backup_status||"none")):"none";
+  x.doc.bid=backupId||"";
   x.doc.gid=r.google_drive_file_id||"";
   x.doc.cid=r.drive_conn_id||"";
   x.doc.url=r.storage_path?(M[r.storage_path]||""):x.doc.th;
@@ -62,11 +66,17 @@ async function put(n,id,d){
 
   const m=META.get(d.aid);
   if(m){
+   const cloud=m.prov=="supabase";
    cols={
-    storage_path:m.prov=="supabase"?d.aid:null,
-    google_drive_file_id:m.prov=="drive"?m.did:
-     m.prov=="supabase"?m.did||null:null,
-    drive_conn_id:m.cid||null
+    storage_provider:cloud?"supabase":"drive",
+    storage_path:cloud?d.aid:null,
+    google_drive_file_id:cloud?null:(m.did||null),
+    backup_drive_file_id:cloud?(m.did||null):null,
+    backup_status:cloud?(m.bs||(m.did?"done":"none")):"none",
+    drive_conn_id:m.cid||null,
+    mime_type:d.type||null,
+    file_size:d.size||null,
+    original_file_name:d.name||null
    };
   }
  }

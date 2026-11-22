@@ -173,7 +173,7 @@ Deno.serve(async (req) => {
         const o = await owns(uid, fid); let cid = o.cid;
         if (!o.ok) {   // belum ada di perpustakaan (mis. pratinjau saat impor): cukup bukti bahwa akun Drive pengguna sendiri bisa membaca file ini
           if (!b.conn_id) throw new Err("forbidden", 403);
-          const { t, c } = await tok(uid, String(b.conn_id)); await G(`${FILES}/${fid}?fields=id`, t); cid = c.id;
+          const { t, c } = await tok(uid, String(b.conn_id)); await G(`${FILES}/${fid}?supportsAllDrives=true&fields=id`, t); cid = c.id;
         }
         const exp = Date.now() + 6 * 3600000, sig = await sign(`s.${uid}.${fid}.${exp}.${cid}`), q: Record<string, string> = { u: uid, f: fid, e: String(exp), c: cid, s: sig };
         if (VMIME.test(String(b.mime || ""))) q.m = String(b.mime);
@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
         if (!FID.test(fid)) throw new Err("forbidden", 403);
         const o = await owns(uid, fid);
         if (!o.ok) throw new Err("forbidden", 403);
-        const { t } = await tok(uid, o.cid || undefined), r = await G(`${FILES}/${fid}?alt=media`, t);
+        const { t } = await tok(uid, o.cid || undefined), r = await G(`${FILES}/${fid}?alt=media&supportsAllDrives=true`, t);
         return new Response(r.body, { headers: { ...H, "Content-Type": r.headers.get("content-type") || "application/octet-stream" } });
       }
       // ---- Impor dari Google Drive (file dipilih lewat Google Picker; scope drive.file otomatis memberi akses ke file yang dipilih) ----
@@ -194,24 +194,24 @@ Deno.serve(async (req) => {
         return json({ token: t, api_key: OPT("PICKER_API_KEY"), app_id: OPT("PROJECT_NUMBER"), email: c.google_email, conn_id: c.id });
       }
       case "import_info": {
-        const { t, c } = await tok(uid, b.conn_id), ids = (Array.isArray(b.ids) ? b.ids : []).map(String).filter((x: string) => FID.test(x)).slice(0, 50), out: unknown[] = [];
+        const { t, c } = await tok(uid, b.conn_id), ids = (Array.isArray(b.ids) ? b.ids : []).map(String).filter((x: string) => FID.test(x)).slice(0, 50), out: unknown[] = [], skipped: unknown[] = [];
         for (const id of ids) {
           try {
-            const f = await (await G(`${FILES}/${id}?fields=${encodeURIComponent(META)}`, t)).json();
-            if (f.trashed || !/^(image|video)\//.test(f.mimeType || "")) continue;
+            const f = await (await G(`${FILES}/${id}?supportsAllDrives=true&fields=${encodeURIComponent(META)}`, t)).json();
+            if (f.trashed || !/^(image|video)\//.test(f.mimeType || "")) { skipped.push({ id, code: "not_media" }); continue; }
             out.push({ id: f.id, name: f.name, mime: f.mimeType, size: +f.size || 0, created: f.createdTime, w: f.imageMediaMetadata?.width || f.videoMediaMetadata?.width || 0, h: f.imageMediaMetadata?.height || f.videoMediaMetadata?.height || 0, dur: Math.round((+f.videoMediaMetadata?.durationMillis || 0) / 1000), taken: f.imageMediaMetadata?.time || "" });
-          } catch { /* file tidak bisa dibaca: lewati */ }
+          } catch (e) { skipped.push({ id, code: e instanceof Err ? e.code : "drive_error" }); }
         }
-        return json({ files: out, conn_id: c.id });
+        return json({ files: out, skipped, conn_id: c.id });
       }
       case "import_thumb": {
         const fid = String(b.file_id || ""); if (!FID.test(fid)) throw new Err("forbidden", 403);
-        const { t } = await tok(uid, b.conn_id), f = await (await G(`${FILES}/${fid}?fields=${encodeURIComponent(META)}`, t)).json();
+        const { t } = await tok(uid, b.conn_id), f = await (await G(`${FILES}/${fid}?supportsAllDrives=true&fields=${encodeURIComponent(META)}`, t)).json();
         if (f.thumbnailLink) {
           const r = await fetch(String(f.thumbnailLink).replace(/=s\d+$/, "=s800"), { headers: { Authorization: `Bearer ${t}` } });
           if (r.ok && /^image\//.test(r.headers.get("content-type") || "")) return new Response(r.body, { headers: { ...H, "Content-Type": r.headers.get("content-type")! } });
         }
-        if (/^image\//.test(f.mimeType || "") && (+f.size || 0) <= 15 * 1048576) { const r = await G(`${FILES}/${fid}?alt=media`, t); return new Response(r.body, { headers: { ...H, "Content-Type": f.mimeType } }); }
+        if (/^image\//.test(f.mimeType || "") && (+f.size || 0) <= 15 * 1048576) { const r = await G(`${FILES}/${fid}?alt=media&supportsAllDrives=true`, t); return new Response(r.body, { headers: { ...H, "Content-Type": f.mimeType } }); }
         throw new Err("no_thumb", 404);
       }
       default: throw new Err("bad_request");
