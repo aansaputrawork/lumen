@@ -42,7 +42,7 @@
 .asg{border-radius:var(--pg-r);overflow:hidden}
 .asc{display:block;width:100%;margin-top:6px;padding:13px;border-radius:99px;font-size:14px;font-weight:700}
 .ast{display:grid;justify-items:center;gap:3px;padding:17px 18px 13px;text-align:center;border-bottom:1px solid var(--pg-hair)}
-.ast b{font-size:13px;font-weight:700;color:#fff}.ast span{font-size:11px;color:var(--pg-mu);max-width:220px}
+.ast b{font-size:13px;font-weight:700;color:#fff}.ast span{font-size:12px;color:var(--pg-mu);max-width:220px}
 .asi{width:36px;height:36px;margin-bottom:4px;border-radius:50%;background:rgba(255,69,58,.2);color:#ff6961;display:grid;place-items:center}.asi svg{width:17px;height:17px}
 .asd{display:block;width:100%;padding:13px;font-size:14px;font-weight:600;color:#ff6961}
 .asd:active,.asc:active{background:var(--pg-hair)}
@@ -78,7 +78,7 @@
 .pfl{display:flex;align-items:center;gap:10px;min-width:0}
 .pfl>img,.pfl>i{flex:none;width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--pill);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:14px}
 .pfm{display:grid;gap:1px;min-width:0;text-align:left}
-.pfm .mu{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pfm .mu{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pfe h3{margin:0 0 16px;font-size:20px}
 .pfn{display:block;font-size:12px;color:var(--pg-mu);margin:18px 0 8px}
 .pfv{position:relative;height:132px;border-radius:24px;background:var(--pg-fill) center/cover no-repeat;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);margin-bottom:6px}
@@ -94,3 +94,9 @@
 .pfg{display:flex;flex-wrap:wrap;gap:8px}
 .pfg .chip{padding:9px 16px;font-size:14px;border:1px solid rgba(255,255,255,.3)}
 .pfg .chip.a{background:var(--on);color:var(--onx);border-color:transparent}
+
+/* Edit profile: foto profil + keterangan (tanpa cover) */
+.pfh{display:flex;align-items:center;gap:16px;margin-bottom:4px}
+.pfh .pfav{position:relative;left:auto;bottom:auto;flex:none}
+.pfm2{display:grid;gap:6px;justify-items:start;min-width:0;font-size:12px;color:var(--pg-mu,rgba(255,255,255,.65))}.pfm2 b{font-size:17px;color:#fff;font-weight:600}
+.pfm2 .chip{padding:7px 14px;font-size:14px}

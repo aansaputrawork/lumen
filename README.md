@@ -56,3 +56,42 @@ Data demo (foto, video, Supabase palsu) ada di `scripts/preview/`.
 ## Thumbnail video & album
 - **Thumbnail video**: saat upload, frame video diambil jadi poster JPG (`mkVThumb` di `app.js`, disimpan di `th`, tidak menambah kuota). Video lama tanpa poster dibuat otomatis saat pertama tampil (`vtEnsure`) lalu disimpan. Kartu album/kategori **Motion** & **Videos**, baris Media Types, Recents, dan viewer memakai poster ini (sebelumnya `<img>` menunjuk file video sehingga rusak).
 - **Nama album**: lebar teks "Moments" (`AREF`) pada ukuran acuan `AFS` (cqw) = batas maksimum lebar teks. Nama lebih panjang mengecil otomatis; kecilkan `AFS` kalau masih terasa mepet (fungsi `fs` di `app.js`).
+
+## Pembaruan: kalender video, preview, video Drive, tipografi
+- **Kalender**: tiap tanggal memakai item terbaru hari itu, foto ATAU video (poster diambil dari frame videonya). Penanda kecil ▶ (dengan jumlah bila lebih dari 1 video) di pojok kiri atas kotak; angka kanan atas = total item (`calUI` di `gallery.js`).
+- **Slider thumbnail** di preview: video memakai poster dari videonya + tanda ▶ (`thumb` di `gallery.js`).
+- **Preview**: 
+  - Frame foto/video **terkunci**: ukuran dihitung dari rasio `p.w/p.h` dan area yang sama (`fit()`), sehingga tidak membesar/mengecil saat thumbnail diganti foto penuh, saat video dimuat, saat menggeser, atau saat menu dibuka/ditutup. Area preview diperluas (ruang atas 62px, bawah 72px/134px bila ada slider; variabel `--pvb` di `gallery.css`).
+  - Urutan bawah ke atas: **dock menu** (paling bawah) -> **slider** tepat di atasnya. Kategori pindah ke pojok kanan atas.
+  - Dock berisi tombol toggle (⋯ / ˅). Ketuk untuk menampilkan semua aksi: Share, Favorite, Detail, Download, Delete. Pilihan terakhir diingat (`localStorage` kunci `pvMenu`; default tertutup).
+- **Video Google Drive bisa diputar**: video yang hanya ada di Drive tidak punya URL file (URL-nya thumbnail), jadi dulu tidak bisa diputar. Sekarang Edge Function `drive` punya aksi `stream_url` + endpoint `GET /drive/stream` (URL bertanda tangan HMAC berumur 6 jam, mendukung header `Range` sehingga bisa seek). Klien memakai `vidSrc(p)` (`drive.js`); jika streaming gagal otomatis unduh lalu putar dari blob. Poster video Drive juga diambil lewat stream, tidak lagi mengunduh seluruh file. **Wajib deploy ulang Edge Function**: `supabase functions deploy drive` (tidak ada secret/konfigurasi baru; `verify_jwt = false` sudah ada).
+- **Tipografi**: satu font untuk seluruh aplikasi lewat token `--font` (`style.css`), dan skala ukuran mengikuti halaman Album: judul halaman 28px/700, judul seksi 20px/700, judul kartu 17px/600, isi 15px/400, chip 14px, keterangan 12px. Pengecilan font khusus halaman Profile (`.pfp`) dihapus. Login, admin, popup dan preview memakai font yang sama.
+
+## Pembaruan preview (dock & hapus)
+- Nama/tanggal di atas preview: teks saja, tanpa kapsul (dengan bayangan tipis agar terbaca di atas foto).
+- Dock rata kanan: tombol toggle tetap di kanan, aksi membuka ke arah kiri. Kategori (mis. Portraits) ada di paling kiri dock dengan gaya pil kaca yang sama; nama panjang dipotong dengan "…" saat menu dibuka.
+- Dock berjarak 20px dari tepi bawah layar (`.pv-bot` padding-bottom di `gallery.css`; ubah juga `--pvb` agar area preview ikut menyesuaikan).
+- Hapus foto/video (di preview maupun mode Select) kini meminta konfirmasi lewat dialog `confirmDelete` (gaya sama dengan dialog hapus permanen; teks bisa diatur lewat parameter ketiga `{title,sub,ok}`).
+
+## Skala tipografi (final)
+Satu font (`--font`) dan satu skala ukuran: **12** keterangan/badge, **13** label kecil, **14** chip & tombol sekunder, **15** isi & tombol utama, **17** judul kartu/sheet, **20** judul seksi & dialog, **28** judul halaman. Input teks tetap 16px (mencegah zoom otomatis di iOS). Judul besar pada kartu bulan/album sengaja relatif terhadap lebar kartu (`cqw`).
+
+## Pembaruan: preview tanpa frame, geser bulan, animasi UI
+- **Preview tanpa frame**: foto/video tampil apa adanya (tanpa kotak, sudut membulat, bayangan, atau latar). Ukuran dihitung dari rasio asli file dan diskalakan muat di area di atas slider/dock (`fit()` di `gallery.js`, ruang bawah `--pvb` di `gallery.css`). Seek bar video ikut menempel di tepi bawah video.
+- **Kalender geser antar bulan** (`gallery.js`, blok "GESER ANTAR BULAN"): seret kiri/kanan (touch/mouse), panah kiri/kanan di keyboard, atau geser horizontal di trackpad. Bulan lama meluncur keluar, bulan baru masuk dari sisi lawan, judul bulan memudar halus; dibatasi dari bulan foto terawal sampai bulan terbaru/bulan ini (di batas ada gerakan "menolak" kecil). `calGo(+1/-1)` bisa dipanggil dari kode lain.
+- **Edit profile**: bagian cover dihapus (cover diedit dengan mengetuk cover di Profile).
+- **Animasi UI (`motion.js` + bagian "MOTION" di `style.css`)**, semua mati bila perangkat memilih *reduce motion*:
+  1. Transisi halaman berarah: pindah tab ke kanan = halaman masuk dari kanan, ke kiri = dari kiri; masuk/keluar sub-halaman (mis. kalender) = maju/mundur.
+  2. Navigasi bawah: pil merah meluncur dari tab lama ke tab baru.
+  3. Segmented control (Profile > Appearance): thumb meluncur.
+  4. Bilah penyimpanan (Profile) terisi dari 0.
+  5. Umpan balik sentuh: kartu, baris, hari kalender, dan foto mengecil sedikit saat ditekan; kartu terangkat saat hover (desktop).
+  6. Baris daftar (Albums/Profile) muncul berurutan; gulir horizontal kartu/pil kategori halus.
+  7. Preview: cincin pulsa saat menandai favorit, ikon toggle dock berputar saat membuka/menutup.
+  Animasi yang sudah ada sebelumnya tetap: kartu muncul, sheet/dialog/toast, foto masuk berurutan di grid, centang seleksi, buka/tutup preview, geser slider, dock membuka ke kiri.
+
+## Pembaruan: sudut preview, banyak Drive, impor dari Drive
+- **Preview**: gambar/video tampil tanpa frame tapi dengan sudut membulat 26px yang mengikuti bentuk gambar asli untuk ukuran/rasio apa pun (radius mengecil proporsional hanya untuk gambar sangat kecil). Lihat `fit()` di `gallery.js`.
+- **Banyak akun Google Drive**: tiap akun punya koneksi sendiri (`drive_connections.id`), folder, dan penanda *Default*. Foto menyimpan akun asalnya (`photos.drive_conn_id`). UI di Profile > Google Drive; pilihan akun tujuan muncul di sheet Upload. Perlu migrasi `004_multi_drive.sql` dan deploy ulang fungsi `drive` (lihat `docs/SETUP.md` bagian 7).
+- **Menu Upload**: bila ada Drive terhubung, ikon upload menampilkan *From this device* dan *From Google Drive*. Impor memakai Google Picker (perlu `PICKER_API_KEY` dan `PROJECT_NUMBER`, lihat `docs/SETUP.md` bagian 8). Fungsi: `uploadMenu`, `D.imp`, `D.doImport` di `drive.js`; aksi server `pick_token`, `import_info`, `import_thumb`.
+- **Streaming video Drive**: URL stream kini terikat ke akun Drive dan membawa tipe MIME agar Safari/Chrome memutar dengan benar.

@@ -18,8 +18,9 @@ window.calUI=function(){
   const k=y+"-"+mo+"-"+d,l=by.get(k),first=d==1?`;grid-column-start:${off+1}`:"";
   if(l){
    l.sort((a,b)=>b.date-a.date);
-   const c=l.find(p=>!isVid(p));
-   t+=`<button class="dy has${c?"":" vd"}${S.selDay===k?" on":""}" data-day="${k}" style="--i:${d}${first}${c?`;background-image:url('${esc(T(c))}')`:""}"><span>${d}</span>${l.length>1?`<i class=n>${l.length}</i>`:""}</button>`;
+   IC.play=IC.play||"M7 4l13 8-13 8z";
+   const c=l[0],nv=l.filter(isVid).length;   // cover = item terbaru hari itu (foto atau video; poster video diambil dari videonya)
+   t+=`<button class="dy has${S.selDay===k?" on":""}"${isVid(c)?` data-vt="${esc(c.id)}"`:""} data-day="${k}" style="--i:${d}${first};background-image:url('${esc(T(c))}')"><span>${d}</span>${l.length>1?`<i class=n>${l.length}</i>`:""}${nv?`<i class=vi aria-label="${nv} video">${ico("play",9,"currentColor")}${nv>1?nv:""}</i>`:""}</button>`;
   }else t+=`<div class="dy em${k==tk?" td":""}" style="--i:${d}${first}"><span>${d}</span></div>`;
  }
  const wk=["S","M","T","W","T","F","S"].map(x=>`<span>${x}</span>`).join("");
@@ -34,6 +35,51 @@ document.addEventListener("click",e=>{
  setTimeout(()=>LViewer(l[0].id,l,t),reduce()?0:170);
 });
 
+/* ============================ GESER ANTAR BULAN (kalender) ============================
+   Seret ke kiri = bulan berikutnya, ke kanan = bulan sebelumnya. Juga: panah kiri/kanan di keyboard dan geser horizontal di trackpad.
+   Animasi: bulan lama meluncur keluar (klon), bulan baru masuk dari sisi sebaliknya, judul bulan memudar halus. Dibatasi dari bulan
+   foto paling awal sampai bulan terbaru/bulan ini. */
+(function(){
+ const EASE="cubic-bezier(.22,1,.36,1)",ids=()=>S.photos.map(p=>D(p)).filter(d=>!isNaN(d)).map(d=>d.getFullYear()*12+d.getMonth());
+ const bounds=()=>{const a=ids(),n=new Date(),nm=n.getFullYear()*12+n.getMonth();let lo=a.length?Math.min(...a):nm,hi=Math.max(nm,...(a.length?[Math.max(...a)]:[]));if(lo>hi)lo=hi;return[lo,hi]};
+ const can=dir=>{const[lo,hi]=bounds(),nx=S.year*12+S.mon+dir;return nx>=lo&&nx<=hi};
+ const cmEl=()=>document.querySelector(".cm");
+ const nudge=dir=>{const cm=cmEl();if(cm&&!reduce())cm.animate([{transform:"none"},{transform:`translateX(${-dir*14}px)`},{transform:"none"}],{duration:320,easing:EASE})};
+ function go(dir,from){
+  if(!can(dir)){nudge(dir);return false}
+  const cm=cmEl(),nx=S.year*12+S.mon+dir;
+  if(reduce()||!cm){S.year=Math.floor(nx/12);S.mon=nx%12;S.selDay=null;render();return true}
+  // klon bulan lama sebagai lapisan yang meluncur keluar
+  const r=cm.getBoundingClientRect(),old=cm.cloneNode(true),cur=getComputedStyle(cm).transform;
+  old.classList.add("cmx");old.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;margin:0;z-index:6;pointer-events:none;transform:${cur==="none"?"none":cur}`;
+  document.body.append(old);
+  old.animate([{transform:cur==="none"?"none":cur,opacity:+getComputedStyle(cm).opacity||1},{transform:`translateX(${-dir*40}%)`,opacity:0}],{duration:420,easing:EASE,fill:"forwards"}).onfinish=()=>old.remove();
+  S.year=Math.floor(nx/12);S.mon=nx%12;S.selDay=null;render();
+  const nc=cmEl(),ct=document.getElementById("ct");
+  if(nc)nc.animate([{transform:`translateX(${dir*40}%)`,opacity:0},{transform:"none",opacity:1}],{duration:460,easing:EASE});
+  if(ct)ct.animate([{opacity:0,transform:`translateY(${dir*10}px)`},{opacity:1,transform:"none"}],{duration:360,easing:EASE});
+  return true}
+ window.calGo=go;
+ let st=null;
+ const live=()=>S.view==="col"&&!document.querySelector(".pv")&&!document.querySelector(".sheet,.dlg");
+ document.addEventListener("pointerdown",e=>{const cm=e.target.closest&&e.target.closest(".cm");if(!cm||!live()||(e.pointerType==="mouse"&&e.button))return;st={x:e.clientX,y:e.clientY,t:Date.now(),cm,id:e.pointerId,on:0,dx:0}},true);
+ document.addEventListener("pointermove",e=>{if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;
+  if(!st.on){if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.3){st.on=1;try{st.cm.setPointerCapture(e.pointerId)}catch(_){}st.cm.style.transition="none"}else{if(Math.abs(dy)>10)st=null;return}}
+  const dir=dx<0?1:-1,k=can(dir)?.9:.22,W=st.cm.clientWidth||300;st.dx=dx;
+  st.cm.style.transform=`translateX(${dx*k}px)`;st.cm.style.opacity=String(1-Math.min(.45,Math.abs(dx*k)/W*.7))});
+ const end=e=>{if(!st||(e&&e.pointerId!==st.id))return;const s=st;st=null;if(!s.on)return;
+  const dx=s.dx,dt=Math.max(1,Date.now()-s.t),v=Math.abs(dx)/dt,W=s.cm.clientWidth||300,dir=dx<0?1:-1;
+  const back=()=>{const from=getComputedStyle(s.cm).transform,fo=getComputedStyle(s.cm).opacity;s.cm.style.transform=s.cm.style.opacity="";
+   if(!reduce())s.cm.animate([{transform:from,opacity:fo},{transform:"none",opacity:1}],{duration:420,easing:EASE})};
+  if((Math.abs(dx)>W*.2||(Math.abs(dx)>36&&v>.45))&&can(dir)){go(dir)}else back()};
+ document.addEventListener("pointerup",end,true);document.addEventListener("pointercancel",end,true);
+ // keyboard + trackpad
+ document.addEventListener("keydown",e=>{if(!live()||/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||""))return;if(e.key==="ArrowLeft")go(-1);else if(e.key==="ArrowRight")go(1)});
+ let wx=0,wt=0,lock=0;
+ document.addEventListener("wheel",e=>{if(!live()||!e.target.closest||!e.target.closest(".cm,#ct")||Math.abs(e.deltaX)<Math.abs(e.deltaY))return;
+  const n=Date.now();if(n<lock)return;if(n-wt>250)wx=0;wt=n;wx+=e.deltaX;if(Math.abs(wx)>70){lock=n+550;go(wx>0?1:-1);wx=0}},{passive:true});
+})();
+
 /* ============================ PREVIEW FOTO ============================ */
 window.LViewer=function(id,list,srcEl){
  IC.info="M12 21a9 9 0 100-18 9 9 0 000 18zM12 11v5M12 8h.01";IC.play="M7 4l13 8-13 8z";
@@ -42,21 +88,43 @@ window.LViewer=function(id,list,srcEl){
  let i=Math.max(0,list.findIndex(p=>p.id==id));
  const src=srcEl||document.querySelector(`.mi[data-id="${id}"] img,.mi[data-id="${id}"] video`);
  const slide=p=>`<div class=sl><div class=pw>${isVid(p)
-  ?`<video src="${p.url}#t=0.1" poster="${T(p)}" data-vt="${p.id}" playsinline preload=metadata></video><button class=vpl data-vp aria-label="Play video">${ico("play",30,"currentColor")}</button><input class=vsk type=range min=0 max=1000 value=0 step=1 aria-label="Seek">`
+  ?`<video ${p.sp!="drive"&&p.url?`src="${p.url}#t=0.1" preload=metadata`:"preload=none"} poster="${T(p)}" data-vt="${esc(p.id)}" playsinline></video><button class=vpl data-vp aria-label="Play video">${ico("play",30,"currentColor")}</button><input class=vsk type=range min=0 max=1000 value=0 step=1 aria-label="Seek">`
   :`<img src="${T(p)}" data-full="${p.url}" data-z draggable="false" alt="">`}</div></div>`;
- const thumb=(p,k)=>`<button class="ft${k==i?" a":""}" data-k="${k}" aria-label="Photo ${k+1}">${isVid(p)?`<span class=fv>▶</span>`:`<img src="${T(p)}" loading=lazy draggable="false" alt="">`}</button>`;
- const v=$(`<div class="view pv"><div class=pv-bgw></div>
-  <div class="pv-top pc"><button class=pv-b data-c aria-label="Close">${ico("x",22)}</button><div class=pv-t><b id=t></b><span id=m></span></div><span class=pv-sp aria-hidden=true></span></div>
+ // thumbnail slider: video memakai poster (frame video) + tanda play
+ const thumb=(p,k)=>`<button class="ft${k==i?" a":""}" data-k="${k}" aria-label="${isVid(p)?"Video":"Photo"} ${k+1}"><img src="${T(p)}"${isVid(p)?` data-vt="${esc(p.id)}"`:""} loading=lazy draggable="false" alt="">${isVid(p)?`<span class="fv ov">${ico("play",11,"currentColor")}</span>`:""}</button>`;
+ const multi=list.length>1&&list.length<=200;
+ const v=$(`<div class="view pv${multi?" ms":""}"><div class=pv-bgw></div>
+  <div class="pv-top pc"><button class=pv-b data-c aria-label="Close">${ico("x",22)}</button><div class=pv-t><b id=t></b><span id=m></span></div><span aria-hidden=true></span></div>
   <div class=st>${list.map(slide).join("")}</div>
-  <div class="pv-bot pc"><span class=pv-cat id=pcat></span>${list.length>1&&list.length<=200?`<div class=pv-fs id=fs>${list.map(thumb).join("")}</div>`:""}
-   <div class=pv-bar><button data-s aria-label="Share">${ico("sh",23)}</button><button data-f aria-label="Add to favorites" aria-pressed="false">${ico("heart",23)}</button><button data-i aria-label="Details">${ico("info",23)}</button><button data-d aria-label="Download">${ico("dl",23)}</button><button data-t aria-label="Delete" style="color:#ff6b6b">${ico("tr",23)}</button></div></div></div>`);
+  <div class="pv-bot pc">${multi?`<div class=pv-fs id=fs>${list.map(thumb).join("")}</div>`:""}
+   <div class=pv-dock><span class=pv-cat id=pcat></span><div class=pv-bar><div class=pv-acts id=acts><button data-s aria-label="Share">${ico("sh",23)}</button><button data-f aria-label="Add to favorites" aria-pressed="false">${ico("heart",23)}</button><button data-i aria-label="Details">${ico("info",23)}</button><button data-d aria-label="Download">${ico("dl",23)}</button><button data-t aria-label="Delete" style="color:#ff6b6b">${ico("tr",23)}</button></div><button class=pv-tg data-tg aria-expanded="false" aria-label="Show actions">${ico("dots",24)}</button></div></div></div></div>`);
  document.body.append(v);
  const st=v.querySelector(".st"),sl=[...st.children],fs=v.querySelector("#fs"),bgw=v.querySelector(".pv-bgw"),pc=v.querySelector("#pcat");
  let z=1,tx=0,ty=0,d0=0,z0=1,sx=0,sy=0,dy=0,dx=0,md="",mv=0,ts=0,lt=0,raf=0,closing=0;
  const cur=()=>list[i];
 
+ // menu aksi (share, favorit, detail, download, hapus) bisa dibuka/ditutup lewat tombol toggle; pilihan terakhir diingat
+ const tg=v.querySelector("[data-tg]");
+ const setMenu=(on,keep)=>{v.classList.toggle("mx",on);tg.setAttribute("aria-expanded",on?"true":"false");tg.setAttribute("aria-label",on?"Hide actions":"Show actions");
+  tg.innerHTML=ico(on?"cd":"dots",24);if(!keep&&!reduce()){const sv=tg.firstElementChild;if(sv)sv.animate([{transform:"rotate(-90deg) scale(.6)",opacity:0},{transform:"none",opacity:1}],{duration:400,easing:"cubic-bezier(.22,1,.36,1)"})}if(!keep){try{localStorage.setItem("pvMenu",on?"1":"0")}catch(e){}}};
+ IC.cd=IC.cd||"M6 9l6 6 6-6";
+ let m0=0;try{m0=localStorage.getItem("pvMenu")=="1"}catch(e){}
+ setMenu(m0,true);
+ tg.onclick=e=>{e.stopPropagation();setMenu(!v.classList.contains("mx"))};
+
+ // frame preview TERKUNCI: tiap foto/video dihitung muat di dalam area yang sama (rasio dari p.w/p.h), jadi ukurannya tidak
+ // melonjak saat thumbnail diganti foto penuh, saat video dimuat, atau saat menu dibuka/ditutup.
+ const fit=()=>sl.forEach((s,k)=>{const pw=s.firstElementChild,el=pw.querySelector("img,video"),p=list[k],W=pw.clientWidth,H=pw.clientHeight;if(!el||!W||!H)return;
+  // rasio asli file (kalau sudah termuat) > rasio dari data. Tanpa frame/kotak: foto ditampilkan apa adanya, hanya diskalakan muat di area.
+  const nat=el.tagName=="IMG"?(el.naturalWidth&&el.naturalHeight?el.naturalWidth/el.naturalHeight:0):(el.videoWidth&&el.videoHeight?el.videoWidth/el.videoHeight:0);
+  const ar=nat||(p.w&&p.h?p.w/p.h:0);if(!ar){el.style.width=el.style.height="";return}
+  const w=Math.min(W,H*ar),h=w/ar;el.style.width=w+"px";el.style.height=h+"px";el.style.borderRadius=Math.round(Math.min(26,Math.min(w,h)*.12))+"px";   // sudut membulat 26px, mengecil proporsional untuk gambar sangat kecil
+  const sk=pw.querySelector(".vsk");if(sk){sk.style.width=Math.max(120,w-24)+"px";sk.style.left=((W-w)/2+12)+"px";sk.style.right="auto";sk.style.bottom=((H-h)/2+6)+"px"}});
+ sl.forEach(s=>{const el=s.querySelector("img,video");if(!el)return;el.addEventListener(el.tagName=="IMG"?"load":"loadedmetadata",fit)});
+ addEventListener("resize",fit);
+
  // latar blur dari foto yang sedang tampil (crossfade)
- const setBg=p=>{const d=document.createElement("div");d.className="pv-bg";if(!isVid(p))d.style.backgroundImage=`url("${T(p)}")`;bgw.append(d);
+ const setBg=p=>{const d=document.createElement("div");d.className="pv-bg";d.style.backgroundImage=`url("${T(p)}")`;bgw.append(d);
   requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add("in")));
   while(bgw.children.length>3)bgw.firstElementChild.remove();
   setTimeout(()=>{[...bgw.children].slice(0,-1).forEach(x=>x.remove())},700)};
@@ -74,9 +142,9 @@ window.LViewer=function(id,list,srcEl){
   const f=im.dataset.full;if(!f||im.getAttribute("src")===f)continue;const x=new Image();x.onload=()=>{im.src=f};x.src=f}};
  // foto di sebelah mengecil & memudar saat digeser
  const fx=()=>{raf=0;const w=st.clientWidth||1,fi=st.scrollLeft/w;
-  for(let k=Math.max(0,Math.floor(fi)-1);k<=Math.min(sl.length-1,Math.ceil(fi)+1);k++){const o=Math.min(1,Math.abs(k-fi)),pw=sl[k].firstElementChild;pw.style.transform=`scale(${1-.12*o})`;pw.style.opacity=1-.55*o}};
+  for(let k=Math.max(0,Math.floor(fi)-1);k<=Math.min(sl.length-1,Math.ceil(fi)+1);k++){const o=Math.min(1,Math.abs(k-fi)),pw=sl[k].firstElementChild;pw.style.opacity=1-.5*o}};
 
- st.scrollLeft=i*st.clientWidth;info();mark(false);setBg(cur());hiRes(i);fx();
+ st.scrollLeft=i*st.clientWidth;fit();info();mark(false);setBg(cur());hiRes(i);fx();
  if(fs)fs.onclick=e=>{const b=e.target.closest("[data-k]");if(b)st.scrollTo({left:+b.dataset.k*st.clientWidth,behavior:"smooth"})};
 
  // animasi buka: foto "terbang" dari kotak yang diketuk
@@ -86,17 +154,23 @@ window.LViewer=function(id,list,srcEl){
     first.animate([{transform:`translate(${dx2}px,${dy2}px) scale(${s})`,borderRadius:"16px"},{transform:"none",borderRadius:"26px"}],{duration:520,easing:"cubic-bezier(.22,1,.36,1)"})};
    first.complete||first.readyState>0?go():first.addEventListener(first.tagName=="IMG"?"load":"loadedmetadata",go,{once:true})}}
 
- /* ----- video: tombol play melayang di atas video (seperti galeri iPhone) ----- */
- sl.forEach(s=>{const vd=s.querySelector("video");if(!vd)return;
-  const bt=s.querySelector(".vpl"),sk=s.querySelector(".vsk");let seeking=0;
-  const sync=()=>s.classList.toggle("playing",!vd.paused&&!vd.ended),toggle=()=>{vd.paused||vd.ended?vd.play().catch(()=>{}):vd.pause()};
+ /* ----- video: tombol play melayang. Video Drive dimuat lewat URL stream (bisa seek); jika gagal, unduh lalu putar dari blob ----- */
+ sl.forEach((s,k)=>{const vd=s.querySelector("video");if(!vd)return;const p=list[k];
+  const bt=s.querySelector(".vpl"),sk=s.querySelector(".vsk");let seeking=0,tried=0;
+  const sync=()=>s.classList.toggle("playing",!vd.paused&&!vd.ended),busy=on=>s.classList.toggle("ld",on);
+  const fail=()=>{busy(false);toast("Couldn't play this video")};
+  const viaBlob=async()=>{if(tried)return fail();tried=1;busy(true);try{const b=await getBlob(p);vd.src=URL.createObjectURL(b);vd.load();await vd.play()}catch(e){fail()}};
+  const load=async()=>{if(vd.getAttribute("src"))return true;busy(true);try{vd.src=await vidSrc(p);vd.load();return true}catch(e){await viaBlob();return false}};
+  const toggle=async()=>{if(!vd.paused&&!vd.ended)return vd.pause();if(!(await load()))return;busy(true);vd.play().catch(e=>{if(e&&e.name=="NotAllowedError")busy(false)})};
   ["play","pause","ended"].forEach(ev=>vd.addEventListener(ev,sync));
+  ["playing","canplay","pause"].forEach(ev=>vd.addEventListener(ev,()=>busy(false)));["waiting","seeking"].forEach(ev=>vd.addEventListener(ev,()=>{if(!vd.paused)busy(true)}));
+  vd.addEventListener("error",()=>{if(!vd.getAttribute("src"))return;p.sp=="drive"?viaBlob():fail()});
   vd.addEventListener("timeupdate",()=>{if(!seeking&&vd.duration)sk.value=Math.round(vd.currentTime/vd.duration*1000)});
   vd.addEventListener("ended",()=>{vd.currentTime=0;sk.value=0});
   bt.onclick=e=>{e.stopPropagation();toggle()};
   vd.onclick=e=>{e.stopPropagation();toggle()};
   sk.onclick=e=>e.stopPropagation();
-  sk.onpointerdown=()=>{seeking=1};sk.onpointerup=sk.onpointercancel=()=>{seeking=0};
+  sk.onpointerdown=async()=>{seeking=1;await load()};sk.onpointerup=sk.onpointercancel=()=>{seeking=0};
   sk.oninput=()=>{if(vd.duration)vd.currentTime=sk.value/1000*vd.duration}});
  const pauseAll=()=>sl.forEach(s=>{const vd=s.querySelector("video");if(vd&&!vd.paused)vd.pause()});
 
@@ -108,7 +182,7 @@ window.LViewer=function(id,list,srcEl){
   return r.width<8||r.bottom<0||r.top>innerHeight||r.right<0||r.left>innerWidth?null:el};
  const rel=(a,b)=>({x:a.left+a.width/2-(b.left+b.width/2),y:a.top+a.height/2-(b.top+b.height/2),s:a.width/b.width});
  const closeP=()=>{
-  if(closing)return;closing=1;removeEventListener("keydown",kd);pauseAll();
+  if(closing)return;closing=1;removeEventListener("keydown",kd);removeEventListener("resize",fit);pauseAll();
   const im=sl[i]&&sl[i].querySelector("img,video"),tg=home(cur()),from=im&&im.getBoundingClientRect();
   const lit=document.querySelector(".dy.on"),fin=()=>{if(v.isConnected)v.remove();if(lit)lit.classList.remove("on");S.selDay=null};
   // hapus semua efek tarik/zoom supaya posisi akhir bisa diukur
@@ -182,11 +256,13 @@ window.LViewer=function(id,list,srcEl){
   sheet(S.albums.map(a=>`<button class=o data-x="${a.id}">${esc(a.name)}${(a.ids||[]).includes(p.id)?" ✓":""}</button>`).join(""),async x=>{const a=S.albums.find(z=>z.id==x);if(!a)return;const ids=a.ids||[],has=ids.includes(p.id),n=has?ids.filter(z=>z!=p.id):[...ids,p.id];await save(null,a.id,{...a,ids:n,cover:a.cover||p.id},"albums");toast(has?"Removed from "+a.name:"Added to "+a.name)})};
  v.querySelector("[data-f]").onclick=async()=>{const p=cur(),on=!p.fav;p.fav=on;info();
   const sv=v.querySelector("[data-f] svg");if(sv&&!reduce())sv.animate([{transform:"scale(1)"},{transform:"scale(1.4)"},{transform:"scale(1)"}],{duration:380,easing:"cubic-bezier(.22,1,.36,1)"});
+  if(on&&!reduce()){const b=v.querySelector("[data-f]"),r=document.createElement("i");r.className="hring";b.append(r);setTimeout(()=>r.remove(),700)}
   toast(on?"Added to Favorites":"Removed from Favorites");
   try{await save(null,p.id,{...p},"photos")}catch(_){p.fav=!on;info()}};
  v.querySelector("[data-d]").onclick=async()=>{const p=cur();toast("Preparing\u2026");try{if(await dlSave(fname(p),await getBlob(p)))toast("Saved")}catch(e){toast("Couldn't download")}};
  v.querySelector("[data-s]").onclick=async()=>{const p=cur();if(/^data:/.test(p.url))return toast("Sharing isn't available for sample photos");const u=new URL(p.url,location.href).href;
   try{await navigator.share({title:p.name,url:u})}catch(e){if(e&&e.name=="AbortError")return;try{await navigator.clipboard.writeText(u);toast("Link copied")}catch(_){toast("Sharing isn't available here")}}};
- v.querySelector("[data-t]").onclick=()=>{const p=cur();pauseAll();v.remove();delPhotos([p])};
+ v.querySelector("[data-t]").onclick=()=>{const p=cur(),vid=isVid(p);pauseAll();
+  confirmDelete([p],()=>{v.remove();delPhotos([p])},{title:vid?"Delete video?":"Delete photo?",sub:"It will be moved to Recently Deleted."})};
 };
 })();

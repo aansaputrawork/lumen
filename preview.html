@@ -7,14 +7,14 @@
 <style>
 /* ===== TEMA ===== Default = MIKA (warna logo: hitam #0C0A0B + merah #CD0921). Light & Dark tetap tersedia di Profile > Appearance.
    --ac = merah logo (isi tombol/aktif), --ac2 = merah terang untuk teks/ikon kecil di latar gelap. */
-:root{--e:cubic-bezier(.22,1,.36,1);--ac:#CD0921;--ac2:#FF4B5C;--bg:#0C0A0B;--sf:#161113;--tx:#F5F1F2;--mu:#9A8F93;--pill:#211A1D;--on:#CD0921;--onx:#fff;--gl:rgba(22,15,18,.74);--na:#CD0921;--nat:#fff;--sh:rgba(255,255,255,.08);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--font:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;--e:cubic-bezier(.22,1,.36,1);--ac:#CD0921;--ac2:#FF4B5C;--bg:#0C0A0B;--sf:#161113;--tx:#F5F1F2;--mu:#9A8F93;--pill:#211A1D;--on:#CD0921;--onx:#fff;--gl:rgba(22,15,18,.74);--na:#CD0921;--nat:#fff;--sh:rgba(255,255,255,.08);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 :root[data-theme=dark]{--bg:#0E0F11;--sf:#1B1C1F;--tx:#F2F2F2;--mu:#8D8F94;--pill:#232427;--gl:rgba(40,42,46,.7);--sh:rgba(255,255,255,.08)}
 :root[data-theme=light]{--bg:#F6F3F3;--sf:#ECE7E8;--tx:#1A1214;--mu:#7C7074;--pill:#E7E0E1;--gl:rgba(255,255,255,.8);--sh:rgba(0,0,0,.07);color-scheme:light}
 ::selection{background:var(--ac);color:#fff}input,select{accent-color:var(--ac)}
 input:focus,select:focus{box-shadow:0 0 0 2px rgba(205,9,33,.55)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
-body{background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,"SF Pro Text","Inter",system-ui,sans-serif;transition:background .4s,color .4s;overflow:hidden}
+body{background:var(--bg);color:var(--tx);font:15px/1.4 var(--font);transition:background .4s,color .4s;overflow:hidden}
 button,select,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer;transition:transform .35s var(--e),opacity .25s,background-color .35s,color .35s}button:active{transform:scale(.94);transition-duration:.12s}
 #app{height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));max-width:520px;margin:auto;position:relative;overflow:hidden}
 .scr{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:0 16px 100px;animation:fadein .45s var(--e);-webkit-overflow-scrolling:touch}
@@ -25,7 +25,7 @@ button,select,input{font:inherit;color:inherit}button{border:0;background:none;c
 .top h1{font-size:15px;margin:0;font-weight:600}
 .chip{background:var(--pill);border-radius:99px;padding:9px 16px;font-size:14px}
 .ic{width:38px;height:38px;border-radius:50%;background:var(--pill);display:grid;place-items:center}
-h2{font-size:34px;letter-spacing:-.03em;margin:4px 0 14px}
+h2{font-size:28px;letter-spacing:-.03em;margin:4px 0 14px}
 h3{font-size:17px;margin:22px 0 10px}
 .card{position:relative;aspect-ratio:509/316;border-radius:34px;overflow:hidden;margin-bottom:14px;container-type:inline-size;background:#334 center/cover;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);color:#fff}
 .card .bg{position:absolute;inset:-12% 0;background:center/cover;will-change:transform}
@@ -62,14 +62,14 @@ input,select{background:var(--pill);border-radius:14px;border:0;padding:12px 14p
 .seg{display:flex;background:var(--pill);border-radius:99px;padding:3px}.seg button{flex:1;padding:8px;border-radius:99px}.seg .a{background:var(--on);color:var(--onx)}
 .empty{text-align:center;padding:60px 20px;color:var(--mu)}
 .toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:99;background:var(--on);color:var(--onx);padding:10px 18px;border-radius:99px}
-.mc{padding:0 10px}.ht{padding-left:10px;padding-right:10px}.yl{display:flex;align-items:center;gap:6px;font-size:28px;font-weight:600}.yl select{background:none;width:auto;font-size:28px;font-weight:600;padding:0;appearance:none;-webkit-appearance:none;border-radius:0}.cb{color:var(--tx);width:44px;height:44px;display:grid;place-items:center}
+.mc{padding:0 10px}.ht{padding-left:10px;padding-right:10px}.yl{display:flex;align-items:center;gap:6px;font-size:28px;font-weight:700}.yl select{background:none;width:auto;font-size:28px;font-weight:700;padding:0;appearance:none;-webkit-appearance:none;border-radius:0}.cb{color:var(--tx);width:44px;height:44px;display:grid;place-items:center}
 .card .glass{top:4.6cqw;left:5cqw;font-size:max(12px,3.3cqw);padding:1.5cqw 3.6cqw;border:1.3px solid rgba(255,255,255,.5);font-weight:500}.card .glass.rb{left:auto;right:5cqw;width:8.2cqw;height:8.2cqw;padding:0;display:grid;place-items:center}
 body.hm{background-attachment:fixed}html:not([data-theme=light]) body.hm{background-image:radial-gradient(70% 34% at 96% 90%,rgba(205,9,33,.2),transparent 70%),radial-gradient(60% 24% at 0% 0%,rgba(205,9,33,.07),transparent 70%)}html[data-theme=dark] body.hm{background-image:radial-gradient(70% 34% at 96% 90%,rgba(205,9,33,.12),transparent 70%)}
 .card.al:after{background:linear-gradient(transparent 28%,rgba(0,0,0,.55))}.card.sm{aspect-ratio:1;border-radius:28px;margin:0}.cg{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card.nw{background:var(--pill);display:grid;place-items:center;color:var(--mu);border:1.5px dashed rgba(128,128,128,.4);animation:none}.card.nw:after{display:none}
 .gp{background:var(--sf);border:1px solid rgba(128,128,128,.14);border-radius:28px;padding:18px;margin-top:14px}.gp .tt{font-weight:600;font-size:17px;margin-bottom:10px}
 .hs.sl2{margin:0 -26px 14px;padding:0 26px;scroll-padding:0 26px;gap:12px}.card.pt{margin:0;flex:none;width:calc((100% + 52px)*.54);aspect-ratio:301/459;scroll-snap-align:start}
 .hs.sl3{margin:0 -26px;padding:0 26px;gap:8px;scroll-padding:0 26px}.sl3 .rc{width:calc((100% + 52px)*.293)}.rc b{font-size:15px;display:block}.ar{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--sh);cursor:pointer}.ar:last-child{border:0}.ar img,.ar .ph{width:44px;height:44px;border-radius:11px;object-fit:cover;background:var(--sf);flex:none}
-.hs,.pills{overscroll-behavior-x:contain}.nav.sb{gap:2px}.nav.sb{background:rgba(22,15,18,.94);border-color:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(24px) saturate(1.6)}.nav.sb button{color:#fff}.nav.sb #sc{display:grid;place-items:center;min-width:32px;height:32px;padding:0 9px;margin:auto 6px auto 8px;border-radius:16px;background:var(--ac);color:#fff;font-weight:800;font-size:16px}.nav.sb button{padding:10px 12px;font-size:13px;display:block}
+.hs,.pills{overscroll-behavior-x:contain}.nav.sb{gap:2px}.nav.sb{background:rgba(22,15,18,.94);border-color:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(24px) saturate(1.6)}.nav.sb button{color:#fff}.nav.sb #sc{display:grid;place-items:center;min-width:32px;height:32px;padding:0 9px;margin:auto 6px auto 8px;border-radius:16px;background:var(--ac);color:#fff;font-weight:800;font-size:15px}.nav.sb button{padding:10px 12px;font-size:13px;display:block}
 @keyframes navin{from{opacity:0;transform:translate(-50%,26px)}}@keyframes fout{to{opacity:0}}@keyframes down{to{transform:translateY(100%)}}@keyframes vout{to{opacity:0;transform:scale(.97)}}@keyframes toastin{from{opacity:0;transform:translate(-50%,-16px) scale(.96)}}@keyframes vtout{to{opacity:0;transform:scale(.985)}}@keyframes vtin{from{opacity:0;transform:translateY(18px)}}
 .nav.sb{animation:navin .5s var(--e)}
 ::view-transition-old(root){animation:vtout .28s var(--e) both}::view-transition-new(root){animation:vtin .45s var(--e) both}::view-transition-group(nav){animation-duration:.35s}
@@ -88,7 +88,7 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .sm .ck{display:grid}.sm .mi.s .ck{background:var(--ac);border-color:var(--ac)}.sm .mi.s .ck svg{opacity:1;transform:none}
 .sm .mi img,.sm .mi video{transform:scale(.97)}.sm .mi.s img,.sm .mi.s video{transform:scale(.88);border-radius:28px}.sm .mi.s::after{content:"";position:absolute;inset:0;border-radius:26px;box-shadow:inset 0 0 0 3px var(--ac);pointer-events:none;opacity:.0}
 .top.sel h1{font-size:17px;font-weight:800;transition:background .3s,color .3s,padding .3s}.top.sel h1.on{background:var(--on);color:var(--onx);padding:6px 16px;border-radius:99px}.top.sel .chip{padding:8px 16px}
-.nav.sb button{display:grid;justify-items:center;gap:2px;font-size:10px;padding:7px 9px;min-width:52px}.nav.sb button small{font-size:10px}
+.nav.sb button{display:grid;justify-items:center;gap:2px;font-size:12px;padding:7px 9px;min-width:52px}.nav.sb button small{font-size:12px}
 .dd{position:absolute;left:8px;bottom:8px;z-index:2;background:rgba(0,0,0,.6);color:#fff;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:700}
 .mi.gone{opacity:0;transform:scale(.8);transition:opacity .3s,transform .35s var(--e);pointer-events:none}
 .card{scroll-margin-top:72px}
@@ -98,19 +98,19 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .dc{position:relative;isolation:isolate;overflow:hidden;width:min(300px,calc(100% - 48px));border-radius:34px;background:#1b1c20 center/cover;color:#fff;padding:20px 18px 18px;display:grid;justify-items:center;gap:14px;box-shadow:0 30px 80px rgba(0,0,0,.45);animation:dpop .5s var(--e)}
 .dc::before{content:"";position:absolute;inset:-40px;z-index:-2;background:inherit;filter:blur(28px) brightness(.5) saturate(1.2)}.dc::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(rgba(14,15,17,.1),rgba(14,15,17,.55))}
 .dstack{position:relative;width:100%;height:132px;margin-top:22px;display:grid;place-items:center}.dstack img{position:absolute;width:88px;height:118px;object-fit:cover;border-radius:20px;transform:translateX(var(--x)) rotate(var(--r));box-shadow:0 10px 28px rgba(0,0,0,.45)}
-.dt{text-align:center}.dt b{display:block;font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.05}.dt span{display:block;margin-top:6px;font-size:13px;opacity:.72}
+.dt{text-align:center}.dt b{display:block;font-size:20px;font-weight:800;letter-spacing:-.03em;line-height:1.05}.dt span{display:block;margin-top:6px;font-size:13px;opacity:.72}
 .db{display:flex;gap:10px;width:100%}.db button{flex:1;padding:13px;border-radius:99px;font-weight:700;font-size:15px;color:#fff}.dn{background:rgba(255,255,255,.2);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}.dx{background:#ff453a}
 .card.pf b{bottom:calc(-.1em - 4px)}/* nama profil: turun ±5px melewati garis bawah cover (sengaja terpotong). Ubah angka -4px untuk geser */
 @media(min-width:800px){#app{max-width:760px}.mas{columns:3}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .mapc{position:relative;height:min(54vh,440px);border-radius:28px;overflow:hidden;background:var(--sf);touch-action:none;margin:4px 0 6px;user-select:none;-webkit-user-select:none;cursor:grab;box-shadow:inset 0 0 0 1px rgba(128,128,128,.18)}.mapc .tiles{position:absolute;inset:0}.mapc .tiles img{position:absolute;left:0;top:0;width:256px;height:256px;max-width:none;pointer-events:none;user-select:none}.mapc.dk .tiles{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}.mapc .pins{position:absolute;inset:0}
 .pin{position:absolute;left:0;top:0;width:52px;height:52px;border-radius:50%;border:2.5px solid #fff;background:#667 center/cover;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;will-change:transform}.pin b{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--ac);color:#fff;font-size:12px;display:grid;place-items:center;border:2px solid #fff}
-.mz{position:absolute;right:10px;top:10px;display:grid;gap:6px;z-index:3}.mz button{width:36px;height:36px;border-radius:50%;background:var(--gl);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(128,128,128,.25);font-size:18px;display:grid;place-items:center}.mapc .attr{position:absolute;left:8px;bottom:6px;font-size:10px;color:#333;background:rgba(255,255,255,.72);padding:1px 6px;border-radius:99px;z-index:3}
-.pfp .gp{font-size:10px}.pfp .gp .tt{font-size:12px}.pfp .chip{font-size:9px;padding:6px 12px}.pfp .card .glass{font-size:calc(max(12px,3.3cqw) - 5px)}.card .glass.rb{cursor:pointer}
-.pb{position:absolute;left:10px;bottom:10px;z-index:2;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:11px;display:grid;place-items:center;font-style:normal;padding-left:2px;pointer-events:none}
-.lb{position:absolute;left:8px;bottom:8px;z-index:2;background:rgba(0,0,0,.6);color:#fff;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700}.lb.f{background:var(--ac)}
+.mz{position:absolute;right:10px;top:10px;display:grid;gap:6px;z-index:3}.mz button{width:36px;height:36px;border-radius:50%;background:var(--gl);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(128,128,128,.25);font-size:17px;display:grid;place-items:center}.mapc .attr{position:absolute;left:8px;bottom:6px;font-size:12px;color:#333;background:rgba(255,255,255,.72);padding:1px 6px;border-radius:99px;z-index:3}
+.card .glass.rb{cursor:pointer}
+.pb{position:absolute;left:10px;bottom:10px;z-index:2;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:12px;display:grid;place-items:center;font-style:normal;padding-left:2px;pointer-events:none}
+.lb{position:absolute;left:8px;bottom:8px;z-index:2;background:rgba(0,0,0,.6);color:#fff;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:700}.lb.f{background:var(--ac)}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--mu)}.dot.g{background:#30d158}.dot.r{background:var(--ac2)}
-.gp .row .chip{padding:7px 14px;font-size:13px}.gp .v{max-width:55%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gp .row .chip{padding:7px 14px;font-size:14px}.gp .v{max-width:55%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .card .glass.eb{left:auto;right:calc(5cqw + 10.7cqw);width:8.2cqw;height:8.2cqw;padding:0;display:grid;place-items:center;cursor:pointer}.card .glass.eb svg{width:52%;height:52%}
 
@@ -120,10 +120,37 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .card.fvc{background:linear-gradient(155deg,#CD0921 0%,#5a0712 62%,#1a0709)}
 .card.fvc .glass.rb{pointer-events:none;color:#fff}
 
+/* ===== MOTION: animasi UI halus (logika: motion.js; semua dimatikan oleh prefers-reduced-motion di atas) ===== */
+/* transisi halaman berarah */
+@keyframes pgf{from{opacity:0;transform:translateX(36px)}}@keyframes pgb{from{opacity:0;transform:translateX(-36px)}}
+.scr.pgf{animation:pgf .55s var(--e)}.scr.pgb{animation:pgb .55s var(--e)}
+/* nav bawah: pil aktif meluncur */
+.nav button{position:relative;z-index:1}
+.nav.fx button.a{background:none;color:var(--nat)}
+.nvi{position:absolute;left:0;top:6px;bottom:6px;border-radius:99px;background:var(--na);z-index:0;pointer-events:none;transition:transform .55s var(--e),width .55s var(--e)}
+/* segmented control: thumb meluncur */
+.seg{position:relative}.seg button{position:relative;z-index:1}
+.seg.fx .a{background:none;color:var(--onx)}
+.sgi{position:absolute;left:0;top:3px;bottom:3px;border-radius:99px;background:var(--on);z-index:0;pointer-events:none;transition:transform .5s var(--e),width .5s var(--e)}
+/* bilah penyimpanan terisi dari 0 */
+@keyframes grow{from{width:0}}.bar2 i{animation:grow 1.1s var(--e) .15s both}
+/* umpan balik sentuh pada kartu & baris */
+.card:active,.hc:active,.rc:active{transform:scale(.97)}.ar:active{transform:scale(.985)}.dy.has:active{transform:scale(.92)}
+.mi:active img,.mi:active video{transform:scale(.97)}
+@media(hover:hover){.card:hover,.hc:hover,.rc:hover{transform:translateY(-3px)}.card:active,.hc:active,.rc:active{transform:scale(.97)}}
+/* baris daftar muncul berurutan */
+.gp>.ar:nth-child(2){animation-delay:.05s}.gp>.ar:nth-child(3){animation-delay:.1s}.gp>.ar:nth-child(4){animation-delay:.15s}.gp>.ar:nth-child(5){animation-delay:.2s}.gp>.ar:nth-child(n+6){animation-delay:.25s}
+/* gulir horizontal (kartu, pil kategori) halus */
+.hs,.pills{scroll-behavior:smooth}
+
+/* beberapa akun Google Drive */
+.dv2{border-top:1px solid var(--sh);margin-top:8px;padding-top:8px}
+.dv .row>span:first-child{display:flex;align-items:center;min-width:0}
+
 /* Halaman login MIKA (mobile-first). Selalu memakai tema MIKA: hitam #0C0A0B + merah #CD0921 (warna logo).
    Image hero (assets/login-hero.png) memakai latar yang sama dengan halaman, jadi menyatu tanpa tepi. */
 .ll{--k:#0C0A0B;--k2:#161113;--k3:#2B2326;--r:#CD0921;--r2:#FF4B5C;--t:#F5F1F2;--m:#9A8F93;
- position:fixed;inset:0;z-index:200;overflow-y:auto;overflow-x:hidden;background:var(--k);color:var(--t);font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;color-scheme:dark;
+ position:fixed;inset:0;z-index:200;overflow-y:auto;overflow-x:hidden;background:var(--k);color:var(--t);font-family:var(--font,-apple-system,"SF Pro Text","Inter",system-ui,sans-serif);-webkit-font-smoothing:antialiased;color-scheme:dark;
  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .ll *{box-sizing:border-box;margin:0}
 .ll-win{position:relative;display:flex;flex-direction:column;min-height:100%;width:100%;background:var(--k)}
@@ -141,25 +168,25 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .ll-logo{display:grid;place-items:center;margin:0 auto;width:11.7cqw;height:11.7cqw;border-radius:3.4cqw;background:var(--r);color:#fff;font-weight:700;font-size:6.4cqw;line-height:1;box-shadow:0 10px 24px -10px rgba(205,9,33,.75)}
 .ll-logo.img{background:none;box-shadow:none}
 .ll-logo img{width:100%;height:100%;object-fit:cover;border-radius:3.4cqw;display:block;box-shadow:0 0 0 1px rgba(205,9,33,.5),0 10px 26px -10px rgba(205,9,33,.65)}
-.ll-h{text-align:center;font-size:5.6cqw;font-weight:600;letter-spacing:-.01em;color:var(--t);margin-top:6.4cqw}
-.ll-sub{text-align:center;font-size:4.2cqw;color:var(--m);margin-top:2cqw;line-height:1.3}
+.ll-h{text-align:center;font-size:20px;font-weight:700;letter-spacing:-.01em;color:var(--t);margin-top:6.4cqw}
+.ll-sub{text-align:center;font-size:15px;color:var(--m);margin-top:2cqw;line-height:1.3}
 form.ll-f{margin-top:9cqw}
-.ll-f label{display:block;font-size:3.9cqw;font-weight:600;color:var(--t);margin-bottom:3cqw}
+.ll-f label{display:block;font-size:14px;font-weight:600;color:var(--t);margin-bottom:3cqw}
 .ll-f label+input+label,.ll-f .ll-gap{margin-top:6cqw}
-.ll-f input{display:block;width:100%;height:max(48px,13.3cqw);padding:0 4.2cqw;border:1px solid var(--k3);border-radius:3.2cqw;background:var(--k2);color:var(--t);font-family:inherit;font-weight:400;font-size:max(16px,4.4cqw);line-height:1;outline:0;-webkit-appearance:none;appearance:none;transition:border-color .2s,box-shadow .2s}
+.ll-f input{display:block;width:100%;height:max(48px,13.3cqw);padding:0 4.2cqw;border:1px solid var(--k3);border-radius:3.2cqw;background:var(--k2);color:var(--t);font-family:inherit;font-weight:400;font-size:16px;line-height:1;outline:0;-webkit-appearance:none;appearance:none;transition:border-color .2s,box-shadow .2s}
 .ll-f input::placeholder{color:#7d7276;opacity:1}
 .ll-f input:focus{border-color:var(--r);box-shadow:0 0 0 3px rgba(205,9,33,.28)}
 .ll-f input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px var(--k2) inset;-webkit-text-fill-color:var(--t);caret-color:var(--t)}
-.ll-forgot{display:inline-block;margin-top:3cqw;padding:6px 0;background:none;border:0;font:inherit;font-size:3.9cqw;color:var(--m);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ll-forgot{display:inline-block;margin-top:3cqw;padding:6px 0;background:none;border:0;font:inherit;font-size:14px;color:var(--m);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .ll-forgot:hover,.ll-lnk:hover{color:var(--t)}
-.ll-btn{display:block;width:100%;height:max(48px,13.3cqw);margin-top:7cqw;border:0;border-radius:3.2cqw;background:var(--r);color:#fff;font-family:inherit;font-weight:600;font-size:max(16px,4.5cqw);line-height:1;box-shadow:0 12px 26px -12px rgba(205,9,33,.9),inset 0 1px 0 rgba(255,255,255,.16);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s,transform .2s}
+.ll-btn{display:block;width:100%;height:max(48px,13.3cqw);margin-top:7cqw;border:0;border-radius:3.2cqw;background:var(--r);color:#fff;font-family:inherit;font-weight:600;font-size:15px;line-height:1;box-shadow:0 12px 26px -12px rgba(205,9,33,.9),inset 0 1px 0 rgba(255,255,255,.16);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s,transform .2s}
 .ll-btn:hover{background:#E00B26}
 .ll-btn:active{transform:translateY(1px);background:#B00820}.ll-btn:disabled{opacity:.6}
-.ll-msg{font-size:3.7cqw;line-height:1.3;text-align:center;color:#fff}
+.ll-msg{font-size:14px;line-height:1.3;text-align:center;color:#fff}
 /* pesan error/sukses = pil kaca yang sama dengan popup aplikasi */
 .ll-msg:not(:empty){display:flex;align-items:center;justify-content:center;gap:2cqw;width:fit-content;max-width:100%;margin:4cqw auto 0;padding:2.4cqw 4.4cqw;border-radius:6cqw;background:rgba(22,15,18,.82);border:1.3px solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5)}
 .ll-msg:not(:empty)::before{content:"";flex:none;width:2cqw;height:2cqw;border-radius:50%;background:var(--r2)}.ll-msg.ok:not(:empty)::before{background:#4cd27a}
-.ll-cant{text-align:center;font-size:3.9cqw;color:var(--m);margin-top:8cqw}
+.ll-cant{text-align:center;font-size:14px;color:var(--m);margin-top:8cqw}
 .ll-lnk{background:none;border:0;padding:6px 2px;font:inherit;font-weight:500;color:var(--r2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .ll-sign{text-align:center;font-size:14px;color:var(--m);margin-top:auto;padding-top:34px}
 
@@ -223,7 +250,7 @@ form.ll-f{margin-top:9cqw}
 .asg{border-radius:var(--pg-r);overflow:hidden}
 .asc{display:block;width:100%;margin-top:6px;padding:13px;border-radius:99px;font-size:14px;font-weight:700}
 .ast{display:grid;justify-items:center;gap:3px;padding:17px 18px 13px;text-align:center;border-bottom:1px solid var(--pg-hair)}
-.ast b{font-size:13px;font-weight:700;color:#fff}.ast span{font-size:11px;color:var(--pg-mu);max-width:220px}
+.ast b{font-size:13px;font-weight:700;color:#fff}.ast span{font-size:12px;color:var(--pg-mu);max-width:220px}
 .asi{width:36px;height:36px;margin-bottom:4px;border-radius:50%;background:rgba(255,69,58,.2);color:#ff6961;display:grid;place-items:center}.asi svg{width:17px;height:17px}
 .asd{display:block;width:100%;padding:13px;font-size:14px;font-weight:600;color:#ff6961}
 .asd:active,.asc:active{background:var(--pg-hair)}
@@ -259,7 +286,7 @@ form.ll-f{margin-top:9cqw}
 .pfl{display:flex;align-items:center;gap:10px;min-width:0}
 .pfl>img,.pfl>i{flex:none;width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--pill);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:14px}
 .pfm{display:grid;gap:1px;min-width:0;text-align:left}
-.pfm .mu{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pfm .mu{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pfe h3{margin:0 0 16px;font-size:20px}
 .pfn{display:block;font-size:12px;color:var(--pg-mu);margin:18px 0 8px}
 .pfv{position:relative;height:132px;border-radius:24px;background:var(--pg-fill) center/cover no-repeat;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);margin-bottom:6px}
@@ -275,6 +302,12 @@ form.ll-f{margin-top:9cqw}
 .pfg{display:flex;flex-wrap:wrap;gap:8px}
 .pfg .chip{padding:9px 16px;font-size:14px;border:1px solid rgba(255,255,255,.3)}
 .pfg .chip.a{background:var(--on);color:var(--onx);border-color:transparent}
+
+/* Edit profile: foto profil + keterangan (tanpa cover) */
+.pfh{display:flex;align-items:center;gap:16px;margin-bottom:4px}
+.pfh .pfav{position:relative;left:auto;bottom:auto;flex:none}
+.pfm2{display:grid;gap:6px;justify-items:start;min-width:0;font-size:12px;color:var(--pg-mu,rgba(255,255,255,.65))}.pfm2 b{font-size:17px;color:#fff;font-weight:600}
+.pfm2 .chip{padding:7px 14px;font-size:14px}
 
 /* =====================================================================
    GALERI KALENDER (detail bulan) + PREVIEW FOTO
@@ -308,11 +341,13 @@ form.ll-f{margin-top:9cqw}
 .dy.vd{background:linear-gradient(135deg,#2e1d22,#140e10)}
 .dy.vd::after{content:"▶";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:#fff;opacity:.75;padding-bottom:10px}
 /* jumlah foto jika lebih dari satu */
-.dy .n{position:absolute;top:4px;right:4px;z-index:2;min-width:17px;height:17px;padding:0 5px;border-radius:9px;font-style:normal;font-size:10px;font-weight:700;
+.dy .n{position:absolute;top:4px;right:4px;z-index:2;min-width:17px;height:17px;padding:0 5px;border-radius:9px;font-style:normal;font-size:12px;font-weight:700;
  display:grid;place-items:center;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.35)}
+.dy .vi{position:absolute;top:4px;left:4px;z-index:2;min-width:17px;height:17px;padding:0 5px;border-radius:9px;font-style:normal;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:3px;color:#fff;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.35)}
+.dy .vi svg{display:block}
 @keyframes dyin{from{opacity:0;transform:scale(.8)}}
 /* nama hari di atas grid */
-.cwk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:0 0 8px;text-align:center;font-size:11px;font-weight:600;color:var(--mu);letter-spacing:.04em}
+.cwk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:0 0 8px;text-align:center;font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.04em}
 .cm{padding-bottom:20px}
 
 /* ---------- preview foto ---------- */
@@ -327,54 +362,59 @@ form.ll-f{margin-top:9cqw}
 .pv-bg.in{opacity:1}
 
 .pv .st{position:absolute;inset:0;z-index:1}
-.pv .sl{padding:calc(76px + env(safe-area-inset-top,0px)) 14px calc(172px + env(safe-area-inset-bottom,0px))}
+.pv{--pvb:90px}.pv.ms{--pvb:156px}
+.pv .sl{padding:calc(62px + env(safe-area-inset-top,0px)) 8px var(--pvb)}
 .pv .pw{position:relative;align-self:stretch;justify-self:stretch;min-width:0;min-height:0;display:grid;place-items:center;will-change:transform,opacity}
-.pv .pw img,.pv .pw video{max-width:100%;max-height:100%;border-radius:26px;object-fit:contain;background:#111;
- box-shadow:0 28px 70px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.14);
- transition:transform .3s,border-radius .35s var(--e),box-shadow .35s;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+.pv .pw img,.pv .pw video{max-width:none;max-height:none;flex:none;border-radius:26px;object-fit:cover;background:none;box-shadow:none;border:0;outline:0;
+ transition:transform .3s;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
 .pv.zm .pw img{border-radius:0;box-shadow:none}
 
 .pc{transition:opacity .35s var(--e),transform .5s var(--e)}
 .pv.hb .pv-top{opacity:0;transform:translateY(-14px);pointer-events:none}
 .pv.hb .pv-bot{opacity:0;transform:translateY(16px);pointer-events:none}
 
-.pv-top{position:absolute;left:0;right:0;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:10px;
- padding:calc(12px + env(safe-area-inset-top,0px)) 14px 0;animation:pvtop .55s var(--e)}
-.pv-b,.pv-t{color:#fff;background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);border:1.3px solid rgba(255,255,255,.4)}
-.pv-b{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
-.pv-t{min-width:0;max-width:calc(100% - 120px);display:grid;justify-items:center;gap:1px;padding:7px 18px;border-radius:99px}
-.pv-t b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600}
-.pv-t span{font-size:11px;opacity:.72;white-space:nowrap}
+.pv-top{position:absolute;left:0;right:0;top:0;z-index:3;display:grid;grid-template-columns:minmax(44px,1fr) auto minmax(44px,1fr);align-items:center;gap:8px;
+ padding:calc(8px + env(safe-area-inset-top,0px)) 12px 0;animation:pvtop .55s var(--e)}
+.pv-b,.pv-cat{color:#fff;background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);border:1.3px solid rgba(255,255,255,.4)}
+.pv-b{justify-self:start;width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
+.pv-t{min-width:0;max-width:100%;display:grid;justify-items:center;gap:1px;padding:4px 0;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.6),0 0 2px rgba(0,0,0,.35);pointer-events:none}
+.pv-t b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:600}
+.pv-t span{font-size:12px;opacity:.85;white-space:nowrap}
+.pv-cat{flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:8px 14px;border-radius:99px;font-size:14px;font-weight:600}
+.pv-cat.pop{animation:catpop .45s var(--e)}
+@keyframes catpop{from{opacity:0;transform:translateY(-6px) scale(.94)}}
 
-.pv-bot{position:absolute;left:0;right:0;bottom:0;z-index:3;display:grid;justify-items:center;gap:10px;
- padding:0 0 calc(14px + env(safe-area-inset-bottom,0px));animation:pvbot .55s var(--e)}
-.pv-fs{position:relative;display:flex;gap:6px;width:100%;overflow-x:auto;scrollbar-width:none;padding:8px calc(50% - 22px);
+.pv-bot{position:absolute;left:0;right:0;bottom:0;z-index:3;display:grid;justify-items:center;gap:6px;
+ padding:0 0 20px;animation:pvbot .55s var(--e)}
+.pv-fs{position:relative;display:flex;gap:6px;width:100%;overflow-x:auto;scrollbar-width:none;padding:4px calc(50% - 20px);
  -webkit-mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent)}
 .pv-fs::-webkit-scrollbar{display:none}
-.ft{flex:none;position:relative;width:44px;height:58px;border-radius:13px;overflow:hidden;background:#222;opacity:.5;transform:scale(.86);
- box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:transform .45s var(--e),opacity .3s,box-shadow .3s}
+.ft{flex:none;position:relative;width:40px;height:52px;border-radius:12px;overflow:hidden;background:#222;opacity:.55;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:opacity .3s,box-shadow .3s}
 .ft img{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;border-radius:0;pointer-events:none}
-.ft.a{opacity:1;transform:scale(1.05);box-shadow:0 0 0 1.5px #fff,0 6px 18px rgba(0,0,0,.5)}
-.fv{display:grid;place-items:center;height:100%;font-size:11px;color:#fff}
+.ft.a{opacity:1;box-shadow:0 0 0 1.5px #fff,0 6px 18px rgba(0,0,0,.5)}
+.fv{display:grid;place-items:center;height:100%;font-size:12px;color:#fff}
+.ft .fv.ov{position:absolute;inset:0;background:rgba(0,0,0,.28)}.ft .fv.ov svg{display:block}
 
-.pv-bar{display:flex;gap:2px;padding:6px;border-radius:99px;
+/* dock menu: pil kaca paling bawah. Tombol toggle membuka/menutup semua aksi (share, favorit, detail, download, hapus) */
+.pv-dock{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:0 12px}
+.pv-bar{display:flex;align-items:center;flex:none;margin-left:auto;padding:6px;border-radius:99px;
  background:var(--pg-bg,rgba(28,30,34,.58));-webkit-backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));
  border:var(--pg-bw,1.3px) solid var(--pg-line,rgba(255,255,255,.5))}
-.pv-bar button{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.pv-acts{display:flex;gap:2px;max-width:0;opacity:0;overflow:hidden;pointer-events:none;transition:max-width .5s var(--e),opacity .3s,margin .5s var(--e)}
+.pv.mx .pv-acts{max-width:230px;opacity:1;pointer-events:auto;margin-right:4px}
+.pv-bar button{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;flex:none;transition:color .25s,background-color .25s,transform .35s var(--e)}
 .pv-bar button:active{background:rgba(255,255,255,.18)}
 .pv-bar svg{display:block}
+.pv-tg{background:rgba(255,255,255,.12)}
+.pv-bar button[data-f].on{color:#FF4B5C}
+.pv-bar button[data-f].on svg{filter:drop-shadow(0 0 8px rgba(205,9,33,.65))}
 
 /* info foto (sheet kaca) */
 .pvi .row{padding:12px 0}
 .pvi .v{max-width:62%;text-align:right;overflow-wrap:anywhere}
 .pvi .chip{border:1px solid rgba(255,255,255,.3);padding:7px 14px;font-size:13px}
 
-/* pil kategori di atas strip thumbnail */
-.pv-cat{display:inline-flex;align-items:center;padding:7px 18px;border-radius:99px;font-size:13px;font-weight:600;letter-spacing:.01em;color:#fff;
- background:var(--pg-bg,rgba(28,30,34,.58));-webkit-backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));backdrop-filter:var(--pg-blur,blur(18px) saturate(1.5));
- border:var(--pg-bw,1.3px) solid var(--pg-line,rgba(255,255,255,.5))}
-.pv-cat.pop{animation:catpop .45s var(--e)}
-@keyframes catpop{from{opacity:0;transform:translateY(8px) scale(.94)}}
 
 /* tombol play melayang di tengah video + penggeser waktu */
 .pv .pw .vpl{position:absolute;left:50%;top:50%;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;display:grid;place-items:center;color:#fff;
@@ -396,12 +436,22 @@ form.ll-f{margin-top:9cqw}
 .pv.pcl .pw img,.pv.pcl .pw video{box-shadow:none}
 .pv.pcl .vpl,.pv.pcl .vsk{opacity:0}
 
-/* tombol favorit (hati) & detail di bar aksi preview */
-.pv-bar button{transition:color .25s,background-color .25s,transform .35s var(--e)}
-.pv-bar button[data-f].on{color:#FF4B5C}
-.pv-bar button[data-f].on svg{filter:drop-shadow(0 0 8px rgba(205,9,33,.65))}
-.pv-t{pointer-events:none}
-.pv-sp{flex:none;width:44px;height:44px}
+
+/* loading video (mis. video Google Drive): tombol play berubah jadi spinner */
+.pv .sl.ld .vpl{opacity:1;transform:none;pointer-events:none}
+.pv .sl.ld .vpl svg{opacity:0}
+.pv .sl.ld .vpl::after{content:"";position:absolute;width:30px;height:30px;border-radius:50%;border:3px solid rgba(255,255,255,.28);border-top-color:#fff;animation:vspin .8s linear infinite}
+@keyframes vspin{to{transform:rotate(360deg)}}
+
+/* kalender: geser antar bulan */
+.cm{touch-action:pan-y;will-change:transform,opacity;user-select:none;-webkit-user-select:none}
+.cm.cmx .dy{animation:none}
+#scr{overflow-x:hidden}
+
+/* hati favorit: cincin pulsa saat ditandai */
+.pv-bar button{position:relative}
+.hring{position:absolute;inset:3px;border-radius:50%;border:2px solid #FF4B5C;pointer-events:none;animation:hring .65s var(--e) forwards}
+@keyframes hring{from{opacity:.9;transform:scale(.5)}to{opacity:0;transform:scale(1.8)}}
 
 </style>
 <meta name="theme-color" content="#0C0A0B">
@@ -459,46 +509,211 @@ window.sb=sb;let uid,SP;const R={},L={},TM={},RT=new Set(),META=new Map();
 const OR="lumen_orphans",orph=()=>{try{return JSON.parse(localStorage.getItem(OR)||"[]")}catch(e){return[]}},setOr=a=>{try{localStorage.setItem(OR,JSON.stringify(a))}catch(e){}};
 const login=()=>LumenLogin.show(sb); // UI ada di login.js; autentikasi tetap Supabase (signInWithPassword/signUp)
 const ses=()=>SP||(SP=sb.auth.getSession().then(async r=>{const s=r.data.session||await login();uid=s.user.id;return s}));
-sb.auth.onAuthStateChange(ev=>{if(ev=="SIGNED_OUT"&&uid)location.reload()});
-async function sign(rows,raw){const P=[];raw.forEach(r=>{if(r.storage_provider=="supabase"&&r.storage_path)P.push(r.storage_path);if(r.data.tid)P.push(r.data.tid)});const M={};
-if(P.length){const{data}=await sb.storage.from("photos").createSignedUrls([...new Set(P)],86400);(data||[]).forEach(x=>{if(x.signedUrl)M[x.path]=x.signedUrl})}
-rows.forEach((x,i)=>{const r=raw[i];x.doc.th=r.data.tid?M[r.data.tid]||"":"";x.doc.url=r.storage_provider=="supabase"?(M[r.storage_path]||""):x.doc.th})}
-async function load(n){const{data,error}=await sb.from(n).select("*");if(error)throw error;
-const rows=data.map(r=>({id:r.id,doc:n=="photos"?{...r.data,sp:r.storage_provider,bs:r.backup_status,bid:r.backup_drive_file_id,gid:r.google_drive_file_id}:r.data}));
-if(n=="photos")await sign(rows,data);R[n]=rows;(L[n]||[]).forEach(f=>f(rows));return rows}
+
+sb.auth.onAuthStateChange(ev=>{
+  if(ev=="SIGNED_OUT"&&uid){
+    location.replace(location.pathname+location.search+"#home");
+  }
+});
+
+async function sign(rows,raw){
+ const P=[];
+ raw.forEach(r=>{
+  if(r.storage_path)P.push(r.storage_path);
+  if(r.data?.tid)P.push(r.data.tid);
+ });
+ const M={};
+ if(P.length){
+  const{data}=await sb.storage.from("photos").createSignedUrls([...new Set(P)],86400);
+  (data||[]).forEach(x=>{
+   if(x.signedUrl)M[x.path]=x.signedUrl;
+  });
+ }
+ rows.forEach((x,i)=>{
+  const r=raw[i];
+  x.doc.th=r.data.tid?M[r.data.tid]||"":"";
+  x.doc.sp=r.storage_path?"supabase":r.google_drive_file_id?"drive":"";
+  x.doc.bs=r.storage_path&&r.google_drive_file_id?"done":"none";
+  x.doc.gid=r.google_drive_file_id||"";
+  x.doc.cid=r.drive_conn_id||"";
+  x.doc.url=r.storage_path?(M[r.storage_path]||""):x.doc.th;
+ });
+}
+
+async function load(n){
+ const{data,error}=await sb.from(n).select("*");
+ if(error)throw error;
+ const rows=data.map(r=>({
+  id:r.id,
+  doc:n=="photos"?{...r.data}:r.data
+ }));
+ if(n=="photos")await sign(rows,data);
+ R[n]=rows;
+ (L[n]||[]).forEach(f=>f(rows));
+ return rows;
+}
 const rl=n=>{clearTimeout(TM[n]);TM[n]=setTimeout(()=>load(n).catch(()=>{}),250)};
 function watch(n,f,er){(L[n]=L[n]||[]).push(f);if(R[n])f(R[n]);else load(n).catch(er||(()=>{}));
 if(!RT.has(n)){RT.add(n);sb.channel("lumen_"+n).on("postgres_changes",{event:"*",schema:"public",table:n},()=>rl(n)).subscribe()}return()=>{}}
-async function put(n,id,d){let data=d,cols=null;
-if(n=="photos"){const{url,th,sp,bs,bid,gid,...rest}=d;data=rest;const m=META.get(d.aid);
- if(m)cols={storage_provider:m.prov,storage_path:m.prov=="supabase"?d.aid:null,google_drive_file_id:m.prov=="drive"?m.did:null,backup_drive_file_id:m.prov=="supabase"?m.did||null:null,backup_status:m.bs,mime_type:d.type,file_size:d.size,original_file_name:d.name}}
-const{data:u,error:e1}=await sb.from(n).update({data}).eq("id",id).eq("user_id",uid).select("id");if(e1)throw e1;
-if(!u.length){const row={id,user_id:uid,data,...(cols||{})},{error}=await sb.from(n).insert(row);
- if(error){if(cols&&(cols.google_drive_file_id||cols.backup_drive_file_id)){setOr([...orph().filter(o=>o.id!=id),row]);window.LDrive&&LDrive.orphanWarn()}throw error}
- if(d.aid)META.delete(d.aid)}
-rl(n)}
+async function put(n,id,d){
+ let data=d,cols={};
+
+ if(n=="photos"){
+  const{url,th,sp,bs,bid,gid,cid,...rest}=d;
+  data=rest;
+
+  const m=META.get(d.aid);
+  if(m){
+   cols={
+    storage_path:m.prov=="supabase"?d.aid:null,
+    google_drive_file_id:m.prov=="drive"?m.did:
+     m.prov=="supabase"?m.did||null:null,
+    drive_conn_id:m.cid||null
+   };
+  }
+ }
+
+ const{data:u,error:e1}=await sb.from(n)
+  .update({data,...cols})
+  .eq("id",id)
+  .eq("user_id",uid)
+  .select("id");
+
+ if(e1)throw e1;
+
+ if(!u.length){
+  const row={id,user_id:uid,data,...cols};
+  const{error}=await sb.from(n).insert(row);
+  if(error)throw error;
+ }
+
+ if(d.aid)META.delete(d.aid);
+ rl(n);
+}
 const coll=n=>({doc:id=>({set:d=>put(n,id,d),async delete(){const{error}=await sb.from(n).delete().eq("id",id).eq("user_id",uid);if(error)throw error;rl(n)},
  onSnapshot:(cb,er)=>watch(n,rows=>{const r=rows.find(x=>x.id===id);cb({data:()=>r?r.doc:undefined})},er)}),
  onSnapshot:(cb,er)=>watch(n,rows=>cb({docs:rows.map(r=>({id:r.id,data:()=>r.doc}))}),er)});
 const DB={doc:()=>({collection:coll}),collection:coll};
-const BIG=6291456,tusUp=(key,f)=>new Promise(async res=>{const s=(await sb.auth.getSession()).data.session;
- const u=new tus.Upload(f,{endpoint:C.SUPABASE_URL+"/storage/v1/upload/resumable",retryDelays:[0,2000,5000,10000,20000],headers:{authorization:"Bearer "+s.access_token,"x-upsert":"false"},uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,chunkSize:BIG,metadata:{bucketName:"photos",objectName:key,contentType:f.type||"application/octet-stream",cacheControl:"3600"},onError:e=>res({error:e}),onSuccess:()=>res({error:null})});
- u.findPreviousUploads().then(p=>{if(p.length)u.resumeFromPreviousUpload(p[0]);u.start()})});
+
+const BIG=6291456;
+
+const tusUp=(key,f,onProgress)=>new Promise(async res=>{
+ const s=(await sb.auth.getSession()).data.session;
+ const u=new tus.Upload(f,{
+  endpoint:C.SUPABASE_URL+"/storage/v1/upload/resumable",
+  retryDelays:[0,2000,5000,10000,20000],
+  headers:{authorization:"Bearer "+s.access_token,"x-upsert":"false"},
+  uploadDataDuringCreation:true,
+  removeFingerprintOnSuccess:true,
+  chunkSize:BIG,
+  metadata:{
+   bucketName:"photos",
+   objectName:key,
+   contentType:f.type||"application/octet-stream",
+   cacheControl:"3600"
+  },
+  onProgress:(sent,total)=>{
+   if(onProgress)onProgress(Math.round(sent/total*100),sent,total);
+  },
+  onError:e=>res({error:e}),
+  onSuccess:()=>res({error:null})
+ });
+ u.findPreviousUploads().then(p=>{
+  if(p.length)u.resumeFromPreviousUpload(p[0]);
+  u.start();
+ }).catch(e=>res({error:e}));
+});
+
+const xhrUp=(key,f,onProgress)=>new Promise(resolve=>{
+ const s=sb.auth.getSession();
+ s.then(({data:{session}})=>{
+  const x=new XMLHttpRequest();
+  const path=key.split("/").map(encodeURIComponent).join("/");
+  x.open("POST",C.SUPABASE_URL+"/storage/v1/object/photos/"+path);
+  x.setRequestHeader("Authorization","Bearer "+session.access_token);
+  x.setRequestHeader("apikey",C.SUPABASE_ANON_KEY);
+  x.setRequestHeader("Content-Type",f.type||"application/octet-stream");
+  x.setRequestHeader("x-upsert","false");
+
+  x.upload.onprogress=e=>{
+   if(e.lengthComputable&&onProgress){
+    onProgress(Math.round(e.loaded/e.total*100),e.loaded,e.total);
+   }
+  };
+
+  x.onload=()=>{
+   if(x.status>=200&&x.status<300)resolve({error:null});
+   else{
+    let msg=x.responseText||"Upload failed";
+    try{msg=JSON.parse(msg).message||msg}catch(e){}
+    resolve({error:Object.assign(new Error(msg),{status:x.status})});
+   }
+  };
+  x.onerror=()=>resolve({error:off()});
+  x.send(f);
+ }).catch(e=>resolve({error:e}));
+});
+
 const off=()=>Object.assign(new Error("You're offline. Check your connection and try again."),{code:"offline"});
-const AS={async upload(f){if(!navigator.onLine)throw off();await ses();
- const mode=f._th?"supabase":(window.LUMEN_MODE||"supabase");
- if(mode=="drive"){if(f.type.startsWith("video"))throw new Error("Videos aren't supported in Google Drive only mode. Choose Supabase or Supabase + Drive.");
-  const did=await LDrive.up(f);META.set(did,{prov:"drive",did,bs:"done"});return{id:did,url:"",sizeBytes:f.size}}
- const big=!f._th&&f.size>BIG&&window.tus,key=`${uid}/${f._th?"thumbs/":""}${big?f.lastModified+"_"+f.size:Date.now()+"_"+Math.random().toString(36).slice(2,7)}_${f.name.replace(/[^\w.-]/g,"_")}`;
- const{error}=big?await tusUp(key,f):await sb.storage.from("photos").upload(key,f,{contentType:f.type||"application/octet-stream"});if(error)throw navigator.onLine?error:off();
- const{data}=await sb.storage.from("photos").createSignedUrl(key,3600);
- if(!f._th){const m={prov:"supabase",bs:"none"};
-  if(mode=="both"){try{m.did=await LDrive.up(f);m.bs="done"}catch(e){m.bs="failed";LDrive.uf++;LDrive.lastErr=e.message}}META.set(key,m)}
- return{id:key,url:data.signedUrl,sizeBytes:f.size}},
- async delete(id){if(id&&id.includes("/")){const{error}=await sb.storage.from("photos").remove([id]);if(error)throw error}}};
+
+const AS={
+ async upload(f,onProgress){
+  if(!navigator.onLine)throw off();
+  await ses();
+
+  const mode=f._th?"supabase":(window.LUMEN_MODE||"supabase");
+
+  if(mode=="drive"){
+   
+   const did=await LDrive.up(f,(p,l,t)=>onProgress&&onProgress(p,l,t));
+   META.set(did,{prov:"drive",did,bs:"done",cid:LDrive.lastCid});
+   return{id:did,url:"",sizeBytes:f.size};
+  }
+
+  const big=!f._th&&f.size>BIG&&window.tus;
+  const key=`${uid}/${f._th?"thumbs/":""}${big?f.lastModified+"_"+f.size:Date.now()+"_"+Math.random().toString(36).slice(2,7)}_${f.name.replace(/[^\w.-]/g,"_")}`;
+
+  const report=(p,l,t)=>{
+   if(onProgress)onProgress(p,l,t);
+  };
+
+  const result=big
+   ?await tusUp(key,f,report)
+   :await xhrUp(key,f,report);
+
+  if(result.error)throw navigator.onLine?result.error:off();
+
+  const{data}=await sb.storage.from("photos").createSignedUrl(key,3600);
+
+  if(!f._th){
+   const m={prov:"supabase",bs:"none"};
+   if(mode=="both"){
+    try{
+     m.did=await LDrive.up(f,(p,l,t)=>onProgress&&onProgress(50+p/2,l,t));
+     m.bs="done";m.cid=LDrive.lastCid;
+    }catch(e){
+     m.bs="failed";
+     LDrive.uf++;
+     LDrive.lastErr=e.message;
+    }
+   }
+   META.set(key,m);
+  }
+
+  return{id:key,url:data.signedUrl,sizeBytes:f.size};
+ },
+
+ async delete(id){
+  if(id&&id.includes("/")){
+   const{error}=await sb.storage.from("photos").remove([id]);
+   if(error)throw error;
+  }
+ }
+};
+
 const DL={save:async({filename,data})=>{const a=document.createElement("a"),u=URL.createObjectURL(data);a.href=u;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),6e4)}};
 window.claude={use:async n=>{const s=await ses();if(n=="user")return{id:async()=>s.user.id,me:async()=>({name:s.user.user_metadata?.name||"",email:s.user.email})};return{db:DB,assets:AS,downloads:DL}[n]||null}};
-window.LSB={reload:n=>load(n),orphans:()=>orph().length,
+window.LSB={reload:n=>load(n),meta:(k,v)=>META.set(k,v),orphans:()=>orph().length,
  async retryOrphans(){const a=orph(),keep=[];for(const r of a){const{error}=await sb.from("photos").insert(r);if(error&&error.code!="23505")keep.push(r)}setOr(keep);await load("photos");return a.length-keep.length},
  async logout(){await sb.auth.signOut();location.reload()}};
 })();
@@ -579,55 +794,136 @@ window.LumenLogin={show};  // nama global dipertahankan agar adapter/admin tidak
 // Google Drive: pemanggil Edge Function, upload resumable, UI pengaturan, indikator.
 (()=>{const C=window.LUMEN_CONFIG||{};if(!window.sb)return;
 const FN=(C.FUNCTIONS_URL||C.SUPABASE_URL+"/functions/v1").replace(/\/drive\/?$/,"")+"/drive"; // FUNCTIONS_URL boleh berakhiran /drive atau tidak
-const MSG={offline:"You're offline. Check your connection and try again.",not_connected:"Google Drive isn't connected. Connect it in Profile → Google Drive.",token_expired:"Your Google Drive session has expired. Reconnect it in Profile.",quota:"Your Google Drive is full. Free up some space and try again.",folder_missing:"The destination folder wasn't found. Choose another folder in Profile.",upload_failed:"Upload to Google Drive failed.",unauthorized:"Your session has expired. Please sign in again.",error:"Something went wrong."};
+const MSG={offline:"You're offline. Check your connection and try again.",not_connected:"Google Drive isn't connected. Connect it in Profile → Google Drive.",token_expired:"Your Google Drive session has expired. Reconnect it in Profile.",quota:"Your Google Drive is full. Free up some space and try again.",folder_missing:"The destination folder wasn't found. Choose another folder in Profile.",upload_failed:"Upload to Google Drive failed.",picker_not_configured:"Import from Google Drive isn't set up yet (see docs/SETUP.md, \"Import from Drive\").",no_thumb:"No preview available.",unauthorized:"Your session has expired. Please sign in again.",error:"Something went wrong."};
 const E=(c,m)=>Object.assign(new Error(MSG[c]||m||c),{code:c});
-const D=window.LDrive={st:null,busy:false,uf:0,ff:[],lastErr:""};
+const D=window.LDrive={st:null,busy:false,uf:0,ff:[],lastErr:"",lastCid:""};
 const hdr=async()=>{const{data:{session}}=await sb.auth.getSession();return{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token,apikey:C.SUPABASE_ANON_KEY}};
 async function raw(action,body={}){if(!navigator.onLine)throw E("offline");try{return await fetch(FN,{method:"POST",headers:await hdr(),body:JSON.stringify({action,...body})})}catch(e){throw E("offline")}}
 async function call(action,body){const r=await raw(action,body),j=await r.json().catch(()=>({}));if(!r.ok)throw E(j.code||"error",j.message);return j}
-D.up=async f=>{const mime=f.type||"application/octet-stream",{uploadUrl}=await call("init_upload",{name:f.name,mime,size:f.size});let r;
- try{r=await fetch(uploadUrl,{method:"PUT",headers:{"Content-Type":mime},body:f})}catch(e){throw E("offline")}
- if(!r.ok){const t=await r.text().catch(()=>"");throw E(/quota/i.test(t)?"quota":r.status==401?"token_expired":r.status==404?"folder_missing":"upload_failed")}
- return(await r.json()).id};
+
+D.up=async (f,onProgress)=>{
+ const mime=f.type||"application/octet-stream";
+ const {uploadUrl,conn_id}=await call("init_upload",{name:f.name,mime,size:f.size,conn_id:window.LUMEN_DRIVE||""});
+ D.lastCid=conn_id||"";
+
+ return new Promise((resolve,reject)=>{
+  const x=new XMLHttpRequest();
+  x.open("PUT",uploadUrl);
+  x.setRequestHeader("Content-Type",mime);
+
+  x.upload.onprogress=e=>{
+   if(e.lengthComputable){
+    const percent=Math.round(e.loaded/e.total*100);
+    if(onProgress){
+ onProgress(percent,e.loaded,e.total);
+}
+   }
+  };
+
+  x.onload=()=>{
+   if(x.status>=200&&x.status<300){
+    try{resolve(JSON.parse(x.responseText).id)}
+    catch(e){reject(E("upload_failed"))}
+   }else{
+    const t=x.responseText||"";
+    reject(E(/quota/i.test(t)?"quota":x.status===401?"token_expired":x.status===404?"folder_missing":"upload_failed"));
+   }
+  };
+
+  x.onerror=()=>reject(E("offline"));
+  x.onabort=()=>reject(E("upload_failed"));
+  x.send(f);
+ });
+};
+
 D.refresh=async()=>{try{D.st=await call("status")}catch(e){D.st={connected:false,err:e.code}}rr()};
 D.init=()=>{const q=new URLSearchParams(location.search),r=q.get("drive");if(r){history.replaceState(null,"",location.pathname+location.hash);toast(r=="connected"?"Google Drive connected":"Couldn't connect Google Drive ("+(q.get("reason")||"error")+")")}D.refresh();if(LSB.orphans())D.orphanWarn()};
 D.orphanWarn=()=>toast("The file is in Google Drive, but saving its details failed.",{l:"Retry",f:async()=>{try{toast("Recovered: "+await LSB.retryOrphans())}catch(e){toast("Failed: "+e.message)}}});
-const ok=()=>{const s=D.st;return!!(s&&s.connected&&s.status!="expired")};
+// ---- Banyak akun Google Drive ----
+const drives=()=>{const s=D.st;if(!s)return[];if(s.drives)return s.drives;return s.connected?[{id:"",email:s.email,status:s.status,folder_id:s.folder_id,folder_name:s.folder_name,auto_backup:s.auto_backup,is_default:true}]:[]};
+const live=()=>drives().filter(d=>d.status=="connected"),ok=()=>live().length>0,dflt=()=>drives().find(d=>d.is_default)||drives()[0];
+const dr=id=>drives().find(d=>d.id==id)||dflt();
 window.getBlob=async p=>{if(p.sp=="drive"){const r=await raw("download",{file_id:p.aid});if(!r.ok)throw E((await r.json().catch(()=>({}))).code||"error");return r.blob()}return(await fetch(p.url)).blob()};
+// URL yang bisa diputar <video>. Video di Supabase: signed URL biasa. Video yang hanya ada di Google Drive: URL stream bertanda tangan
+// dari Edge Function (mendukung Range, jadi bisa seek). Di-cache sampai mendekati kedaluwarsa (6 jam).
+const VS={};
+window.vidSrc=async p=>{if(p.sp!="drive"&&p.url)return p.url;const id=p.aid||p.gid;if(!id)throw E("error","Video file not found");
+ const h=VS[id];if(h&&h.e>Date.now())return h.u;
+ const j=await call("stream_url",{file_id:id,mime:p.type||""});if(!j.url)throw E("error");VS[id]={u:j.url,e:Date.now()+5*36e5};return j.url};
 window.lBadge=p=>p.sp=="drive"?'<i class=lb>Drive</i>':p.bs=="done"?'<i class=lb>S + Drive</i>':p.bs=="failed"?'<i class="lb f">Backup failed</i>':"";
 window.lLoc=p=>p.sp=="drive"?" · Google Drive":p.bs=="done"?" · Supabase + Drive":p.bs=="failed"?" · Supabase (Drive backup failed)":p.sp=="supabase"?" · Supabase":"";
-window.storagePicker=()=>{const s=D.st,a=ok()&&s.auto_backup,o=ok();return`<label class=mu>Storage</label><select id=sm style="margin-bottom:6px"><option value=both ${o?"":"disabled"} ${a?"selected":""}>Supabase + Google Drive</option><option value=supabase ${a?"":"selected"}>Supabase only</option><option value=drive ${o?"":"disabled"}>Google Drive only (images)</option></select>${o?"":`<div class=mu style="font-size:12px;margin-bottom:6px">Connect Google Drive in Profile to use the Drive options.</div>`}`};
-window.lMode=s=>{const m=(s.querySelector("#sm")||{}).value||"supabase";D.ff.length=0;D.uf=0;if(m!="supabase"&&!ok()){toast(MSG[D.st&&D.st.status=="expired"?"token_expired":"not_connected"]);return null}return m};
+window.storagePicker=()=>{const d=dflt(),o=ok(),a=o&&d&&d.auto_backup,L=live();
+ const dc=L.length>1?`<label class=mu>Google Drive account</label><select id=dc style="margin-bottom:6px">${L.map(x=>`<option value="${esc(x.id)}" ${x.is_default?"selected":""}>${esc(x.email||"")}${x.is_default?" (default)":""}</option>`).join("")}</select>`:"";
+ return`<label class=mu>Storage</label><select id=sm style="margin-bottom:6px"><option value=both ${o?"":"disabled"} ${a?"selected":""}>Mika Cloud + Google Drive</option><option value=supabase ${a?"":"selected"}>Mika cloud</option><option value=drive ${o?"":"disabled"}>Google Drive</option></select>${o?"":`<div class=mu style="font-size:12px;margin-bottom:6px">Connect Google Drive in Profile to use the Drive options.</div>`}${dc}`};
+window.lMode=s=>{const m=(s.querySelector("#sm")||{}).value||"supabase";D.ff.length=0;D.uf=0;if(m!="supabase"&&!ok()){toast(MSG[drives().some(x=>x.status=="expired")?"token_expired":"not_connected"]);return null}window.LUMEN_DRIVE=(s.querySelector("#dc")||{}).value||"";return m};
 window.lSuffix=()=>(D.ff.length?" · failed: "+D.ff.length:"")+(D.uf?" · Drive backup failed: "+D.uf:"");
 window.lAct=()=>{if(D.ff.length){const l=D.ff.splice(0);D.uf=0;return{l:"Retry",f:()=>upload(l)}}if(D.uf){D.uf=0;return{l:"Retry",f:()=>backup(S.photos.filter(p=>p.bs=="failed"))}}};
-async function backup(l){if(D.busy||!l.length)return;D.busy=true;let n=0,bad=0,last;
- for(const p of l){try{toast(`Backing up ${n+bad+1}/${l.length}…`);const b=await getBlob(p),did=await D.up(new File([b],p.name,{type:p.type||b.type})),{error}=await sb.from("photos").update({backup_drive_file_id:did,backup_status:"done"}).eq("id",p.id);if(error)throw error;n++}
+async function backup(l){if(D.busy||!l.length)return;D.busy=true;window.LUMEN_DRIVE="";let n=0,bad=0,last;
+ for(const p of l){try{toast(`Backing up ${n+bad+1}/${l.length}…`);const b=await getBlob(p),did=await D.up(new File([b],p.name,{type:p.type||b.type})),{error}=await sb.from("photos").update({backup_drive_file_id:did,backup_status:"done",drive_conn_id:D.lastCid||null}).eq("id",p.id);if(error)throw error;n++}
   catch(e){bad++;last=e;await sb.from("photos").update({backup_status:"failed"}).eq("id",p.id);if(["token_expired","not_connected","quota","offline","folder_missing"].includes(e.code))break}}
  D.busy=false;await LSB.reload("photos");D.refresh();toast(bad?`${n} backed up, ${bad} failed: ${last.message}`:`${n} photo${n==1?"":"s"} backed up to Google Drive`)}
-const url=()=>"https://drive.google.com/drive/folders/"+D.st.folder_id;
+const furl=d=>"https://drive.google.com/drive/folders/"+d.folder_id;
 const A={
  async connect(){try{location.href=(await call("start")).url}catch(e){toast("Failed: "+e.message)}},
- disc(){actSheet("Disconnect Google Drive?","Your access token is deleted from the server. Files in Drive are not deleted. Photos stored only in Drive can't be opened or downloaded in full until you reconnect.","Disconnect",async()=>{try{await call("disconnect");toast("Disconnected");D.refresh()}catch(e){toast("Failed: "+e.message)}})},
- async folder(){try{const{folders}=await call("list_folders");sheet(`<h3 style="margin-top:0">Storage folder</h3><div class=mu style="font-size:12px;margin-bottom:6px">Limited access (drive.file): only folders created by MIKA Photos appear here.</div>`+folders.map(f=>`<button class=o data-x="f:${esc(f.id)}">${esc(f.name)}${f.id==D.st.folder_id?" ✓":""}</button>`).join("")+`<button class=o data-x=new>Create new folder…</button>`,async x=>{
-  try{if(x=="new")return ask("New folder name","MIKA Photos",async n=>{try{await call("create_folder",{name:n});toast("Folder created");D.refresh()}catch(e){toast("Failed: "+e.message)}});await call("set_folder",{id:x.slice(2)});toast("Folder changed");D.refresh()}catch(e){toast("Failed: "+e.message)}})}catch(e){toast("Failed: "+e.message)}},
- open(){window.open(url(),"_blank","noopener")},
- share(){window.open(url(),"_blank","noopener");toast("Use Share on the folder in Google Drive to manage access")},
- async auto(){try{await call("set_auto",{value:!D.st.auto_backup});D.refresh()}catch(e){toast("Failed: "+e.message)}},
+ disc(id){const d=dr(id);actSheet("Disconnect "+(d.email||"Google Drive")+"?","Its access token is deleted from the server. Files in Drive are not deleted. Photos stored only in this Drive can't be opened or downloaded in full until you reconnect it.","Disconnect",async()=>{try{await call("disconnect",{conn_id:d.id});toast("Disconnected");D.refresh()}catch(e){toast("Failed: "+e.message)}})},
+ async def(id){try{await call("set_default",{conn_id:id});toast("Default Drive changed");D.refresh()}catch(e){toast("Failed: "+e.message)}},
+ async folder(id){const d=dr(id);try{const{folders}=await call("list_folders",{conn_id:d.id});sheet(`<h3 style="margin-top:0">Storage folder</h3><div class=mu style="font-size:12px;margin-bottom:6px">${esc(d.email||"")} · limited access (drive.file): only folders created by MIKA appear here.</div>`+folders.map(f=>`<button class=o data-x="f:${esc(f.id)}">${esc(f.name)}${f.id==d.folder_id?" ✓":""}</button>`).join("")+`<button class=o data-x=new>Create new folder…</button>`,async x=>{
+  try{if(x=="new")return ask("New folder name","MIKA",async n=>{try{await call("create_folder",{conn_id:d.id,name:n});toast("Folder created");D.refresh()}catch(e){toast("Failed: "+e.message)}});await call("set_folder",{conn_id:d.id,id:x.slice(2)});toast("Folder changed");D.refresh()}catch(e){toast("Failed: "+e.message)}})}catch(e){toast("Failed: "+e.message)}},
+ open(id){window.open(furl(dr(id)),"_blank","noopener")},
+ share(id){window.open(furl(dr(id)),"_blank","noopener");toast("Use Share on the folder in Google Drive to manage access")},
+ async auto(id){const d=dr(id);try{await call("set_auto",{conn_id:d.id,value:!d.auto_backup});D.refresh()}catch(e){toast("Failed: "+e.message)}},
  retry(){backup(S.photos.filter(p=>p.bs=="failed"))},
  all(){backup(S.photos.filter(p=>p.sp=="supabase"&&p.bs!="done"))},
  async orph(){try{toast("Recovered: "+await LSB.retryOrphans())}catch(e){toast("Failed: "+e.message)}},
+ imp(){D.imp()},
  logout(){LSB.logout()}};
-document.addEventListener("click",e=>{const b=e.target.closest("[data-dr]");if(b&&A[b.dataset.dr])A[b.dataset.dr]()});
-window.driveCard=()=>{const s=D.st,P=S.photos,done=P.filter(p=>p.sp=="supabase"&&p.bs=="done").length,fail=P.filter(p=>p.bs=="failed").length,todo=P.filter(p=>p.sp=="supabase"&&p.bs!="done").length,only=P.filter(p=>p.sp=="drive").length;
- const R=(a,b,x="")=>`<div class=row${x}><span>${a}</span>${b}</div>`,B=(k,t)=>`<button class=chip data-dr=${k}>${t}</button>`;let h;
+document.addEventListener("click",e=>{const b=e.target.closest("[data-dr]");if(b&&A[b.dataset.dr])A[b.dataset.dr](b.dataset.id)});
+
+// ---- Menu Upload: dari perangkat ATAU impor dari Google Drive ----
+window.uploadMenu=()=>{if(!ok())return upload();sheet(`<h3 style="margin-top:0">Upload</h3><button class=o data-x=dev>From this device</button><button class=o data-x=drv>From Google Drive</button>`,x=>{if(x=="dev")upload();else if(x=="drv")D.imp()})};
+// Impor dari Google Drive: Google Picker (file yang dipilih otomatis boleh diakses scope drive.file). File TIDAK disalin; hanya dicatat di perpustakaan
+// (thumbnail dibuat di sini). Menghapus dari MIKA tidak menghapus file di Drive.
+let GP=null;
+const loadPicker=()=>GP||(GP=new Promise((res,rej)=>{const go=()=>gapi.load("picker",{callback:res,onerror:()=>rej(E("error","Couldn't load Google Picker"))});
+ if(window.gapi&&gapi.load)return go();const s=document.createElement("script");s.src="https://apis.google.com/js/api.js";s.onload=go;s.onerror=()=>{GP=null;rej(E("error","Couldn't load Google Picker"))};document.head.append(s)}));
+D.imp=async cid=>{const L=live();if(!L.length)return toast(MSG.not_connected);
+ if(cid==null&&L.length>1)return sheet(`<h3 style="margin-top:0">Import from which account?</h3>`+L.map(d=>`<button class=o data-x="c:${esc(d.id)}">${esc(d.email||"")}${d.is_default?" (default)":""}</button>`).join(""),x=>{if(x&&x.startsWith("c:"))D.imp(x.slice(2))});
+ if(cid==null)cid=L[0].id;
+ let k;try{k=await call("pick_token",{conn_id:cid})}catch(e){return toast(e.code=="picker_not_configured"?MSG.picker_not_configured:"Failed: "+e.message)}
+ try{await loadPicker()}catch(e){return toast("Failed: "+e.message)}
+ const v=new google.picker.DocsView(google.picker.ViewId.DOCS_IMAGES_AND_VIDEOS).setIncludeFolders(true).setSelectFolderEnabled(false);
+ new google.picker.PickerBuilder().addView(v).enableFeature(google.picker.Feature.MULTISELECT_ENABLED).setOAuthToken(k.token).setDeveloperKey(k.api_key).setAppId(k.app_id)
+  .setCallback(d=>{if(d.action==google.picker.Action.PICKED)D.doImport(k.conn_id,(d.docs||[]).map(x=>x.id))}).build().setVisible(true)};
+D.doImport=async(cid,ids)=>{if(!ids.length)return;if(!assets)return toast("Imports need editor access to this page");
+ try{toast("Reading files…");const have=new Set([...S.photos,...S.trash].map(p=>p.aid)),{files}=await call("import_info",{conn_id:cid,ids});
+  const todo=files.filter(f=>!have.has(f.id));if(!todo.length)return toast(files.length?"Already in your library":"No photos or videos selected");
+  let n=0,bad=0;
+  for(const f of todo){toast(`Importing ${n+bad+1}/${todo.length}…`);
+   try{let w=f.w,h=f.h,dur=f.dur,th="",tid="",cat=f.mime.startsWith("video")?"Motion":(S.prefs&&S.prefs.cat&&S.prefs.cat!="Auto"?S.prefs.cat:"Auto");
+    if(f.mime.startsWith("image")){try{const r=await raw("import_thumb",{conn_id:cid,file_id:f.id});if(r.ok){const bl=await r.blob(),m=await mkThumb(new File([bl],f.name,{type:bl.type||"image/jpeg"}));if(m){w=w||m.w;h=h||m.h;const tr=await assets.upload(m.file);th=tr.url;tid=tr.id;if(cat=="Auto")try{cat=await autoCat(m.file)}catch(e){}}}}catch(e){}}
+    else{try{const j=await call("stream_url",{file_id:f.id,conn_id:cid,mime:f.mime}),g=await vtGrab(j.url,true),b=await new Promise(r=>g.cv.toBlob(r,"image/jpeg",.8));if(b){w=w||g.w;h=h||g.h;dur=dur||Math.round(g.dur||0);const tr=await assets.upload(Object.assign(new File([b],"t_"+f.name+".jpg",{type:"image/jpeg"}),{_th:1}));th=tr.url;tid=tr.id}}catch(e){}}
+    if(cat=="Auto")cat=(CATS&&CATS[1])||"Photos";
+    const d=Date.parse((f.taken||"").replace(/^(\d{4}):(\d\d):(\d\d)/,"$1-$2-$3"))||Date.parse(f.created)||Date.now();
+    LSB.meta(f.id,{prov:"drive",did:f.id,bs:"done",cid});
+    await save(null,"p"+Date.now()+n,{name:f.name,url:"",th,tid,aid:f.id,up:Date.now(),type:f.mime,size:f.size,w,h,dur,cat,date:d,fav:false,hash:""},"photos");n++}
+   catch(e){bad++}}
+  toast(bad?`Imported ${n}, ${bad} failed`:`Imported ${n} from Google Drive`)}catch(e){toast("Failed: "+e.message)}};
+
+window.driveCard=()=>{const s=D.st,P=S.photos,done=P.filter(p=>p.sp=="supabase"&&p.bs=="done").length,fail=P.filter(p=>p.bs=="failed").length,todo=P.filter(p=>p.sp=="supabase"&&p.bs!="done").length,only=P.filter(p=>p.sp=="drive").length,L=drives();
+ const R=(a,b,x="")=>`<div class=row${x}><span>${a}</span>${b}</div>`,B=(k,t,id)=>`<button class=chip data-dr=${k}${id!=null?` data-id="${esc(id)}"`:""}>${t}</button>`;let h;
  if(!s)h=R("Status",'<span class=mu>Checking…</span>',' style="border:0"');
- else if(!s.connected)h=R('<span class=dot></span>Not connected',B("connect","Connect"),' style="border:0"')+`<p class=mu style="font-size:11px;margin:4px 0 0">Access is limited to files created by MIKA Photos. Nothing is ever made public.</p>`;
- else if(s.status=="expired")h=R('<span class="dot r"></span>Session expired',B("connect","Reconnect"))+R("Account",B("disc","Disconnect"),' style="border:0"');
- else h=R('<span class="dot g"></span>Connected',`<span class="mu v">${esc(s.email||"")}</span>`)+R("Folder",`<span style="display:flex;gap:6px;align-items:center"><span class="mu v">${esc(s.folder_name||"—")}</span>${B("folder","Change")}</span>`)
-  +R("Open / share folder",`<span style="display:flex;gap:6px">${B("open","Open")}${B("share","Share")}</span>`)+R("Auto backup",B("auto",s.auto_backup?"On":"Off"))
-  +R("Backup status",`<span class=mu>${done} backed up${only?` · ${only} Drive only`:""}${fail?` · <b style="color:#ff453a">${fail} failed</b>`:""}</span>`)
+ else if(!L.length)h=R('<span class=dot></span>Not connected',B("connect","Connect"),' style="border:0"')+`<p class=mu style="font-size:12px;margin:4px 0 0">Access is limited to files created or picked in MIKA. Nothing is ever made public. You can connect more than one Google account.</p>`;
+ else h=L.map((d,i)=>{const on=d.status=="connected",e=esc(d.email||"Google account");
+   return`<div class="dv${i?" dv2":""}">`+R(`<span class="dot ${on?"g":"r"}"></span><span style="color:var(--tx);min-width:0;overflow-wrap:anywhere">${e}</span>${d.is_default?'<span class=mu style="font-size:12px;margin-left:6px">Default</span>':""}`,"",' style="border:0;padding-bottom:2px"')
+   +(on?R("Folder",`<span style="display:flex;gap:6px;align-items:center"><span class="mu v">${esc(d.folder_name||"—")}</span>${B("folder","Change",d.id)}</span>`)
+   +R("Open / share folder",`<span style="display:flex;gap:6px">${B("open","Open",d.id)}${B("share","Share",d.id)}</span>`)
+   +(d.is_default?R("Auto backup",B("auto",d.auto_backup?"On":"Off",d.id)):""):"")
+   +R("Account",`<span style="display:flex;gap:6px">${!on?B("connect","Reconnect"):""}${on&&L.length>1&&!d.is_default?B("def","Make default",d.id):""}${B("disc","Disconnect",d.id)}</span>`,' style="border:0"')+`</div>`}).join("")
+  +R("Add another Google Drive",B("connect","Add"))
+  +R("Import from Google Drive",B("imp","Import"))
+  +R("Backup status",`<span class=mu>${done} backed up${only?` · ${only} Drive only`:""}${fail?` · <b style="color:var(--ac2)">${fail} failed</b>`:""}</span>`)
   +(fail||todo?R(todo?`${todo} not backed up yet`:"",`<span style="display:flex;gap:6px">${fail?B("retry","Retry"):""}${todo?B("all","Back up"):""}</span>`):"")
-  +(LSB.orphans()?R("Pending details",B("orph","Recover")):"")+R("Google account",B("disc","Disconnect"),' style="border:0"');
+  +(LSB.orphans()?R("Pending details",B("orph","Recover")):"")+R("Sign out of MIKA",B("logout","Sign out"),' style="border:0"');
  return`<div class=gp><div class=tt>Google Drive</div>${h}</div>`};
 })();
 
@@ -736,17 +1032,15 @@ function openEdit(){
  S.me=S.me||{};
  const s=$(`<div class="sheet pfe pfp"><div>
   <h3>Edit profile</h3>
-  <div class=pfv data-pe=cover role=button aria-label="Tap to edit cover">
-   <button class=pfav data-pe=photo aria-label="Change profile photo"><span class=pfai></span><i class=pfpen>${window.COV_PEN||""}</i></button></div>
-  <div class=pfr><span class=mu>Tap the photo or cover to change it</span><button class=chip data-pe=rm>Remove photo</button></div>
+  <div class=pfh><button class=pfav data-pe=photo aria-label="Change profile photo"><span class=pfai></span><i class=pfpen>${window.COV_PEN||""}</i></button>
+   <div class=pfm2><b>Profile photo</b><span class=mu>Tap the photo to change it. To change the cover, tap the cover on your Profile.</span><button class=chip data-pe=rm>Remove photo</button></div></div>
   <label class=pfn for=pfn>Display name</label><input id=pfn maxlength=60 placeholder="Your name" autocomplete=off>
   <div class=pfa><button class=chip data-pe=cancel>Cancel</button><button class=btn data-pe=save>Save</button></div>
  </div></div>`);
  document.body.append(s);
- const cv=s.querySelector(".pfv"),av=s.querySelector(".pfai"),rm=s.querySelector('[data-pe=rm]'),inp=s.querySelector("#pfn");
+ const av=s.querySelector(".pfai"),rm=s.querySelector('[data-pe=rm]'),inp=s.querySelector("#pfn");
  inp.value=S.me.name||"";
- const paint=()=>{const u=S.me||{},c=S.photos.find(p=>!isVid(p)),url=(window.coverUrl&&coverUrl(c))||"";
-  cv.style.backgroundImage=url?`url("${url}")`:"";
+ const paint=()=>{const u=S.me||{};
   av.innerHTML=u.photo?`<img src="${u.photo}" alt="">`:ini(inp.value||u.name);
   rm.style.display=u.photo?"":"none"};
  PF.paint=()=>{if(document.body.contains(s))paint()};
@@ -761,7 +1055,6 @@ function openEdit(){
   const k=b.dataset.pe;
   if(k=="cancel")return closeS(s);
   if(k=="save")return finish();
-  if(k=="cover"){const t=document.createElement("button");t.dataset.cov=1;t.hidden=true;document.body.append(t);t.click();t.remove();return}
   if(k=="rm"){S.me.photo="";try{await saveMe();toast("Profile photo removed");render();paint()}catch(err){toast("Couldn't update photo")}return}
   if(k=="photo"){const f=await pickFile("image/*");if(!f)return;
    try{const bm=await createImageBitmap(f),q=Math.min(bm.width,bm.height),c=document.createElement("canvas");c.width=c.height=256;
@@ -782,7 +1075,7 @@ function openCats(){
   <div class=pfn>Existing photos</div>
   <button class=o data-rg=other>Categorize photos marked “Other”</button>
   <button class=o data-rg=all>Recategorize all photos<span class=mu style="display:block;font-size:12px;margin-top:2px">Overwrites categories you set manually</span></button>
-  <div class=mu style="font-size:11px;margin-top:10px">AI runs on your device and your photos are never sent to another server. The model (~15 MB) downloads once.</div>
+  <div class=mu style="font-size:12px;margin-top:10px">AI runs on your device and your photos are never sent to another server. The model (~15 MB) downloads once.</div>
   <button class=btn style="width:100%;margin-top:16px" data-pc=done>Done</button>
  </div></div>`);
  document.body.append(s);
@@ -822,8 +1115,9 @@ window.calUI=function(){
   const k=y+"-"+mo+"-"+d,l=by.get(k),first=d==1?`;grid-column-start:${off+1}`:"";
   if(l){
    l.sort((a,b)=>b.date-a.date);
-   const c=l.find(p=>!isVid(p));
-   t+=`<button class="dy has${c?"":" vd"}${S.selDay===k?" on":""}" data-day="${k}" style="--i:${d}${first}${c?`;background-image:url('${esc(T(c))}')`:""}"><span>${d}</span>${l.length>1?`<i class=n>${l.length}</i>`:""}</button>`;
+   IC.play=IC.play||"M7 4l13 8-13 8z";
+   const c=l[0],nv=l.filter(isVid).length;   // cover = item terbaru hari itu (foto atau video; poster video diambil dari videonya)
+   t+=`<button class="dy has${S.selDay===k?" on":""}"${isVid(c)?` data-vt="${esc(c.id)}"`:""} data-day="${k}" style="--i:${d}${first};background-image:url('${esc(T(c))}')"><span>${d}</span>${l.length>1?`<i class=n>${l.length}</i>`:""}${nv?`<i class=vi aria-label="${nv} video">${ico("play",9,"currentColor")}${nv>1?nv:""}</i>`:""}</button>`;
   }else t+=`<div class="dy em${k==tk?" td":""}" style="--i:${d}${first}"><span>${d}</span></div>`;
  }
  const wk=["S","M","T","W","T","F","S"].map(x=>`<span>${x}</span>`).join("");
@@ -838,6 +1132,51 @@ document.addEventListener("click",e=>{
  setTimeout(()=>LViewer(l[0].id,l,t),reduce()?0:170);
 });
 
+/* ============================ GESER ANTAR BULAN (kalender) ============================
+   Seret ke kiri = bulan berikutnya, ke kanan = bulan sebelumnya. Juga: panah kiri/kanan di keyboard dan geser horizontal di trackpad.
+   Animasi: bulan lama meluncur keluar (klon), bulan baru masuk dari sisi sebaliknya, judul bulan memudar halus. Dibatasi dari bulan
+   foto paling awal sampai bulan terbaru/bulan ini. */
+(function(){
+ const EASE="cubic-bezier(.22,1,.36,1)",ids=()=>S.photos.map(p=>D(p)).filter(d=>!isNaN(d)).map(d=>d.getFullYear()*12+d.getMonth());
+ const bounds=()=>{const a=ids(),n=new Date(),nm=n.getFullYear()*12+n.getMonth();let lo=a.length?Math.min(...a):nm,hi=Math.max(nm,...(a.length?[Math.max(...a)]:[]));if(lo>hi)lo=hi;return[lo,hi]};
+ const can=dir=>{const[lo,hi]=bounds(),nx=S.year*12+S.mon+dir;return nx>=lo&&nx<=hi};
+ const cmEl=()=>document.querySelector(".cm");
+ const nudge=dir=>{const cm=cmEl();if(cm&&!reduce())cm.animate([{transform:"none"},{transform:`translateX(${-dir*14}px)`},{transform:"none"}],{duration:320,easing:EASE})};
+ function go(dir,from){
+  if(!can(dir)){nudge(dir);return false}
+  const cm=cmEl(),nx=S.year*12+S.mon+dir;
+  if(reduce()||!cm){S.year=Math.floor(nx/12);S.mon=nx%12;S.selDay=null;render();return true}
+  // klon bulan lama sebagai lapisan yang meluncur keluar
+  const r=cm.getBoundingClientRect(),old=cm.cloneNode(true),cur=getComputedStyle(cm).transform;
+  old.classList.add("cmx");old.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;margin:0;z-index:6;pointer-events:none;transform:${cur==="none"?"none":cur}`;
+  document.body.append(old);
+  old.animate([{transform:cur==="none"?"none":cur,opacity:+getComputedStyle(cm).opacity||1},{transform:`translateX(${-dir*40}%)`,opacity:0}],{duration:420,easing:EASE,fill:"forwards"}).onfinish=()=>old.remove();
+  S.year=Math.floor(nx/12);S.mon=nx%12;S.selDay=null;render();
+  const nc=cmEl(),ct=document.getElementById("ct");
+  if(nc)nc.animate([{transform:`translateX(${dir*40}%)`,opacity:0},{transform:"none",opacity:1}],{duration:460,easing:EASE});
+  if(ct)ct.animate([{opacity:0,transform:`translateY(${dir*10}px)`},{opacity:1,transform:"none"}],{duration:360,easing:EASE});
+  return true}
+ window.calGo=go;
+ let st=null;
+ const live=()=>S.view==="col"&&!document.querySelector(".pv")&&!document.querySelector(".sheet,.dlg");
+ document.addEventListener("pointerdown",e=>{const cm=e.target.closest&&e.target.closest(".cm");if(!cm||!live()||(e.pointerType==="mouse"&&e.button))return;st={x:e.clientX,y:e.clientY,t:Date.now(),cm,id:e.pointerId,on:0,dx:0}},true);
+ document.addEventListener("pointermove",e=>{if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;
+  if(!st.on){if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.3){st.on=1;try{st.cm.setPointerCapture(e.pointerId)}catch(_){}st.cm.style.transition="none"}else{if(Math.abs(dy)>10)st=null;return}}
+  const dir=dx<0?1:-1,k=can(dir)?.9:.22,W=st.cm.clientWidth||300;st.dx=dx;
+  st.cm.style.transform=`translateX(${dx*k}px)`;st.cm.style.opacity=String(1-Math.min(.45,Math.abs(dx*k)/W*.7))});
+ const end=e=>{if(!st||(e&&e.pointerId!==st.id))return;const s=st;st=null;if(!s.on)return;
+  const dx=s.dx,dt=Math.max(1,Date.now()-s.t),v=Math.abs(dx)/dt,W=s.cm.clientWidth||300,dir=dx<0?1:-1;
+  const back=()=>{const from=getComputedStyle(s.cm).transform,fo=getComputedStyle(s.cm).opacity;s.cm.style.transform=s.cm.style.opacity="";
+   if(!reduce())s.cm.animate([{transform:from,opacity:fo},{transform:"none",opacity:1}],{duration:420,easing:EASE})};
+  if((Math.abs(dx)>W*.2||(Math.abs(dx)>36&&v>.45))&&can(dir)){go(dir)}else back()};
+ document.addEventListener("pointerup",end,true);document.addEventListener("pointercancel",end,true);
+ // keyboard + trackpad
+ document.addEventListener("keydown",e=>{if(!live()||/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||""))return;if(e.key==="ArrowLeft")go(-1);else if(e.key==="ArrowRight")go(1)});
+ let wx=0,wt=0,lock=0;
+ document.addEventListener("wheel",e=>{if(!live()||!e.target.closest||!e.target.closest(".cm,#ct")||Math.abs(e.deltaX)<Math.abs(e.deltaY))return;
+  const n=Date.now();if(n<lock)return;if(n-wt>250)wx=0;wt=n;wx+=e.deltaX;if(Math.abs(wx)>70){lock=n+550;go(wx>0?1:-1);wx=0}},{passive:true});
+})();
+
 /* ============================ PREVIEW FOTO ============================ */
 window.LViewer=function(id,list,srcEl){
  IC.info="M12 21a9 9 0 100-18 9 9 0 000 18zM12 11v5M12 8h.01";IC.play="M7 4l13 8-13 8z";
@@ -846,21 +1185,43 @@ window.LViewer=function(id,list,srcEl){
  let i=Math.max(0,list.findIndex(p=>p.id==id));
  const src=srcEl||document.querySelector(`.mi[data-id="${id}"] img,.mi[data-id="${id}"] video`);
  const slide=p=>`<div class=sl><div class=pw>${isVid(p)
-  ?`<video src="${p.url}#t=0.1" poster="${T(p)}" data-vt="${p.id}" playsinline preload=metadata></video><button class=vpl data-vp aria-label="Play video">${ico("play",30,"currentColor")}</button><input class=vsk type=range min=0 max=1000 value=0 step=1 aria-label="Seek">`
+  ?`<video ${p.sp!="drive"&&p.url?`src="${p.url}#t=0.1" preload=metadata`:"preload=none"} poster="${T(p)}" data-vt="${esc(p.id)}" playsinline></video><button class=vpl data-vp aria-label="Play video">${ico("play",30,"currentColor")}</button><input class=vsk type=range min=0 max=1000 value=0 step=1 aria-label="Seek">`
   :`<img src="${T(p)}" data-full="${p.url}" data-z draggable="false" alt="">`}</div></div>`;
- const thumb=(p,k)=>`<button class="ft${k==i?" a":""}" data-k="${k}" aria-label="Photo ${k+1}">${isVid(p)?`<span class=fv>▶</span>`:`<img src="${T(p)}" loading=lazy draggable="false" alt="">`}</button>`;
- const v=$(`<div class="view pv"><div class=pv-bgw></div>
-  <div class="pv-top pc"><button class=pv-b data-c aria-label="Close">${ico("x",22)}</button><div class=pv-t><b id=t></b><span id=m></span></div><span class=pv-sp aria-hidden=true></span></div>
+ // thumbnail slider: video memakai poster (frame video) + tanda play
+ const thumb=(p,k)=>`<button class="ft${k==i?" a":""}" data-k="${k}" aria-label="${isVid(p)?"Video":"Photo"} ${k+1}"><img src="${T(p)}"${isVid(p)?` data-vt="${esc(p.id)}"`:""} loading=lazy draggable="false" alt="">${isVid(p)?`<span class="fv ov">${ico("play",11,"currentColor")}</span>`:""}</button>`;
+ const multi=list.length>1&&list.length<=200;
+ const v=$(`<div class="view pv${multi?" ms":""}"><div class=pv-bgw></div>
+  <div class="pv-top pc"><button class=pv-b data-c aria-label="Close">${ico("x",22)}</button><div class=pv-t><b id=t></b><span id=m></span></div><span aria-hidden=true></span></div>
   <div class=st>${list.map(slide).join("")}</div>
-  <div class="pv-bot pc"><span class=pv-cat id=pcat></span>${list.length>1&&list.length<=200?`<div class=pv-fs id=fs>${list.map(thumb).join("")}</div>`:""}
-   <div class=pv-bar><button data-s aria-label="Share">${ico("sh",23)}</button><button data-f aria-label="Add to favorites" aria-pressed="false">${ico("heart",23)}</button><button data-i aria-label="Details">${ico("info",23)}</button><button data-d aria-label="Download">${ico("dl",23)}</button><button data-t aria-label="Delete" style="color:#ff6b6b">${ico("tr",23)}</button></div></div></div>`);
+  <div class="pv-bot pc">${multi?`<div class=pv-fs id=fs>${list.map(thumb).join("")}</div>`:""}
+   <div class=pv-dock><span class=pv-cat id=pcat></span><div class=pv-bar><div class=pv-acts id=acts><button data-s aria-label="Share">${ico("sh",23)}</button><button data-f aria-label="Add to favorites" aria-pressed="false">${ico("heart",23)}</button><button data-i aria-label="Details">${ico("info",23)}</button><button data-d aria-label="Download">${ico("dl",23)}</button><button data-t aria-label="Delete" style="color:#ff6b6b">${ico("tr",23)}</button></div><button class=pv-tg data-tg aria-expanded="false" aria-label="Show actions">${ico("dots",24)}</button></div></div></div></div>`);
  document.body.append(v);
  const st=v.querySelector(".st"),sl=[...st.children],fs=v.querySelector("#fs"),bgw=v.querySelector(".pv-bgw"),pc=v.querySelector("#pcat");
  let z=1,tx=0,ty=0,d0=0,z0=1,sx=0,sy=0,dy=0,dx=0,md="",mv=0,ts=0,lt=0,raf=0,closing=0;
  const cur=()=>list[i];
 
+ // menu aksi (share, favorit, detail, download, hapus) bisa dibuka/ditutup lewat tombol toggle; pilihan terakhir diingat
+ const tg=v.querySelector("[data-tg]");
+ const setMenu=(on,keep)=>{v.classList.toggle("mx",on);tg.setAttribute("aria-expanded",on?"true":"false");tg.setAttribute("aria-label",on?"Hide actions":"Show actions");
+  tg.innerHTML=ico(on?"cd":"dots",24);if(!keep&&!reduce()){const sv=tg.firstElementChild;if(sv)sv.animate([{transform:"rotate(-90deg) scale(.6)",opacity:0},{transform:"none",opacity:1}],{duration:400,easing:"cubic-bezier(.22,1,.36,1)"})}if(!keep){try{localStorage.setItem("pvMenu",on?"1":"0")}catch(e){}}};
+ IC.cd=IC.cd||"M6 9l6 6 6-6";
+ let m0=0;try{m0=localStorage.getItem("pvMenu")=="1"}catch(e){}
+ setMenu(m0,true);
+ tg.onclick=e=>{e.stopPropagation();setMenu(!v.classList.contains("mx"))};
+
+ // frame preview TERKUNCI: tiap foto/video dihitung muat di dalam area yang sama (rasio dari p.w/p.h), jadi ukurannya tidak
+ // melonjak saat thumbnail diganti foto penuh, saat video dimuat, atau saat menu dibuka/ditutup.
+ const fit=()=>sl.forEach((s,k)=>{const pw=s.firstElementChild,el=pw.querySelector("img,video"),p=list[k],W=pw.clientWidth,H=pw.clientHeight;if(!el||!W||!H)return;
+  // rasio asli file (kalau sudah termuat) > rasio dari data. Tanpa frame/kotak: foto ditampilkan apa adanya, hanya diskalakan muat di area.
+  const nat=el.tagName=="IMG"?(el.naturalWidth&&el.naturalHeight?el.naturalWidth/el.naturalHeight:0):(el.videoWidth&&el.videoHeight?el.videoWidth/el.videoHeight:0);
+  const ar=nat||(p.w&&p.h?p.w/p.h:0);if(!ar){el.style.width=el.style.height="";return}
+  const w=Math.min(W,H*ar),h=w/ar;el.style.width=w+"px";el.style.height=h+"px";el.style.borderRadius=Math.round(Math.min(26,Math.min(w,h)*.12))+"px";   // sudut membulat 26px, mengecil proporsional untuk gambar sangat kecil
+  const sk=pw.querySelector(".vsk");if(sk){sk.style.width=Math.max(120,w-24)+"px";sk.style.left=((W-w)/2+12)+"px";sk.style.right="auto";sk.style.bottom=((H-h)/2+6)+"px"}});
+ sl.forEach(s=>{const el=s.querySelector("img,video");if(!el)return;el.addEventListener(el.tagName=="IMG"?"load":"loadedmetadata",fit)});
+ addEventListener("resize",fit);
+
  // latar blur dari foto yang sedang tampil (crossfade)
- const setBg=p=>{const d=document.createElement("div");d.className="pv-bg";if(!isVid(p))d.style.backgroundImage=`url("${T(p)}")`;bgw.append(d);
+ const setBg=p=>{const d=document.createElement("div");d.className="pv-bg";d.style.backgroundImage=`url("${T(p)}")`;bgw.append(d);
   requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add("in")));
   while(bgw.children.length>3)bgw.firstElementChild.remove();
   setTimeout(()=>{[...bgw.children].slice(0,-1).forEach(x=>x.remove())},700)};
@@ -878,9 +1239,9 @@ window.LViewer=function(id,list,srcEl){
   const f=im.dataset.full;if(!f||im.getAttribute("src")===f)continue;const x=new Image();x.onload=()=>{im.src=f};x.src=f}};
  // foto di sebelah mengecil & memudar saat digeser
  const fx=()=>{raf=0;const w=st.clientWidth||1,fi=st.scrollLeft/w;
-  for(let k=Math.max(0,Math.floor(fi)-1);k<=Math.min(sl.length-1,Math.ceil(fi)+1);k++){const o=Math.min(1,Math.abs(k-fi)),pw=sl[k].firstElementChild;pw.style.transform=`scale(${1-.12*o})`;pw.style.opacity=1-.55*o}};
+  for(let k=Math.max(0,Math.floor(fi)-1);k<=Math.min(sl.length-1,Math.ceil(fi)+1);k++){const o=Math.min(1,Math.abs(k-fi)),pw=sl[k].firstElementChild;pw.style.opacity=1-.5*o}};
 
- st.scrollLeft=i*st.clientWidth;info();mark(false);setBg(cur());hiRes(i);fx();
+ st.scrollLeft=i*st.clientWidth;fit();info();mark(false);setBg(cur());hiRes(i);fx();
  if(fs)fs.onclick=e=>{const b=e.target.closest("[data-k]");if(b)st.scrollTo({left:+b.dataset.k*st.clientWidth,behavior:"smooth"})};
 
  // animasi buka: foto "terbang" dari kotak yang diketuk
@@ -890,17 +1251,23 @@ window.LViewer=function(id,list,srcEl){
     first.animate([{transform:`translate(${dx2}px,${dy2}px) scale(${s})`,borderRadius:"16px"},{transform:"none",borderRadius:"26px"}],{duration:520,easing:"cubic-bezier(.22,1,.36,1)"})};
    first.complete||first.readyState>0?go():first.addEventListener(first.tagName=="IMG"?"load":"loadedmetadata",go,{once:true})}}
 
- /* ----- video: tombol play melayang di atas video (seperti galeri iPhone) ----- */
- sl.forEach(s=>{const vd=s.querySelector("video");if(!vd)return;
-  const bt=s.querySelector(".vpl"),sk=s.querySelector(".vsk");let seeking=0;
-  const sync=()=>s.classList.toggle("playing",!vd.paused&&!vd.ended),toggle=()=>{vd.paused||vd.ended?vd.play().catch(()=>{}):vd.pause()};
+ /* ----- video: tombol play melayang. Video Drive dimuat lewat URL stream (bisa seek); jika gagal, unduh lalu putar dari blob ----- */
+ sl.forEach((s,k)=>{const vd=s.querySelector("video");if(!vd)return;const p=list[k];
+  const bt=s.querySelector(".vpl"),sk=s.querySelector(".vsk");let seeking=0,tried=0;
+  const sync=()=>s.classList.toggle("playing",!vd.paused&&!vd.ended),busy=on=>s.classList.toggle("ld",on);
+  const fail=()=>{busy(false);toast("Couldn't play this video")};
+  const viaBlob=async()=>{if(tried)return fail();tried=1;busy(true);try{const b=await getBlob(p);vd.src=URL.createObjectURL(b);vd.load();await vd.play()}catch(e){fail()}};
+  const load=async()=>{if(vd.getAttribute("src"))return true;busy(true);try{vd.src=await vidSrc(p);vd.load();return true}catch(e){await viaBlob();return false}};
+  const toggle=async()=>{if(!vd.paused&&!vd.ended)return vd.pause();if(!(await load()))return;busy(true);vd.play().catch(e=>{if(e&&e.name=="NotAllowedError")busy(false)})};
   ["play","pause","ended"].forEach(ev=>vd.addEventListener(ev,sync));
+  ["playing","canplay","pause"].forEach(ev=>vd.addEventListener(ev,()=>busy(false)));["waiting","seeking"].forEach(ev=>vd.addEventListener(ev,()=>{if(!vd.paused)busy(true)}));
+  vd.addEventListener("error",()=>{if(!vd.getAttribute("src"))return;p.sp=="drive"?viaBlob():fail()});
   vd.addEventListener("timeupdate",()=>{if(!seeking&&vd.duration)sk.value=Math.round(vd.currentTime/vd.duration*1000)});
   vd.addEventListener("ended",()=>{vd.currentTime=0;sk.value=0});
   bt.onclick=e=>{e.stopPropagation();toggle()};
   vd.onclick=e=>{e.stopPropagation();toggle()};
   sk.onclick=e=>e.stopPropagation();
-  sk.onpointerdown=()=>{seeking=1};sk.onpointerup=sk.onpointercancel=()=>{seeking=0};
+  sk.onpointerdown=async()=>{seeking=1;await load()};sk.onpointerup=sk.onpointercancel=()=>{seeking=0};
   sk.oninput=()=>{if(vd.duration)vd.currentTime=sk.value/1000*vd.duration}});
  const pauseAll=()=>sl.forEach(s=>{const vd=s.querySelector("video");if(vd&&!vd.paused)vd.pause()});
 
@@ -912,7 +1279,7 @@ window.LViewer=function(id,list,srcEl){
   return r.width<8||r.bottom<0||r.top>innerHeight||r.right<0||r.left>innerWidth?null:el};
  const rel=(a,b)=>({x:a.left+a.width/2-(b.left+b.width/2),y:a.top+a.height/2-(b.top+b.height/2),s:a.width/b.width});
  const closeP=()=>{
-  if(closing)return;closing=1;removeEventListener("keydown",kd);pauseAll();
+  if(closing)return;closing=1;removeEventListener("keydown",kd);removeEventListener("resize",fit);pauseAll();
   const im=sl[i]&&sl[i].querySelector("img,video"),tg=home(cur()),from=im&&im.getBoundingClientRect();
   const lit=document.querySelector(".dy.on"),fin=()=>{if(v.isConnected)v.remove();if(lit)lit.classList.remove("on");S.selDay=null};
   // hapus semua efek tarik/zoom supaya posisi akhir bisa diukur
@@ -986,12 +1353,14 @@ window.LViewer=function(id,list,srcEl){
   sheet(S.albums.map(a=>`<button class=o data-x="${a.id}">${esc(a.name)}${(a.ids||[]).includes(p.id)?" ✓":""}</button>`).join(""),async x=>{const a=S.albums.find(z=>z.id==x);if(!a)return;const ids=a.ids||[],has=ids.includes(p.id),n=has?ids.filter(z=>z!=p.id):[...ids,p.id];await save(null,a.id,{...a,ids:n,cover:a.cover||p.id},"albums");toast(has?"Removed from "+a.name:"Added to "+a.name)})};
  v.querySelector("[data-f]").onclick=async()=>{const p=cur(),on=!p.fav;p.fav=on;info();
   const sv=v.querySelector("[data-f] svg");if(sv&&!reduce())sv.animate([{transform:"scale(1)"},{transform:"scale(1.4)"},{transform:"scale(1)"}],{duration:380,easing:"cubic-bezier(.22,1,.36,1)"});
+  if(on&&!reduce()){const b=v.querySelector("[data-f]"),r=document.createElement("i");r.className="hring";b.append(r);setTimeout(()=>r.remove(),700)}
   toast(on?"Added to Favorites":"Removed from Favorites");
   try{await save(null,p.id,{...p},"photos")}catch(_){p.fav=!on;info()}};
  v.querySelector("[data-d]").onclick=async()=>{const p=cur();toast("Preparing\u2026");try{if(await dlSave(fname(p),await getBlob(p)))toast("Saved")}catch(e){toast("Couldn't download")}};
  v.querySelector("[data-s]").onclick=async()=>{const p=cur();if(/^data:/.test(p.url))return toast("Sharing isn't available for sample photos");const u=new URL(p.url,location.href).href;
   try{await navigator.share({title:p.name,url:u})}catch(e){if(e&&e.name=="AbortError")return;try{await navigator.clipboard.writeText(u);toast("Link copied")}catch(_){toast("Sharing isn't available here")}}};
- v.querySelector("[data-t]").onclick=()=>{const p=cur();pauseAll();v.remove();delPhotos([p])};
+ v.querySelector("[data-t]").onclick=()=>{const p=cur(),vid=isVid(p);pauseAll();
+  confirmDelete([p],()=>{v.remove();delPhotos([p])},{title:vid?"Delete video?":"Delete photo?",sub:"It will be moved to Recently Deleted."})};
 };
 })();
 
@@ -1036,12 +1405,56 @@ function vtGrab(src,cors){return new Promise((ok,no)=>{const v=document.createEl
  v.addEventListener("seeked",()=>requestAnimationFrame(draw));
  tm=setTimeout(()=>end(new Error("timeout")),12000);v.src=src})}
 function vtPaint(id,url,w,h){document.querySelectorAll(`[data-vt="${id}"]`).forEach(e=>{if(e.tagName=="IMG"){e.src=url;if(w&&h)e.style.aspectRatio=w+"/"+h}else e.style.backgroundImage=`url('${url}')`})}
-function vtFail(id){const p=S.photos.find(x=>x.id==id);if(!p)return;document.querySelectorAll(`img[data-vt="${id}"]`).forEach(e=>{const v=document.createElement("video");v.className=e.className;v.setAttribute("style",e.getAttribute("style")||"");v.dataset.vt=id;v.muted=true;v.playsInline=true;v.preload="metadata";v.src=p.url+"#t=0.1";v.addEventListener("loadedmetadata",()=>v.classList.add("l"));e.replaceWith(v)})}
-function vtNext(){while(VTN<2&&VTQ.length){const p=VTQ.shift();VTN++;
- vtGrab(p.url,true).then(g=>{const u=g.cv.toDataURL("image/jpeg",.78);VT[p.id]=u;if(!p.w||!p.h){p.w=g.w;p.h=g.h}if(!p.dur&&g.dur)p.dur=g.dur;vtPaint(p.id,u,p.w,p.h);
-   if(!S.demo)g.cv.toBlob(async b=>{if(!b)return;try{const f=Object.assign(new File([b],"t_"+(p.name||"video")+".jpg",{type:"image/jpeg"}),{_th:1}),tr=await assets.upload(f);p.th=tr.url;p.tid=tr.id;await save(null,p.id,{...p},"photos")}catch(e){}},"image/jpeg",.8)})
-  .catch(()=>vtFail(p.id)).finally(()=>{VTN--;vtNext()})}}
-function vtEnsure(p){if(!isVid(p)||p.th||VT[p.id]||VTB.has(p.id)||!p.url)return;VTB.add(p.id);VTQ.push(p);setTimeout(vtNext,0)}
+function vtFail(id){const p=S.photos.find(x=>x.id==id);if(!p||p.sp=="drive")return;document.querySelectorAll(`img[data-vt="${id}"]`).forEach(e=>{const v=document.createElement("video");v.className=e.className;v.setAttribute("style",e.getAttribute("style")||"");v.dataset.vt=id;v.muted=true;v.playsInline=true;v.preload="metadata";v.src=p.url+"#t=0.1";v.addEventListener("loadedmetadata",()=>v.classList.add("l"));e.replaceWith(v)})}
+
+function vtNext(){
+ while(VTN<2&&VTQ.length){
+  const p=VTQ.shift();
+  VTN++;
+  (async()=>{
+   let src=p.url,own=false;
+   try{
+    let g;
+    if(p.sp=="drive"){
+     try{g=await vtGrab(await vidSrc(p),true)}
+     catch(e1){const b=await getBlob(p);src=URL.createObjectURL(b);own=true;g=await vtGrab(src,false)}
+    }else g=await vtGrab(src,true);
+    const u=g.cv.toDataURL("image/jpeg",.78);
+    VT[p.id]=u;
+    if(!p.w||!p.h){p.w=g.w;p.h=g.h}
+    if(!p.dur&&g.dur)p.dur=g.dur;
+    vtPaint(p.id,u,p.w,p.h);
+    if(!S.demo)g.cv.toBlob(async b=>{
+     if(!b)return;
+     try{
+      const f=Object.assign(
+       new File([b],"t_"+(p.name||"video")+".jpg",{type:"image/jpeg"}),
+       {_th:1}
+      );
+      const tr=await assets.upload(f);
+      p.th=tr.url;
+      p.tid=tr.id;
+      await save(null,p.id,{...p},"photos");
+     }catch(e){}
+    },"image/jpeg",.8);
+   }catch(e){
+    console.error("MIKA THUMB ERROR",p.name,e);
+    vtFail(p.id);
+   }finally{
+    if(own)URL.revokeObjectURL(src);
+    VTN--;
+    vtNext();
+   }
+  })();
+ }
+}
+function vtEnsure(p){
+ if(!isVid(p)||p.th||VT[p.id]||VTB.has(p.id))return;
+ if(!p.url&&!(p.sp=="drive"&&p.aid))return;
+ VTB.add(p.id);
+ VTQ.push(p);
+ setTimeout(vtNext,0);
+}
 async function mkVThumb(f){const o=URL.createObjectURL(f);try{const g=await vtGrab(o,false),b=await new Promise(r=>g.cv.toBlob(r,"image/jpeg",.8));if(!b)return null;return{file:Object.assign(new File([b],"t_"+f.name+".jpg",{type:"image/jpeg"}),{_th:1}),w:g.w,h:g.h,dur:g.dur}}catch(e){return null}finally{setTimeout(()=>URL.revokeObjectURL(o),2000)}}
 async function exifGps(f){try{if(!/jpe?g/i.test(f.type))return null;const d=new DataView(await f.slice(0,262144).arrayBuffer());if(d.getUint16(0)!=0xFFD8)return null;let o=2;while(o<d.byteLength-4){const m=d.getUint16(o),l=d.getUint16(o+2);if(m==0xFFE1&&d.getUint32(o+4)==0x45786966){const t=o+10,le=d.getUint16(t)==0x4949,g16=x=>d.getUint16(x,le),g32=x=>d.getUint32(x,le),find=(p,tag)=>{const n=g16(p);for(let i=0;i<n;i++){const e=p+2+i*12;if(g16(e)==tag)return e}return -1};const i0=t+g32(t+4),ge=find(i0,0x8825);if(ge<0)return null;const gp=t+g32(ge+8),ref=tag=>{const e=find(gp,tag);return e<0?"":String.fromCharCode(d.getUint8(e+8))},rat=tag=>{const e=find(gp,tag);if(e<0)return null;const q=t+g32(e+8),r=[];for(let i=0;i<3;i++){const nu=g32(q+i*8),de=g32(q+i*8+4);r.push(de?nu/de:0)}return r[0]+r[1]/60+r[2]/3600};let la=rat(2),lo=rat(4);if(la==null||lo==null||isNaN(la)||isNaN(lo)||(!la&&!lo))return null;if(ref(1)=="S")la=-la;if(ref(3)=="W")lo=-lo;return{lat:la,lng:lo}}if((m&0xFF00)!=0xFF00)break;o+=2+l}}catch(e){}return null}
 const GEO=(()=>{try{return JSON.parse(localStorage.getItem("geo")||"{}")}catch(e){return{}}})(),GF=new Set();
@@ -1140,11 +1553,11 @@ function render0(){
  else if(v=="map"){h=mapUI()}
  else if(v=="me"){
   const u=S.me||{},used=[...S.photos,...S.trash].reduce((s,p)=>s+p.size,0),cap=(window.LQ&&LQ.cap)||5e9,t=pref(),nm=u.name||"You",c=S.photos.find(p=>!isVid(p));
-  h=`<div class="top ht"><span class=yl style="font-weight:700;font-size:23px">Profile</span></div><div class="mc pfp"><div class="card al pf"><div class=bg style="background-image:url('${coverUrl(c)}')"></div><span class=glass>${pl(S.photos.length,"item")}</span><button class="glass rb" data-pfp aria-label="Change profile photo">${u.photo?`<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`:esc(nm[0].toUpperCase())}</button><b style="font-size:calc(${Math.min(30,94/(nm.length*.62)).toFixed(1)}cqw - 5px)">${esc(nm)}</b></div>
-  <div class=mu style="text-align:center;margin:-2px 0 4px;font-size:10px">${esc(u.email||"")}</div>
+  h=`<div class="top ht"><span class=yl>Profile</span></div><div class="mc pfp"><div class="card al pf"><div class=bg style="background-image:url('${coverUrl(c)}')"></div><span class=glass>${pl(S.photos.length,"item")}</span><button class="glass rb" data-pfp aria-label="Change profile photo">${u.photo?`<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`:esc(nm[0].toUpperCase())}</button><b style="font-size:${Math.min(30,94/(nm.length*.62)).toFixed(1)}cqw">${esc(nm)}</b></div>
+  <div class=mu style="text-align:center;margin:-2px 0 4px;font-size:12px">${esc(u.email||"")}</div>
   <div class=gp><div class=tt>Storage</div><div class=bar2><i style="width:${Math.min(100,used/cap*100)}%"></i></div><div class=row style="border:0"><span>${mb(used)} of ${mb(cap)}</span><span class=mu>${mb(cap-used)} free</span></div><div class=row><span>Photos</span><span class=mu>${S.photos.filter(p=>!isVid(p)).length}</span></div><div class=row><span>Videos</span><span class=mu>${S.photos.filter(isVid).length}</span></div><div class=row style="border:0"><span>Recently Deleted</span><span class=mu>${mb(S.trash.reduce((a,p)=>a+p.size,0))}</span></div></div>
   <div class=gp><div class=tt>Appearance</div><div class=seg>${[["light","Light"],["dark","Dark"],["mika","MIKA"]].map(([k,l])=>`<button class="${t==k?"a":""}" data-th=${k}>${l}</button>`).join("")}</div></div>
-  ${driveCard()}<div class=gp><div class=tt>Account</div><div class=row><span class=pfl>${u.photo?`<img src="${u.photo}" alt="">`:`<i>${esc(nm[0].toUpperCase())}</i>`}<span class=pfm><span>Edit profile</span><span class=mu>Photo, cover and name</span></span></span><button class=chip data-pfe>Edit</button></div><div class=row><span>Notifications</span><button class=chip data-pref=notif>${S.prefs.notif!==false?"On":"Off"}</button></div><div class=row><span class=pfl><span class=pfm><span>Photo categories</span><span class=mu>Default for uploads: ${esc(S.prefs.cat||"Auto")}</span></span></span><button class=chip data-pcat>Manage</button></div><div class=row><span>Plan</span><span class=mu>${esc((p=>({Gratis:"Free",Bisnis:"Business"}[p]||p||"Free"))(window.LQ&&LQ.plan))}</span></div><div class=row><span>Upload on Wi-Fi only</span><button class=chip data-pref=wifi>${S.prefs.wifi?"On":"Off"}</button></div><div class=row><span>Duplicate photos</span><button class=chip data-lf=dup>Check</button></div><div class=row><span>Devices</span><button class=chip data-lf=dev>View</button></div><div class=row style="border:0"><span class=mu style="min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(u.email||"Signed in")}</span><button class=chip data-dr=logout>Sign out</button></div><p class=mu style="font-size:8px;margin:8px 0 0">Signed in with Supabase Auth. Your library is private.</p></div></div>`}
+  ${driveCard()}<div class=gp><div class=tt>Account</div><div class=row><span class=pfl>${u.photo?`<img src="${u.photo}" alt="">`:`<i>${esc(nm[0].toUpperCase())}</i>`}<span class=pfm><span>Edit profile</span><span class=mu>Photo and name</span></span></span><button class=chip data-pfe>Edit</button></div><div class=row><span>Notifications</span><button class=chip data-pref=notif>${S.prefs.notif!==false?"On":"Off"}</button></div><div class=row><span class=pfl><span class=pfm><span>Photo categories</span><span class=mu>Default for uploads: ${esc(S.prefs.cat||"Auto")}</span></span></span><button class=chip data-pcat>Manage</button></div><div class=row><span>Plan</span><span class=mu>${esc((p=>({Gratis:"Free",Bisnis:"Business"}[p]||p||"Free"))(window.LQ&&LQ.plan))}</span></div><div class=row><span>Upload on Wi-Fi only</span><button class=chip data-pref=wifi>${S.prefs.wifi?"On":"Off"}</button></div><div class=row><span>Duplicate photos</span><button class=chip data-lf=dup>Check</button></div><div class=row><span>Devices</span><button class=chip data-lf=dev>View</button></div><div class=row style="border:0"><span class=mu style="min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(u.email||"Signed in")}</span><button class=chip data-dr=logout>Sign out</button></div><p class=mu style="font-size:12px;margin:8px 0 0">Signed in with Supabase Auth. Your library is private.</p></div></div>`}
  const same=S._v==v,keep=same?{t:(document.getElementById("scr")||{}).scrollTop||0,h:[...app.querySelectorAll(".hs,.pills")].map(e=>e.scrollLeft)}:null;S._v=v;document.body.classList.toggle('hm',['home','alb','me','map'].includes(v));const _n=`<div class="scr${same?" st0":""}${S.selOn?" sm":""}" id=scr>${S.demo&&v=="home"?'<div class=mu style="text-align:center;font-size:12px;padding-top:6px">Sample photos. Your own uploads replace them.</div>':""}${h}</div>${S.selOn?selBar():nav()}`;if(same&&S._n===_n)return;S._n=_n;app.innerHTML=_n;bind();if(keep){const c2=document.getElementById("scr");c2.style.scrollBehavior="auto";c2.scrollTop=keep.t;[...app.querySelectorAll(".hs,.pills")].forEach((e,i)=>{e.style.scrollBehavior="auto";e.scrollLeft=keep.h[i]||0;e.style.scrollBehavior=""})}if(location.hash.slice(1)!=v){try{location.hash=v}catch(e){}}
 }
 function bind(){
@@ -1158,7 +1571,7 @@ function bind(){
  $$("[data-m]",e=>e.onclick=ev=>{if(ev.target.closest("[data-menu]"))return;S.mon=+e.dataset.m;S.view="col";S.cat="All";render()});
  $$("[data-menu]",e=>e.onclick=()=>sheet(`<button class=o data-x=open>Open ${MON[e.dataset.menu]}</button><button class=o data-x=alb>Save month as album</button>`,x=>{const i=+e.dataset.menu;if(x=="open"){S.mon=i;S.view="col";render()}else newAlbum(MON[i]+" "+S.year,inMon(S.year,i).map(p=>p.id))}));
  $$("[data-cat]",e=>e.onclick=()=>{S.cat=e.dataset.cat;const st=sc.scrollTop;const pl=app.querySelector(".pills")?.scrollLeft||0;render();document.getElementById("scr").scrollTop=st;const np=app.querySelector(".pills");if(np){np.style.scrollBehavior="auto";np.scrollLeft=pl;np.style.scrollBehavior="";app.querySelector(".pill.a")?.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})}anim(".mas")});
- $$("[data-up]",e=>e.onclick=()=>upload());$$("[data-sort]",e=>e.onclick=()=>{S.asc=!S.asc;render();anim(".mc")});$$("[data-mon]",e=>e.onclick=()=>{S.year=+e.dataset.y;S.mon=+e.dataset.mon;S.view="col";S.cat="All";render()});const upd=()=>{const c=document.getElementById("sc");if(c)c.textContent=S.sel.size};
+ $$("[data-up]",e=>e.onclick=()=>window.uploadMenu?uploadMenu():upload());$$("[data-sort]",e=>e.onclick=()=>{S.asc=!S.asc;render();anim(".mc")});$$("[data-mon]",e=>e.onclick=()=>{S.year=+e.dataset.y;S.mon=+e.dataset.mon;S.view="col";S.cat="All";render()});const upd=()=>{const c=document.getElementById("sc");if(c)c.textContent=S.sel.size};
  $$("[data-id]",e=>e.onclick=()=>{if(S.selOn){const id=e.dataset.id;S.sel.has(id)?S.sel.delete(id):S.sel.add(id);e.classList.toggle("s");upd()}else viewer(e.dataset.id)});
  $$("[data-sall]",e=>e.onclick=()=>{const all=[...app.querySelectorAll(".mi")],on=all.some(x=>!x.classList.contains("s"));all.forEach(x=>{x.classList.toggle("s",on);on?S.sel.add(x.dataset.id):S.sel.delete(x.dataset.id)});upd();e.textContent=on?"None":"All"});
  $$("[data-selb]",e=>e.onclick=()=>{S.selOn=!S.selOn;S.sel.clear();render()});
@@ -1171,7 +1584,7 @@ function bind(){
  $$("[data-sco]",e=>e.onclick=async()=>{const l=sp(),a=S.albums.find(z=>z.id==S.album);if(!a)return;if(l.length!=1)return toast("Select one photo");await save(null,a.id,{...a,cover:l[0].id},"albums");toast("Cover updated");fin()});
  $$("[data-dls]",e=>e.onclick=async()=>{const l=sp();if(!l.length)return toast("Select photos first");e.disabled=true;const ok=await dlPhotos(l);e.disabled=false;if(ok){toast("Saved");S.sel.clear();render()}});
  $$("[data-sf]",e=>e.onclick=async()=>{const l=sp();if(!l.length)return toast("Select photos first");const on=!l.every(p=>p.fav);for(const p of l)await save(null,p.id,{...p,fav:on},"photos");toast(on?"Added to Favorites":"Removed from Favorites");fin()});
- $$("[data-sd]",e=>e.onclick=()=>{const l=sp();if(!l.length)return toast("Select photos first");delPhotos(l,true)});
+ $$("[data-sd]",e=>e.onclick=()=>{const l=sp();if(!l.length)return toast("Select photos first");confirmDelete(l,()=>delPhotos(l,true),{title:l.length>1?`Delete ${l.length} items?`:(isVid(l[0])?"Delete video?":"Delete photo?"),sub:"They will be moved to Recently Deleted."})});
  $$("[data-sa]",e=>e.onclick=()=>{const l=sp();if(!l.length)return toast("Select photos first");sheet(S.albums.map(a=>`<button class=o data-x="${a.id}">${esc(a.name)}</button>`).join("")+`<button class=o data-x=new>New album…</button>`,async x=>{const ids=l.map(p=>p.id);if(x=="new"){ask("New album","",n=>{newAlbum(n,ids);fin()});return}{const a=S.albums.find(z=>z.id==x);await save(null,a.id,{...a,ids:[...new Set([...(a.ids||[]),...ids])],cover:a.cover||ids[0]},"albums")}toast("Added to album");fin()})});
  $$("[data-th]",e=>e.onclick=()=>{theme(e.dataset.th);render()});
  $$("[data-al]",e=>e.onclick=()=>{S.album=e.dataset.al;S.view="album";S.cat="All";render()});
@@ -1196,8 +1609,8 @@ async function save(p,id,data,c){
  try{await(c?col(c):db.collection(p)).doc(id).set(data)}catch(e){toast(/quota|too_large/.test((e&&e.message)||"")?"Storage quota reached or file too large for your plan":"Couldn't save. Please try again.");throw e}}
 function sheet(h,fn){const s=$(`<div class=sheet><div>${h}</div></div>`);document.body.append(s);s.onclick=e=>{const x=e.target.closest("[data-x]");if(x){closeS(s);fn(x.dataset.x)}else if(e.target==s)closeS(s)}}
 function actSheet(title,msg,label,cb){IC.warn="M12 9v4M12 17h.01M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z";const s=$(`<div class="sheet as"><div><div class=asg><div class=ast><i class=asi>${ico("tr",22)}</i><b>${title}</b><span>${msg}</span></div><button class=asd data-ok>${label}</button></div><button class=asc data-no>Cancel</button></div></div>`);document.body.append(s);s.onclick=e=>{if(e.target.closest("[data-ok]")){closeS(s);cb()}else if(e.target==s||e.target.closest("[data-no]"))closeS(s)}}
-function confirmDelete(l,cb){const n=l.length,im=l.filter(p=>!isVid(p)).slice(0,3),bg=im[0]?T(im[0]):"";
- const s=$(`<div class=dlg><div class=dc ${bg?`style="background-image:url('${bg}')"`:""}><span class=glass style="left:16px;top:16px">${n} ${n>1?"items":"item"}</span><div class=dstack>${im.map((p,i)=>{const k=i-(im.length-1)/2;return `<img src="${T(p)}" style="--r:${k*9}deg;--x:${k*30}px">`}).join("")}</div><div class=dt><b>Delete forever?</b><span>${n>1?"These items":"This item"} can't be recovered.</span></div><div class=db><button class=dn>Cancel</button><button class=dx>Delete</button></div></div></div>`);
+function confirmDelete(l,cb,o={}){const n=l.length,im=l.slice(0,3),bg=im[0]?T(im[0]):"";
+ const s=$(`<div class=dlg><div class=dc ${bg?`style="background-image:url('${bg}')"`:""}><span class=glass style="left:16px;top:16px">${n} ${n>1?"items":"item"}</span><div class=dstack>${im.map((p,i)=>{const k=i-(im.length-1)/2;return `<img src="${T(p)}" style="--r:${k*9}deg;--x:${k*30}px">`}).join("")}</div><div class=dt><b>${o.title||"Delete forever?"}</b><span>${o.sub||`${n>1?"These items":"This item"} can't be recovered.`}</span></div><div class=db><button class=dn>Cancel</button><button class=dx>${o.ok||"Delete"}</button></div></div></div>`);
  document.body.append(s);const cl=()=>{if(s.classList.contains("cl"))return;s.classList.add("cl");setTimeout(()=>s.remove(),320)};
  s.querySelector(".dn").onclick=cl;s.querySelector(".dx").onclick=()=>{cl();cb()};s.onclick=e=>{if(e.target==s)cl()}}
 function ask(title,val,cb){const s=$(`<div class=sheet><div><h3 style="margin-top:0">${title}</h3><input id=ai value="${esc(val||"")}" maxlength=60 style="margin-bottom:14px"><div style="display:flex;gap:8px"><button class=chip id=ac style="flex:1">Cancel</button><button class=btn id=ao style="flex:2">Save</button></div></div></div>`);document.body.append(s);const i=s.querySelector("#ai");setTimeout(()=>i.focus(),60);const ok=()=>{const v=i.value.trim();if(!v)return;closeS(s);cb(v)};s.querySelector("#ao").onclick=ok;s.querySelector("#ac").onclick=()=>closeS(s);i.onkeydown=e=>{if(e.key=="Enter")ok()};s.onclick=e=>{if(e.target==s)closeS(s)}}
@@ -1206,8 +1619,36 @@ function pick(a){const s=$(`<div class=sheet><div><h3 style="margin-top:0">Add t
 function viewer(id,l,el){return window.LViewer?LViewer(id,l,el):viewerLegacy(id)}
 function viewerLegacy(id){IC.play="M7 4l13 8-13 8z";IC.pause="M8 5v14M16 5v14";
   let list=[...document.querySelectorAll("[data-id]")].map(e=>S.photos.find(p=>p.id==e.dataset.id)).filter(Boolean),i=Math.max(0,list.findIndex(p=>p.id==id));
- const v=$(`<div class=view><div class=bar><button data-c>${ico("x",24)}</button><div style="text-align:center"><div id=t style="font-weight:600"></div><div id=m class=mu style="font-size:12px"></div></div><span style="width:24px"></span></div><div class=st>${list.map(p=>`<div class=sl>${isVid(p)?`<video src="${p.url}" controls playsinline></video>`:`<img src="${p.url}" data-z>`}</div>`).join("")}</div><div class="bar b"><button data-f>${ico("heart",24)}</button><button data-p>${ico("play",24)}</button><button data-s>${ico("sh",24)}</button><button data-a>${ico("alb",24)}</button><button data-d>${ico("dl",24)}</button><button data-t style="color:#ff6b6b">${ico("tr",24)}</button></div></div>`);
- document.body.append(v);v.querySelectorAll("button").forEach(b=>{const k=Object.keys(b.dataset)[0];b.setAttribute("aria-label",{c:"Close",f:"Favorite",s:"Share",a:"Add to album",d:"Download",t:"Delete",p:"Slideshow"}[k]||"Button")});const st=v.querySelector(".st");st.scrollLeft=i*st.clientWidth;
+ const v=$(`<div class=view><div class=bar><button data-c>${ico("x",24)}</button><div style="text-align:center"><div id=t style="font-weight:600"></div><div id=m class=mu style="font-size:12px"></div></div><span style="width:24px"></span></div><div class=st>${list.map(p=>`<div class=sl>${isVid(p)?`<video ${p.sp=="drive"?`data-drive-video="${p.id}"`:`src="${p.url}"`} controls playsinline></video>`:`<img src="${p.url}" data-z>`}</div>`).join("")}</div><div class="bar b"><button data-f>${ico("heart",24)}</button><button data-p>${ico("play",24)}</button><button data-s>${ico("sh",24)}</button><button data-a>${ico("alb",24)}</button><button data-d>${ico("dl",24)}</button><button data-t style="color:#ff6b6b">${ico("tr",24)}</button></div></div>`);
+ document.body.append(v);
+v._driveVideoUrls=[];
+v.querySelectorAll("video[data-drive-video]").forEach(async el=>{
+ const p=list.find(x=>x.id===el.dataset.driveVideo);
+ if(!p)return;
+ try{
+  const data=await getBlob(p);
+  console.log("VIDEO DATA",data);
+  console.log("MIKA VIDEO DEBUG",{
+ type:p.type,
+ blobType:data.type,
+ size:data.size
+});
+el.onerror=()=>console.error("VIDEO ERROR",el.error);
+el.onloadedmetadata=()=>console.log("VIDEO METADATA",el.videoWidth,el.videoHeight,el.duration);
+const blob=data.type.startsWith("video/")
+ ? data
+ : new Blob([data],{type:p.type||"video/mp4"});
+const url=URL.createObjectURL(blob);
+  v._driveVideoUrls.push(url);
+  if(document.body.contains(el)){
+   el.src=url;
+   el.load();
+  }else URL.revokeObjectURL(url);
+ }catch(e){
+  toast("Couldn't load video from Google Drive");
+ }
+});
+v.querySelectorAll("button").forEach(b=>{const k=Object.keys(b.dataset)[0];b.setAttribute("aria-label",{c:"Close",f:"Favorite",s:"Share",a:"Add to album",d:"Download",t:"Delete",p:"Slideshow"}[k]||"Button")});const st=v.querySelector(".st");st.scrollLeft=i*st.clientWidth;
  const info=()=>{const p=list[i];if(!p)return;v.querySelector("#t").textContent=p.name;v.querySelector("#m").textContent=`${D(p).toLocaleDateString(undefined,{dateStyle:"long"})} · ${p.w?p.w+"×"+p.h+" · ":""}${mb(p.size)} · ${p.cat}${hasLoc(p)?" · "+placeOf(p):""}${lLoc(p)}`;v.querySelector("[data-f] svg").setAttribute("fill",p.fav?"#ff5a6e":"none")};info();
  const mm=v.querySelector("#m");mm.style.cursor="pointer";mm.onclick=()=>{const p=list[i];if(p&&hasLoc(p)){S.mv={lat:p.lat,lng:p.lng,z:15};v.remove();S.view="map";render()}};const tt=v.querySelector("#t");tt.style.cursor="pointer";tt.title="Rename";tt.onclick=()=>{const p=list[i];if(!p)return;ask("Rename photo",p.name,async n=>{p.name=n;info();await save(null,p.id,{...p},"photos")})};
  let z=1,tx=0,ty=0,d0=0,z0=1,sx=0,sy=0,dy=0,md="",mv=0,ts=0,lt=0;
@@ -1235,14 +1676,20 @@ function viewerLegacy(id){IC.play="M7 4l13 8-13 8z";IC.pause="M8 5v14M16 5v14";
  v.querySelector("[data-f]").onclick=async()=>{const p=list[i];p.fav=!p.fav;info();v.querySelector("[data-f] svg").animate([{transform:"scale(1)"},{transform:"scale(1.4)"},{transform:"scale(1)"}],{duration:380,easing:"cubic-bezier(.22,1,.36,1)"});await save(null,p.id,{...p},"photos")};
  v.querySelector("[data-d]").onclick=async()=>{const p=list[i];toast("Preparing\u2026");try{if(await dlSave(fname(p),await getBlob(p)))toast("Saved")}catch(e){toast("Couldn't download")}};
  v.querySelector("[data-s]").onclick=async()=>{const p=list[i];if(/^data:/.test(p.url))return toast("Sharing isn't available for sample photos");const u=new URL(p.url,location.href).href;try{await navigator.share({title:p.name,url:u})}catch(e){if(e&&e.name=="AbortError")return;try{await navigator.clipboard.writeText(u);toast("Link copied")}catch(_){toast("Sharing isn't available here")}}};
- v.querySelector("[data-t]").onclick=()=>{const p=list[i];v.remove();delPhotos([p])}}
+ v.querySelector("[data-t]").onclick=()=>{const p=list[i];confirmDelete([p],()=>{v.remove();delPhotos([p])},{title:isVid(p)?"Delete video?":"Delete photo?",sub:"It will be moved to Recently Deleted."})}}
 function upload(pre){
  document.querySelectorAll("input[data-upin]").forEach(x=>x.remove());const inp=document.createElement("input");inp.type="file";inp.accept="image/*,video/*";inp.multiple=true;inp.dataset.upin=1;inp.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.append(inp);const tgt=S.view=="album"?S.album:null,newIds=[];const run=(fs)=>{if(!fs.length)return;
   const cat=$(`<select><option value="Auto">Auto</option>${CATS.slice(1).map(c=>`<option>${c}</option>`).join("")}</select>`);cat.value=(S.prefs&&S.prefs.cat)||"Auto";let cancel=false;
-  const s=$(`<div class=sheet><div><h3 style="margin-top:0">Upload ${fs.length} file${fs.length>1?"s":""}</h3><div class=mas style="columns:3">${fs.map(f=>f.type.startsWith("image")?`<img class=l src="${URL.createObjectURL(f)}" style="border-radius:12px">`:`<div class=chip>${esc(f.name)}</div>`).join("")}</div><div style="max-height:110px;overflow:auto;margin:10px 0">${fs.map((f,ix)=>`<div class=row style="padding:6px 0;font-size:13px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%">${esc(f.name)}</span><span class=mu id=fs${ix}>Waiting</span></div>`).join("")}</div><label class=mu>Category</label><div id=cs></div>${storagePicker()}<div class=bar2 style="margin:14px 0"><i id=pg style="width:0"></i></div><div style="display:flex;gap:8px"><button class=chip id=cn style="flex:1">Cancel</button><button class=btn id=go style="flex:2">Upload</button></div></div></div>`);
+  const s=$(`<div class=sheet><div><h3 style="margin-top:0">Upload ${fs.length} file${fs.length>1?"s":""}</h3><div class=mas style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${fs.map(f=>f.type.startsWith("image")?`<img class=l src="${URL.createObjectURL(f)}" style="width:100%;height:120px;object-fit:contain;border-radius:12px">`:f.type.startsWith("video")?`<video class=l src="${URL.createObjectURL(f)}" controls playsinline preload="metadata" style="width:100%;height:120px;object-fit:contain;background:#000;border-radius:12px"></video>`:`<div class=chip>${esc(f.name)}</div>`).join("")}</div><div style="max-height:110px;overflow:auto;margin:10px 0">${fs.map((f,ix)=>`<div class=row style="padding:6px 0;font-size:13px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%">${esc(f.name)}</span><span class=mu id=fs${ix}>Waiting</span></div>`).join("")}</div><label class=mu>Category</label><div id=cs></div>${storagePicker()}<div class=bar2 style="margin:14px 0"><i id=pg style="width:0"></i></div><div style="display:flex;gap:8px"><button class=chip id=cn style="flex:1">Cancel</button><button class=btn id=go style="flex:2">Upload</button></div></div></div>`);
   s.querySelector("#cs").append(cat);document.body.append(s);s.querySelector("#cn").onclick=()=>{cancel=true;closeS(s)};
   s.querySelector("#go").onclick=async(e)=>{if(!assets)return toast("Uploads need editor access to this page");if(!netOK())return toast("Failed: Wi-Fi only upload is on. Connect to Wi-Fi to upload.");window.LUMEN_MODE=lMode(s);if(!window.LUMEN_MODE)return;e.target.disabled=true;e.target.textContent="Uploading…";let n=0,bad=0;
-   for(const [ix,f] of fs.entries()){if(cancel)break;const stx=s.querySelector("#fs"+ix);if(stx)stx.textContent="Uploading…";if([...S.photos,...S.trash].reduce((a,p)=>a+p.size,0)+f.size>((window.LQ&&LQ.cap)||5e9)){toast("Storage is full");break}if(window.LQ&&LQ.max&&f.size>LQ.max){toast("Failed: "+f.name+" exceeds your plan's file size limit");if(stx)stx.textContent="Failed";bad++;continue}try{const r=await assets.upload(f);let w=0,h=0,th="",tid="",dur=0;if(f.type.startsWith("image")){const m=await mkThumb(f);if(m){w=m.w;h=m.h;try{const tr=await assets.upload(m.file);th=tr.url;tid=tr.id}catch(e){}}else await new Promise(ok=>{const im=new Image();im.onload=()=>{w=im.naturalWidth;h=im.naturalHeight;ok()};im.onerror=ok;im.src=r.url})}
+   for(const [ix,f] of fs.entries()){if(cancel)break;const stx=s.querySelector("#fs"+ix);if(stx)stx.textContent="Uploading…";if([...S.photos,...S.trash].reduce((a,p)=>a+p.size,0)+f.size>((window.LQ&&LQ.cap)||5e9)){toast("Storage is full");break}if(window.LQ&&LQ.max&&f.size>LQ.max){toast("Failed: "+f.name+" exceeds your plan's file size limit");if(stx)stx.textContent="Failed";bad++;continue}try{const r=await assets.upload(f,(p,loaded,total)=>{
+ if(stx){
+  const mb=(loaded/1048576).toFixed(1);
+  const all=(total/1048576).toFixed(1);
+  stx.textContent=`Uploading… ${p}% (${mb}/${all} MB)`;
+ }
+});let w=0,h=0,th="",tid="",dur=0;if(f.type.startsWith("image")){const m=await mkThumb(f);if(m){w=m.w;h=m.h;try{const tr=await assets.upload(m.file);th=tr.url;tid=tr.id}catch(e){}}else await new Promise(ok=>{const im=new Image();im.onload=()=>{w=im.naturalWidth;h=im.naturalHeight;ok()};im.onerror=ok;im.src=r.url})}
      else if(f.type.startsWith("video")){const m=await mkVThumb(f);if(m){w=m.w;h=m.h;dur=m.dur;try{const tr=await assets.upload(m.file);th=tr.url;tid=tr.id}catch(e){}}}
      const id="p"+Date.now()+n;const gp=await exifGps(f),loc=gp?{lat:gp.lat,lng:gp.lng,place:await geoName(gp.lat,gp.lng)}:{};await save(null,id,{...loc,name:f.name,url:r.url,th,tid,aid:r.id,up:Date.now(),type:f.type,size:r.sizeBytes||f.size,w,h,dur,cat:f.type.startsWith("video")?"Motion":cat.value=="Auto"?await autoCat(f):cat.value,date:(await exifDate(f))||f.lastModified||Date.now(),fav:false,hash:await fpOf(f)},"photos");newIds.push(id)}catch(e){toast("Failed: "+f.name+" — "+((e&&e.message)||""));LDrive.ff.push(f);if(stx)stx.textContent="Failed";bad++}
     if(stx&&stx.textContent=="Uploading…")stx.textContent="Done";s.querySelector("#pg").style.width=(++n/fs.length*100)+"%"}
@@ -1347,6 +1794,39 @@ let _r=0;const rr=()=>{if(_r)return;_r=requestAnimationFrame(()=>{_r=0;render()}
   rr();
  },()=>{});
 
+})();
+
+</script>
+<script>
+// MOTION: lapisan animasi UI halus. Berjalan setiap #app selesai dirender (MutationObserver, sebelum frame digambar).
+// Semua mati otomatis bila perangkat memilih "reduce motion". Gaya/keyframe-nya ada di bagian "MOTION" style.css.
+(function(){
+ const rm=()=>matchMedia("(prefers-reduced-motion: reduce)").matches,TAB=["home","map","alb","me"],depth=v=>TAB.includes(v)?0:1;
+ let prevV=null,nvx=null,sgx={};
+ function fx(){
+  const app=document.getElementById("app");if(!app||typeof S==="undefined")return;
+  const v=S.view,scr=document.getElementById("scr");
+  // 1) arah transisi halaman: maju (dari kanan) saat masuk lebih dalam / pindah tab ke kanan; mundur (dari kiri) sebaliknya
+  if(!rm()&&scr&&prevV!==null&&prevV!==v&&!scr.classList.contains("st0")){
+   const a=depth(prevV),b=depth(v);let dir=b>a?1:b<a?-1:(a===0?(TAB.indexOf(v)>TAB.indexOf(prevV)?1:-1):0);
+   if(dir)scr.classList.add(dir>0?"pgf":"pgb");
+  }
+  prevV=v;
+  if(rm())return;
+  // 2) navigasi bawah: pil aktif meluncur dari tab lama ke tab baru
+  const nv=app.querySelector(".nav:not(.sb)"),a=nv&&nv.querySelector("button.a");
+  if(nv&&a){const x=a.offsetLeft,w=a.offsetWidth,f=nvx||{x,w},i=document.createElement("i");
+   i.className="nvi";i.style.width=f.w+"px";i.style.transform=`translateX(${f.x}px)`;nv.classList.add("fx");nv.prepend(i);
+   void i.offsetWidth;i.style.width=w+"px";i.style.transform=`translateX(${x}px)`;nvx={x,w}}
+  // 3) segmented control (Appearance): thumb meluncur
+  app.querySelectorAll(".seg").forEach((sg,k)=>{const b=sg.querySelector("button.a");if(!b)return;
+   const x=b.offsetLeft,w=b.offsetWidth,f=sgx[k]||{x,w},i=document.createElement("i");
+   i.className="sgi";i.style.width=f.w+"px";i.style.transform=`translateX(${f.x}px)`;sg.classList.add("fx");sg.prepend(i);
+   void i.offsetWidth;i.style.width=w+"px";i.style.transform=`translateX(${x}px)`;sgx[k]={x,w}});
+ }
+ const start=()=>{const app=document.getElementById("app");if(!app)return setTimeout(start,50);
+  new MutationObserver(fx).observe(app,{childList:true});fx()};
+ start();
 })();
 
 </script>

@@ -14,17 +14,15 @@ function openEdit(){
  S.me=S.me||{};
  const s=$(`<div class="sheet pfe pfp"><div>
   <h3>Edit profile</h3>
-  <div class=pfv data-pe=cover role=button aria-label="Tap to edit cover">
-   <button class=pfav data-pe=photo aria-label="Change profile photo"><span class=pfai></span><i class=pfpen>${window.COV_PEN||""}</i></button></div>
-  <div class=pfr><span class=mu>Tap the photo or cover to change it</span><button class=chip data-pe=rm>Remove photo</button></div>
+  <div class=pfh><button class=pfav data-pe=photo aria-label="Change profile photo"><span class=pfai></span><i class=pfpen>${window.COV_PEN||""}</i></button>
+   <div class=pfm2><b>Profile photo</b><span class=mu>Tap the photo to change it. To change the cover, tap the cover on your Profile.</span><button class=chip data-pe=rm>Remove photo</button></div></div>
   <label class=pfn for=pfn>Display name</label><input id=pfn maxlength=60 placeholder="Your name" autocomplete=off>
   <div class=pfa><button class=chip data-pe=cancel>Cancel</button><button class=btn data-pe=save>Save</button></div>
  </div></div>`);
  document.body.append(s);
- const cv=s.querySelector(".pfv"),av=s.querySelector(".pfai"),rm=s.querySelector('[data-pe=rm]'),inp=s.querySelector("#pfn");
+ const av=s.querySelector(".pfai"),rm=s.querySelector('[data-pe=rm]'),inp=s.querySelector("#pfn");
  inp.value=S.me.name||"";
- const paint=()=>{const u=S.me||{},c=S.photos.find(p=>!isVid(p)),url=(window.coverUrl&&coverUrl(c))||"";
-  cv.style.backgroundImage=url?`url("${url}")`:"";
+ const paint=()=>{const u=S.me||{};
   av.innerHTML=u.photo?`<img src="${u.photo}" alt="">`:ini(inp.value||u.name);
   rm.style.display=u.photo?"":"none"};
  PF.paint=()=>{if(document.body.contains(s))paint()};
@@ -39,7 +37,6 @@ function openEdit(){
   const k=b.dataset.pe;
   if(k=="cancel")return closeS(s);
   if(k=="save")return finish();
-  if(k=="cover"){const t=document.createElement("button");t.dataset.cov=1;t.hidden=true;document.body.append(t);t.click();t.remove();return}
   if(k=="rm"){S.me.photo="";try{await saveMe();toast("Profile photo removed");render();paint()}catch(err){toast("Couldn't update photo")}return}
   if(k=="photo"){const f=await pickFile("image/*");if(!f)return;
    try{const bm=await createImageBitmap(f),q=Math.min(bm.width,bm.height),c=document.createElement("canvas");c.width=c.height=256;
@@ -60,7 +57,7 @@ function openCats(){
   <div class=pfn>Existing photos</div>
   <button class=o data-rg=other>Categorize photos marked “Other”</button>
   <button class=o data-rg=all>Recategorize all photos<span class=mu style="display:block;font-size:12px;margin-top:2px">Overwrites categories you set manually</span></button>
-  <div class=mu style="font-size:11px;margin-top:10px">AI runs on your device and your photos are never sent to another server. The model (~15 MB) downloads once.</div>
+  <div class=mu style="font-size:12px;margin-top:10px">AI runs on your device and your photos are never sent to another server. The model (~15 MB) downloads once.</div>
   <button class=btn style="width:100%;margin-top:16px" data-pc=done>Done</button>
  </div></div>`);
  document.body.append(s);

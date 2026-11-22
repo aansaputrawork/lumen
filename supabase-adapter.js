@@ -33,6 +33,7 @@ async function sign(rows,raw){
   x.doc.sp=r.storage_path?"supabase":r.google_drive_file_id?"drive":"";
   x.doc.bs=r.storage_path&&r.google_drive_file_id?"done":"none";
   x.doc.gid=r.google_drive_file_id||"";
+  x.doc.cid=r.drive_conn_id||"";
   x.doc.url=r.storage_path?(M[r.storage_path]||""):x.doc.th;
  });
 }
@@ -56,7 +57,7 @@ async function put(n,id,d){
  let data=d,cols={};
 
  if(n=="photos"){
-  const{url,th,sp,bs,bid,gid,...rest}=d;
+  const{url,th,sp,bs,bid,gid,cid,...rest}=d;
   data=rest;
 
   const m=META.get(d.aid);
@@ -64,7 +65,8 @@ async function put(n,id,d){
    cols={
     storage_path:m.prov=="supabase"?d.aid:null,
     google_drive_file_id:m.prov=="drive"?m.did:
-     m.prov=="supabase"?m.did||null:null
+     m.prov=="supabase"?m.did||null:null,
+    drive_conn_id:m.cid||null
    };
   }
  }
@@ -162,7 +164,7 @@ const AS={
   if(mode=="drive"){
    
    const did=await LDrive.up(f,(p,l,t)=>onProgress&&onProgress(p,l,t));
-   META.set(did,{prov:"drive",did,bs:"done"});
+   META.set(did,{prov:"drive",did,bs:"done",cid:LDrive.lastCid});
    return{id:did,url:"",sizeBytes:f.size};
   }
 
@@ -186,7 +188,7 @@ const AS={
    if(mode=="both"){
     try{
      m.did=await LDrive.up(f,(p,l,t)=>onProgress&&onProgress(50+p/2,l,t));
-     m.bs="done";
+     m.bs="done";m.cid=LDrive.lastCid;
     }catch(e){
      m.bs="failed";
      LDrive.uf++;
@@ -209,7 +211,7 @@ const AS={
 
 const DL={save:async({filename,data})=>{const a=document.createElement("a"),u=URL.createObjectURL(data);a.href=u;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),6e4)}};
 window.claude={use:async n=>{const s=await ses();if(n=="user")return{id:async()=>s.user.id,me:async()=>({name:s.user.user_metadata?.name||"",email:s.user.email})};return{db:DB,assets:AS,downloads:DL}[n]||null}};
-window.LSB={reload:n=>load(n),orphans:()=>orph().length,
+window.LSB={reload:n=>load(n),meta:(k,v)=>META.set(k,v),orphans:()=>orph().length,
  async retryOrphans(){const a=orph(),keep=[];for(const r of a){const{error}=await sb.from("photos").insert(r);if(error&&error.code!="23505")keep.push(r)}setOr(keep);await load("photos");return a.length-keep.length},
  async logout(){await sb.auth.signOut();location.reload()}};
 })();

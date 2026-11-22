@@ -77,3 +77,27 @@ Upload file >6 MB memakai TUS (resumable) lewat `tus-js-client`; batas ukuran pe
 Sudah berfungsi di kode: kuota per paket, pengelompokan otomatis (AI di browser), upload resumable >6 MB, "Wi-Fi saja" (Chrome Android), duplikat, daftar perangkat, login Google, dasbor admin sederhana.
 Hanya skema database (belum ada UI/server): tautan berbagi, password album, album privat, langganan, pembayaran. Pembayaran (mis. Midtrans/Xendit untuk IDR) butuh akun merchant dan webhook Edge Function yang menulis `subscriptions`/`payments`.
 Belum ada: backup latar belakang & notifikasi (native), build Android/iOS, import dari Drive, pencarian pintar berbasis isi foto.
+
+## 7. Banyak akun Google Drive (migrasi 004)
+1. SQL Editor: jalankan `supabase/migrations/004_multi_drive.sql` (setelah 001-003). Aman untuk data lama: koneksi Drive yang sudah ada otomatis menjadi akun *default* dan foto lama diberi `drive_conn_id`-nya.
+2. Deploy ulang fungsi: `supabase functions deploy drive --no-verify-jwt`.
+3. Di aplikasi: Profile > Google Drive > **Add another Google Drive** (Google akan menampilkan pemilih akun). Tiap akun punya folder sendiri; satu akun ditandai **Default** (tujuan upload bawaan dan backup otomatis). Saat upload ke Drive dan ada lebih dari satu akun, muncul pilihan **Google Drive account**.
+4. Tiap foto/video mengingat akun Drive miliknya (`photos.drive_conn_id`), jadi pemutaran, unduhan, dan streaming selalu memakai akun yang benar. Memutus satu akun tidak mengganggu akun lain.
+
+## 8. Import from Drive (menu Upload > From Google Drive)
+File di Drive tidak bisa dijelajahi bebas karena scope `drive.file` (sengaja dibatasi). Impor memakai **Google Picker**: file yang Anda pilih di jendela Picker otomatis boleh diakses aplikasi. File **tidak disalin**; hanya dicatat di perpustakaan (thumbnail dibuat), dan menghapusnya dari MIKA tidak menghapus file di Drive.
+Konfigurasi sekali saja:
+1. Google Cloud Console (project yang sama dengan OAuth): **APIs & Services > Library** > aktifkan **Google Picker API**.
+2. **Credentials > Create credentials > API key**. Batasi key: *Websites* = alamat aplikasi Anda, *API restrictions* = Google Picker API.
+3. Catat **Project number** (Dashboard > Project info).
+4. Set secret lalu deploy ulang:
+```
+supabase secrets set PICKER_API_KEY=... PROJECT_NUMBER=...
+supabase functions deploy drive --no-verify-jwt
+```
+Tanpa dua secret ini, tombol "From Google Drive" menampilkan pesan bahwa impor belum disiapkan.
+
+## Video di Google Drive: batas yang perlu diketahui
+- Video diputar lewat endpoint `/drive/stream` (mendukung Range, jadi bisa seek). **Setiap video yang diputar melewati Edge Function**, sehingga ikut menghabiskan *egress* dan jumlah *invocation* Supabase (Free plan: 5 GB egress dan 500.000 invocation per bulan, dihitung bersama semua pemakaian lain). Peramban meminta video per potongan (Range), jadi satu kali putar bisa berarti beberapa invocation.
+- Format: MP4 (H.264/AAC) dan WebM aman di semua peramban. HEVC/H.265 (.mov dari iPhone) hanya diputar di Safari/sebagian perangkat; Chrome/Firefox mungkin tidak bisa. Aplikasi tidak melakukan transcoding.
+- Kuota unduh harian Google Drive tetap berlaku untuk file yang sangat sering diakses.
