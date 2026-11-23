@@ -204,6 +204,16 @@ Deno.serve(async (req) => {
         }
         return json({ files: out, skipped, conn_id: c.id });
       }
+      case "import_download": {
+        const fid = String(b.file_id || ""); if (!FID.test(fid)) throw new Err("forbidden", 403);
+        const t = await tokCached(uid, String(b.conn_id || ""));
+        const meta = await (await G(`${FILES}/${fid}?supportsAllDrives=true&fields=id,mimeType,trashed,size`, t)).json();
+        if (meta.trashed || !/^(image|video)\//.test(meta.mimeType || "")) throw new Err("not_media", 400);
+        const r = await G(`${FILES}/${fid}?alt=media&supportsAllDrives=true`, t);
+        const headers: Record<string, string> = { ...H, "Content-Type": meta.mimeType || r.headers.get("content-type") || "application/octet-stream", "Cache-Control": "no-store" };
+        const len = r.headers.get("content-length"); if (len) headers["Content-Length"] = len;
+        return new Response(r.body, { headers });
+      }
       case "import_thumb": {
         const fid = String(b.file_id || ""); if (!FID.test(fid)) throw new Err("forbidden", 403);
         const { t } = await tok(uid, b.conn_id), f = await (await G(`${FILES}/${fid}?supportsAllDrives=true&fields=${encodeURIComponent(META)}`, t)).json();

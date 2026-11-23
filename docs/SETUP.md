@@ -101,3 +101,8 @@ Tanpa dua secret ini, tombol "From Google Drive" menampilkan pesan bahwa impor b
 - Video diputar lewat endpoint `/drive/stream` (mendukung Range, jadi bisa seek). **Setiap video yang diputar melewati Edge Function**, sehingga ikut menghabiskan *egress* dan jumlah *invocation* Supabase (Free plan: 5 GB egress dan 500.000 invocation per bulan, dihitung bersama semua pemakaian lain). Peramban meminta video per potongan (Range), jadi satu kali putar bisa berarti beberapa invocation.
 - Format: MP4 (H.264/AAC) dan WebM aman di semua peramban. HEVC/H.265 (.mov dari iPhone) hanya diputar di Safari/sebagian perangkat; Chrome/Firefox mungkin tidak bisa. Aplikasi tidak melakukan transcoding.
 - Kuota unduh harian Google Drive tetap berlaku untuk file yang sangat sering diakses.
+
+
+### Import from Google Drive (copy into MIKA Cloud)
+
+The Import from Google Drive action uses Google Picker to select image/video files, then downloads each selected original through the authenticated `drive` Edge Function and uploads it into the user's Supabase Storage. The source file in Google Drive is left unchanged. Imported media therefore consumes the user's MIKA Cloud storage quota. The import is performed sequentially while MIKA is open; large files require sufficient browser memory and an available network connection.

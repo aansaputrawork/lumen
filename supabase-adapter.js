@@ -169,7 +169,7 @@ const AS={
   if(!navigator.onLine)throw off();
   await ses();
 
-  const mode=f._th?"supabase":(window.LUMEN_MODE||"supabase");
+  const mode=(f._th||f._forceSupabase)?"supabase":(window.LUMEN_MODE||"supabase");
 
   if(mode=="drive"){
    
