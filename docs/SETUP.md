@@ -76,7 +76,7 @@ Upload file >6 MB memakai TUS (resumable) lewat `tus-js-client`; batas ukuran pe
 ## Cakupan fitur (jujur)
 Sudah berfungsi di kode: kuota per paket, pengelompokan otomatis (AI di browser), upload resumable >6 MB, "Wi-Fi saja" (Chrome Android), duplikat, daftar perangkat, login Google, dasbor admin sederhana.
 Hanya skema database (belum ada UI/server): tautan berbagi, password album, album privat, langganan, pembayaran. Pembayaran (mis. Midtrans/Xendit untuk IDR) butuh akun merchant dan webhook Edge Function yang menulis `subscriptions`/`payments`.
-Belum ada: backup latar belakang & notifikasi (native), build Android/iOS, import dari Drive, pencarian pintar berbasis isi foto.
+Belum ada: backup yang berjalan saat aplikasi tertutup (butuh aplikasi native), build Android/iOS, pencarian pintar berbasis isi foto.
 
 ## 7. Banyak akun Google Drive (migrasi 004)
 1. SQL Editor: jalankan `supabase/migrations/004_multi_drive.sql` (setelah 001-003). Aman untuk data lama: koneksi Drive yang sudah ada otomatis menjadi akun *default* dan foto lama diberi `drive_conn_id`-nya.
@@ -105,4 +105,31 @@ Tanpa dua secret ini, tombol "From Google Drive" menampilkan pesan bahwa impor b
 
 ### Import from Google Drive (copy into MIKA Cloud)
 
-The Import from Google Drive action uses Google Picker to select image/video files, then downloads each selected original through the authenticated `drive` Edge Function and uploads it into the user's Supabase Storage. The source file in Google Drive is left unchanged. Imported media therefore consumes the user's MIKA Cloud storage quota. The import is performed sequentially while MIKA is open; large files require sufficient browser memory and an available network connection.
+The Import from Google Drive action uses Google Picker to select image/video files, then downloads each selected original (directly from Google using the Picker token, falling back to the authenticated `drive` Edge Function if the direct request fails) and uploads it into the user's Supabase Storage. The source file in Google Drive is left unchanged. Imported media therefore consumes the user's MIKA Cloud storage quota. The import is performed sequentially while MIKA is open; large files require sufficient browser memory and an available network connection.
+
+
+## 9. Perbaikan Import dari Google Drive (Update 06)
+- Unduhan file asli kini langsung dari Google (token Picker, dengan refresh otomatis bila kedaluwarsa), sehingga video/foto besar tidak lagi dibatasi waktu/egress Edge Function. Jika akses langsung gagal, otomatis memakai `import_download` seperti sebelumnya. **Edge Function tidak berubah, tidak perlu deploy ulang.**
+- Seluruh jalur impor tidak lagi bergantung pada fungsi global yang mungkin belum ada (`mkThumb`, `mkVThumb`, `autoCat`, `CATS`, `save`, `assets`); bila tidak ada, dipakai fallback sehingga impor tidak gagal diam-diam dan tidak menghapus file yang sudah terunggah.
+- Pesan galat lebih jelas (mis. kuota MIKA Cloud tidak lagi tertulis "Google Drive penuh"), tanggal EXIF terbaca di Safari, progres unduhan tampil, dan file yang sudah ada (berdasarkan ID Drive) dilewati.
+
+## 10. Backup otomatis (Update 06)
+Profile > Google Drive > **Automatic backup**. Semua berjalan **selama MIKA terbuka** (peramban tidak mengizinkan web app memindai galeri saat tertutup).
+1. **Cloud → Drive**: bila *Auto backup to Drive* pada akun default aktif, file MIKA Cloud yang belum tercadangkan (termasuk yang gagal) dikirim ke Drive otomatis saat aplikasi dibuka, kembali ke depan, atau online lagi. Foto lama ikut tercadangkan sekali.
+2. **HP → MIKA Cloud (+ Drive)** lewat dua jalur:
+   - **Watch a phone folder**: pilih satu folder sekali (File System Access API; tersedia di Chrome/Edge desktop, **belum di Chrome Android/iOS**). File baru (atau semua file, pilihan saat mengaktifkan) diunggah otomatis; setelah browser di-restart, izin folder perlu disetujui lagi dengan satu ketukan (*Allow*).
+   - **Share target** (Android, PWA terpasang): di galeri pilih foto > Bagikan > MIKA; file masuk antrean dan dicadangkan otomatis. Tambahkan ini ke `manifest.webmanifest`:
+```json
+"share_target": {
+  "action": "./share-target",
+  "method": "POST",
+  "enctype": "multipart/form-data",
+  "params": { "files": [ { "name": "media", "accept": ["image/*", "video/*"] } ] }
+}
+```
+   Setelah itu pasang ulang PWA (atau hapus lalu pasang) agar Android membaca manifest baru.
+3. **Wi-Fi only** (aktif bawaan; memakai `navigator.connection`, hanya tersedia di Chrome/Android) dan tujuan *MIKA Cloud + Drive* atau *MIKA Cloud only*.
+4. Duplikat dicegah dengan sidik jari `nama|ukuran|tanggal-ubah` (kolom di `data.src_fp`, tanpa migrasi) dan kecocokan nama+ukuran dengan foto yang sudah ada. Foto yang sebelumnya diunggah dengan kompresi/ukuran berbeda bisa terunggah sekali lagi.
+5. Untuk backup sungguhan di latar belakang (galeri HP, saat aplikasi tertutup), perlu pembungkus native (mis. Capacitor + plugin background upload). Kode `ingest()` di `drive.js` bisa dipakai ulang.
+
+File yang berubah: `drive.js`, `supabase-adapter.js` (opsi `f._mode`, `LSB.docs/loaded`), `sw.js` (v11, share target). Tidak ada migrasi SQL baru.

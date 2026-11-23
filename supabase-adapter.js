@@ -169,7 +169,7 @@ const AS={
   if(!navigator.onLine)throw off();
   await ses();
 
-  const mode=(f._th||f._forceSupabase)?"supabase":(window.LUMEN_MODE||"supabase");
+  const mode=(f._th||f._forceSupabase)?"supabase":(f._mode||window.LUMEN_MODE||"supabase"); // f._mode: dipakai backup otomatis/impor agar tidak bergantung pada pilihan global
 
   if(mode=="drive"){
    
@@ -221,7 +221,7 @@ const AS={
 
 const DL={save:async({filename,data})=>{const a=document.createElement("a"),u=URL.createObjectURL(data);a.href=u;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),6e4)}};
 window.claude={use:async n=>{const s=await ses();if(n=="user")return{id:async()=>s.user.id,me:async()=>({name:s.user.user_metadata?.name||"",email:s.user.email})};return{db:DB,assets:AS,downloads:DL}[n]||null}};
-window.LSB={reload:n=>load(n),meta:(k,v)=>META.set(k,v),orphans:()=>orph().length,
+window.LSB={reload:n=>load(n),loaded:n=>!!R[n],docs:n=>(R[n]||[]).map(r=>({...r.doc,id:r.id})),meta:(k,v)=>META.set(k,v),orphans:()=>orph().length,
  async retryOrphans(){const a=orph(),keep=[];for(const r of a){const{error}=await sb.from("photos").insert(r);if(error&&error.code!="23505")keep.push(r)}setOr(keep);await load("photos");return a.length-keep.length},
  async logout(){await sb.auth.signOut();location.reload()}};
 })();
