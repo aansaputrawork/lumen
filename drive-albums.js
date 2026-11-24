@@ -20,7 +20,7 @@
   const body=state.busy&&!state.files.length?'<div class="dalb-empty">Loading Google Drive…</div>':state.error?'<div class="dalb-empty">'+esc(state.error)+'</div>':(!folders&&!media?'<div class="dalb-empty">This folder is empty.</div>':"");
   return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3><span class="mu">${state.stack.length?esc(title):ds.length+" connected account"+(ds.length===1?"":"s")}</span></div>
   ${!state.stack.length?ds.map(d=>`<button class="dalb-account" data-dalb="account" data-gid="${esc(d.id)}"><span class="dalb-drive-icon">◉</span><span><b>${esc(d.email||"Google Drive")}</b><small>Browse My Drive folders and media</small></span><span class="mu">›</span></button>`).join(""):
-  `<div class="dalb-toolbar"><button class="chip" data-dalb="back">‹ Back</button><div class="dalb-crumbs">${crumbs}</div><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-path">${esc(title)}</div><div class="dalb-grid">${folders}${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="more">Load more</button>':""}`}
+  `<div class="dalb-toolbar"><button class="chip" data-dalb="back">‹ Back</button><div class="dalb-crumbs">${crumbs}</div><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-path">${esc(title)}</div><div class="dalb-grid">${folders}${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}`}
   </section>`;
  };
  window.driveAlbumsSection=html;
@@ -33,8 +33,8 @@
    const j=await D.listAlbum(state.conn,current().id,state.token),files=j.files||[];
    state.files=reset?files:[...state.files,...files];
    const media=files.filter(f=>/^(image|video)\//.test(f.mimeType||""));
-   for(const f of media)state.media.push(makeMedia(f))
-   state.token=j.next_page_token||"";
+   for(const f of media)state.media.push(makeMedia(f));
+   state.token=j.next_page_token||"";refresh();for(const f of media){const p=state.media.find(x=>x.aid===f.id);if(p)thumb(p)}
   }catch(e){state.error="Couldn't load this folder: "+(e.message||"Unknown error")}
   finally{state.busy=false;refresh()}
  }
@@ -70,6 +70,6 @@
   });return}
   if(action==="new"){e.preventDefault();ask("New folder name","",async n=>{try{await D.createAlbumFolder(state.conn,current().id,n);toast("Folder created in Google Drive");await load(true)}catch(err){toast("Couldn't create folder: "+err.message)}});return}
   if(action==="more"){e.preventDefault();return}
-  if(action==="moreload"){e.preventDefault();load(false);return}
+  if(action==="loadmore"){e.preventDefault();load(false);return}
  });
 })();
