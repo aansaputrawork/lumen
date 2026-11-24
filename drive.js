@@ -1,7 +1,7 @@
 // Google Drive: pemanggil Edge Function, upload resumable, UI pengaturan, indikator.
 (()=>{const C=window.LUMEN_CONFIG||{};if(!window.sb)return;
 const FN=(C.FUNCTIONS_URL||C.SUPABASE_URL+"/functions/v1").replace(/\/drive\/?$/,"")+"/drive"; // FUNCTIONS_URL boleh berakhiran /drive atau tidak
-const MSG={offline:"You're offline. Check your connection and try again.",not_connected:"Google Drive isn't connected. Connect it in Profile → Google Drive.",token_expired:"Your Google Drive session has expired. Reconnect it in Profile.",quota:"Your Google Drive is full. Free up some space and try again.",folder_missing:"The destination folder wasn't found. Choose another folder in Profile.",upload_failed:"Upload to Google Drive failed.",picker_not_configured:"Import from Google Drive isn't set up yet (see docs/SETUP.md, \"Import from Drive\").",no_thumb:"No preview available.",unauthorized:"Your session has expired. Please sign in again.",cloud_quota:"MIKA Cloud storage quota reached.",too_large:"The file exceeds your plan's file size limit.",not_media:"The selected item is not a photo or video.",error:"Something went wrong."};
+const MSG={offline:"You're offline. Check your connection and try again.",not_connected:"Google Drive isn't connected. Connect it in Profile → Google Drive.",token_expired:"Your Google Drive session has expired. Reconnect it in Profile.",quota:"Your Google Drive is full. Free up some space and try again.",folder_missing:"The destination folder wasn't found. Choose another folder in Profile.",upload_failed:"Upload to Google Drive failed.",no_thumb:"No preview available.",unauthorized:"Your session has expired. Please sign in again.",cloud_quota:"MIKA Cloud storage quota reached.",too_large:"The file exceeds your plan's file size limit.",not_media:"The selected item is not a photo or video.",error:"Something went wrong."};
 const E=(c,m)=>Object.assign(new Error(m&&m!==c?m:(MSG[c]||c)),{code:c});
 const D=window.LDrive={st:null,busy:false,uf:0,ff:[],lastErr:"",lastCid:""};
 const hdr=async()=>{const{data:{session}}=await sb.auth.getSession();return{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token,apikey:C.SUPABASE_ANON_KEY}};
@@ -86,7 +86,7 @@ const A={
  async connect(){try{location.href=(await call("start")).url}catch(e){toast("Failed: "+e.message)}},
  disc(id){const d=dr(id);actSheet("Disconnect "+(d.email||"Google Drive")+"?","Its access token is deleted from the server. Files in Drive are not deleted. Photos stored only in this Drive can't be opened or downloaded in full until you reconnect it.","Disconnect",async()=>{try{await call("disconnect",{conn_id:d.id});toast("Disconnected");D.refresh()}catch(e){toast("Failed: "+e.message)}})},
  async def(id){try{await call("set_default",{conn_id:id});toast("Default Drive changed");D.refresh()}catch(e){toast("Failed: "+e.message)}},
- async folder(id){const d=dr(id);try{const{folders}=await call("list_folders",{conn_id:d.id});sheet(`<h3 style="margin-top:0">Storage folder</h3><div class=mu style="font-size:12px;margin-bottom:6px">${esc(d.email||"")} · limited access (drive.file): only folders created by MIKA appear here.</div>`+folders.map(f=>`<button class=o data-x="f:${esc(f.id)}">${esc(f.name)}${f.id==d.folder_id?" ✓":""}</button>`).join("")+`<button class=o data-x=new>Create new folder…</button>`,async x=>{
+ async folder(id){const d=dr(id);try{const{folders}=await call("list_folders",{conn_id:d.id});sheet(`<h3 style="margin-top:0">Storage folder</h3><div class=mu style="font-size:12px;margin-bottom:6px">${esc(d.email||"")} · folders your Google account can access appear here.</div>`+folders.map(f=>`<button class=o data-x="f:${esc(f.id)}">${esc(f.name)}${f.id==d.folder_id?" ✓":""}</button>`).join("")+`<button class=o data-x=new>Create new folder…</button>`,async x=>{
   try{if(x=="new")return ask("New folder name","MIKA",async n=>{try{await call("create_folder",{conn_id:d.id,name:n});toast("Folder created");D.refresh()}catch(e){toast("Failed: "+e.message)}});await call("set_folder",{conn_id:d.id,id:x.slice(2)});toast("Folder changed");D.refresh()}catch(e){toast("Failed: "+e.message)}})}catch(e){toast("Failed: "+e.message)}},
  open(id){window.open(furl(dr(id)),"_blank","noopener")},
  share(id){window.open(furl(dr(id)),"_blank","noopener");toast("Use Share on the folder in Google Drive to manage access")},
@@ -146,42 +146,95 @@ async function ingest(f0,o={}){
   throw e}
 }
 
-// ======================= Impor dari Google Drive =======================
-let GP=null;
-const loadPicker=()=>GP||(GP=new Promise((res,rej)=>{const go=()=>gapi.load("picker",{callback:res,onerror:()=>{GP=null;rej(E("error","Couldn't load Google Picker"))}});
- if(window.gapi&&gapi.load)return go();const s=document.createElement("script");s.src="https://apis.google.com/js/api.js";s.onload=go;s.onerror=()=>{GP=null;rej(E("error","Couldn't load Google Picker"))};document.head.append(s)}));
-D.imp=async cid=>{const L=live();if(!L.length)return toast(MSG.not_connected);
+// ======================= Impor dari Google Drive (pemilih bawaan MIKA) =======================
+const fmtSize=n=>{n=+n||0;if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(0)+" KB";if(n<1073741824)return (n/1048576).toFixed(1)+" MB";return (n/1073741824).toFixed(1)+" GB"};
+const fmtDriveDate=s=>{const d=new Date(s||"");return Number.isNaN(+d)?"":d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"})};
+D.imp=async cid=>{
+ const L=live();if(!L.length)return toast(MSG.not_connected);
  if(cid==null&&L.length>1)return sheet(`<h3 style="margin-top:0">Import from which account?</h3>`+L.map(d=>`<button class=o data-x="c:${esc(d.id)}">${esc(d.email||"")}${d.is_default?" (default)":""}</button>`).join(""),x=>{if(x&&x.startsWith("c:"))D.imp(x.slice(2))});
  if(cid==null)cid=L[0].id;
- let k;try{k=await call("pick_token",{conn_id:cid})}catch(e){return toast(e.code=="picker_not_configured"?MSG.picker_not_configured:"Failed: "+e.message)}
- try{await loadPicker()}catch(e){return toast("Failed: "+e.message)}
- const v=new google.picker.DocsView(google.picker.ViewId.DOCS_IMAGES_AND_VIDEOS).setIncludeFolders(false).setSelectFolderEnabled(false).setEnableDrives(true);
- new google.picker.PickerBuilder().addView(v).enableFeature(google.picker.Feature.MULTISELECT_ENABLED).enableFeature(google.picker.Feature.SUPPORT_DRIVES).setOAuthToken(k.token).setDeveloperKey(k.api_key).setAppId(String(k.app_id)).setOrigin(location.protocol+"//"+location.host)
-  .setCallback(d=>{if(d.action==google.picker.Action.PICKED){const docs=d[google.picker.Response.DOCUMENTS]||d.docs||[],ids=docs.map(x=>x[google.picker.Document.ID]||x.id).filter(Boolean);if(!ids.length)return toast("Google Picker did not return any selected files. Select photos/videos and press Open.");D.doImport(k.conn_id,ids,k)}})
-  .build().setVisible(true)};
+ if(D.importing)return toast("An import is already running");
+ const chosen=new Set(),urls=new Set(),s=document.createElement("div");s.className="sheet";
+ s.innerHTML=`<div class="mbsheet" style="max-width:760px;max-height:92vh;display:flex;flex-direction:column;gap:10px">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px"><div><h3 style="margin:0">Import from Google Drive</h3><div class="mu" style="font-size:12px;margin-top:4px">${esc(dr(cid).email||"Google account")} · Photos and videos</div></div><button class="chip" data-gd-close>Close</button></div>
+  <input id="gd-search" type="search" placeholder="Search file names…" autocomplete="off">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="mu" id="gd-count">0 selected</span><button class="chip" data-gd-all>Select this page</button></div>
+  <div class="mbgrid" id="gd-grid" style="max-height:56vh;min-height:150px"><div class="mu" style="grid-column:1/-1;text-align:center;padding:35px 10px">Loading Google Drive files…</div></div>
+  <div class="mu" id="gd-status" style="font-size:12px">Loading photos and videos…</div>
+  <button class="chip" id="gd-more" style="width:100%;display:none">Load more</button>
+  <button class="btn" data-gd-import disabled style="width:100%">Import selected files</button>
+ </div>`;
+ document.body.append(s);
+ const grid=s.querySelector("#gd-grid"),status=s.querySelector("#gd-status"),count=s.querySelector("#gd-count"),more=s.querySelector("#gd-more"),go=s.querySelector("[data-gd-import]"),all=s.querySelector("[data-gd-all]"),search=s.querySelector("#gd-search");
+ let next="",loading=false,pending=false,term="",files=[],timer=0,closed=false;
+ const cleanup=()=>{closed=true;urls.forEach(u=>URL.revokeObjectURL(u));urls.clear()};
+ const close=()=>{cleanup();closeS(s)};
+ const paint=()=>{
+  count.textContent=chosen.size+" selected";go.disabled=!chosen.size;
+  go.textContent=chosen.size?`Import ${chosen.size} selected file${chosen.size===1?"":"s"}`:"Import selected files";
+  all.textContent=files.length&&files.every(f=>chosen.has(f.id))?"Clear page selection":"Select this page";
+  grid.querySelectorAll("[data-gd-id]").forEach(el=>{const on=chosen.has(el.dataset.gdId);el.style.outline=on?"3px solid var(--ac)":"2px solid transparent";const ck=el.querySelector(".gd-check");if(ck){ck.style.background=on?"var(--ac)":"rgba(0,0,0,.35)";ck.style.borderColor=on?"var(--ac)":"white"}});
+ };
+ const thumb=async(el,f)=>{
+  if(!f.thumbnailLink)return;
+  try{const r=await raw("import_thumb",{conn_id:cid,file_id:f.id});if(!r.ok)return;const b=await r.blob();if(!b.size||!/^image\//.test(b.type||""))return;
+   const u=URL.createObjectURL(b);if(closed){URL.revokeObjectURL(u);return}urls.add(u);const im=el.querySelector("img");if(im)im.src=u;
+  }catch(e){console.warn("MIKA Drive thumbnail unavailable",e)}
+ };
+ const render=async added=>{
+  if(!added.length)return;
+  const frag=document.createDocumentFragment(),els=[];
+  for(const f of added){
+   const el=document.createElement("div");el.className="mi";el.dataset.gdId=f.id;
+   el.style.cssText="margin:0;position:relative;overflow:hidden;border-radius:16px;outline:2px solid transparent;cursor:pointer;min-height:130px;background:var(--pill)";
+   const icon=String(f.mimeType||"").startsWith("video/")?"▶":"▧";
+   el.innerHTML=`<div style="aspect-ratio:1/1;display:grid;place-items:center;overflow:hidden;background:var(--pill)"><img alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;opacity:.95" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23888888' fill-opacity='.12'/%3E%3Ctext x='50' y='57' text-anchor='middle' font-size='28' fill='%23888888'%3E${icon}%3C/text%3E%3C/svg%3E"></div><span class="gd-check" style="position:absolute;right:8px;top:8px;width:24px;height:24px;border-radius:50%;border:2px solid white;background:rgba(0,0,0,.35);display:grid;place-items:center;color:white;font-size:14px">✓</span><span style="position:absolute;left:6px;right:6px;bottom:6px;padding:5px 7px;border-radius:8px;background:rgba(0,0,0,.65);color:white;font-size:10px;line-height:1.35"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.name||"Untitled")}</span><span style="opacity:.8">${fmtSize(f.size)}${f.createdTime?" · "+fmtDriveDate(f.createdTime):""}</span></span>`;
+   frag.append(el);els.push({el,f});
+  }
+  grid.append(frag);paint();
+  let i=0;await Promise.all(Array.from({length:4},async()=>{while(i<els.length&&!closed){const x=els[i++];await thumb(x.el,x.f)}}));
+ };
+ const load=async reset=>{
+  if(loading){if(reset)pending=true;return}loading=true;more.disabled=true;status.textContent="Loading photos and videos…";
+  if(reset){next="";files=[];grid.innerHTML=`<div class="mu" style="grid-column:1/-1;text-align:center;padding:35px 10px">Loading Google Drive files…</div>`}
+  try{
+   const j=await call("list_media",{conn_id:cid,page_token:reset?"":next,search:term});
+   const got=Array.isArray(j.files)?j.files:[];
+   if(reset)grid.innerHTML="";
+   files=reset?got:files.concat(got);next=j.next_page_token||"";
+   if(got.length)await render(got);
+   if(!files.length)grid.innerHTML=`<div class="mu" style="grid-column:1/-1;text-align:center;padding:35px 10px">${term?"No matching photos or videos found.":"No photos or videos found in this Google Drive account."}</div>`;
+   status.textContent=files.length?`${files.length} files loaded${j.incomplete_search?" · Google Drive may have returned an incomplete result":""}`:"";
+   more.style.display=next?"block":"none";more.disabled=false;paint();
+  }catch(e){status.textContent="Could not load files: "+(e.message||"Unknown error");if(reset)grid.innerHTML=`<div class="mu" style="grid-column:1/-1;text-align:center;padding:25px 10px">Could not load Google Drive files. ${esc(e.message||"Please try again.")}</div>`;more.style.display=files.length?"block":"none";more.disabled=false}
+  finally{loading=false;if(pending&&!closed){pending=false;load(true)}}
+ };
+ s.addEventListener("click",e=>{
+  if(e.target.closest("[data-gd-close]")||e.target===s){close();return}
+  if(e.target.closest("[data-gd-all]")){if(files.length&&files.every(f=>chosen.has(f.id)))files.forEach(f=>chosen.delete(f.id));else files.forEach(f=>chosen.add(f.id));paint();return}
+  if(e.target.closest("#gd-more")){load(false);return}
+  const el=e.target.closest("[data-gd-id]");if(el){const id=el.dataset.gdId;chosen.has(id)?chosen.delete(id):chosen.add(id);paint()}
+ });
+ search.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(()=>{term=search.value.trim();load(true)},350)});
+ go.onclick=()=>{const ids=[...chosen];close();if(ids.length)D.doImport(cid,ids)};
+ load(true);
+};
 async function readBody(r,cb){const len=+r.headers.get("content-length")||0;if(!r.body||!r.body.getReader)return r.blob();
  const rd=r.body.getReader(),ch=[];let n=0;for(;;){const{done,value}=await rd.read();if(done)break;ch.push(value);n+=value.length;cb&&cb(n,len)}return new Blob(ch,{type:r.headers.get("content-type")||""})}
-// Unduh file asli. Utama: langsung dari Google dengan token Picker (tanpa melewati Edge Function: tidak kena batas waktu/egress Supabase,
-// cocok untuk video besar). Cadangan: lewat Edge Function (action import_download) bila akses langsung gagal (CORS/jaringan/izin).
-async function importBlob(k,f,cb){
- for(let a=0;a<2;a++){
-  try{const r=await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(f.id)}?alt=media&supportsAllDrives=true`,{headers:{Authorization:"Bearer "+k.token}});
-   if(r.status==401&&!a){k.token=(await call("pick_token",{conn_id:k.conn_id})).token;continue}
-   if(r.ok){const b=await readBody(r,cb);if(b.size)return b}
-   break}catch(e){if(!navigator.onLine)throw E("offline");break}
- }
- const r=await raw("import_download",{conn_id:k.conn_id,file_id:f.id});
+async function importBlob(cid,f,cb){
+ const r=await raw("import_download",{conn_id:cid,file_id:f.id});
  if(!r.ok){const j=await r.json().catch(()=>({}));throw E(j.code||"error",j.message||"Could not download the selected file from Google Drive")}
- const b=await readBody(r,cb);if(!b.size)throw E("error","Google Drive returned an empty file");return b}
-D.doImport=async(cid,ids,k0)=>{
- if(!Array.isArray(ids)||!ids.length)return toast("No files were returned by Google Picker");
+ const b=await readBody(r,cb);if(!b.size)throw E("error","Google Drive returned an empty file");return b;
+}
+D.doImport=async(cid,ids)=>{
+ if(!Array.isArray(ids)||!ids.length)return toast("No files selected");
  if(D.importing)return toast("An import is already running");
  D.importing=true;
  try{
   toast("Reading selected files…");
-  const k=k0||await call("pick_token",{conn_id:cid});k.conn_id=k.conn_id||cid;
-  const {files=[],skipped=[]}=await call("import_info",{conn_id:cid,ids});
-  if(!files.length){console.warn("MIKA Drive import: no readable media returned",{selected:ids.length,skipped});return toast(skipped.length?(skipped[0].code=="not_media"?"The selected items are not supported photos or videos.":`Google Drive couldn't read the selected file (${skipped[0].code||"access error"}). Reconnect the account in Profile and pick the file again.`):"The selected items are not supported photos or videos.")}
+  const files=[],skipped=[];
+  for(let i=0;i<ids.length;i+=50){const j=await call("import_info",{conn_id:cid,ids:ids.slice(i,i+50)});files.push(...(j.files||[]));skipped.push(...(j.skipped||[]))}
+  if(!files.length){console.warn("MIKA Drive import: no readable media returned",{selected:ids.length,skipped});return toast(skipped.length?(skipped[0].code=="not_media"?"The selected items are not supported photos or videos.":`Google Drive couldn't read the selected file (${skipped[0].code||"access error"}). Reconnect the account in Profile and try again.`):"The selected items are not supported photos or videos.")}
   const have=lib().dr,todo=files.filter(f=>!have.has(f.id));
   if(!todo.length)return toast("All selected files are already in your MIKA library");
   let n=0,bad=0;
@@ -189,17 +242,16 @@ D.doImport=async(cid,ids,k0)=>{
    const at=n+bad+1,tot=todo.length;
    try{
     toast(`Downloading from Google Drive ${at}/${tot}…`);
-    let last=0;const blob=await importBlob(k,f,(got,len)=>{const now=Date.now();if(now-last>700){last=now;toast(`Downloading ${at}/${tot}… ${len?Math.round(got/len*100)+"%":(got/1048576).toFixed(0)+" MB"}`)}});
+    let last=0;const blob=await importBlob(cid,f,(got,len)=>{const now=Date.now();if(now-last>700){last=now;toast(`Downloading ${at}/${tot}… ${len?Math.round(got/len*100)+"%":(got/1048576).toFixed(0)+" MB"}`)}});
     const mime=f.mime||blob.type||guessMime(f.name)||"application/octet-stream";
     const file=new File([blob],f.name||("Google-Drive-"+f.id),{type:mime,lastModified:Date.parse(f.created||"")||Date.now()});
-    // Salin file asli ke MIKA Cloud, apa pun pilihan penyimpanan untuk unggahan biasa. File di Drive tidak diubah.
     await ingest(file,{mode:"supabase",srcDriveId:f.id,meta:f,prog:p=>toast(`Uploading to MIKA Cloud ${at}/${tot}… ${p}%`),
      thumbFallback:async()=>{const r=await raw("import_thumb",{conn_id:cid,file_id:f.id});if(!r.ok)return null;const tb=await r.blob();return tb.size&&/^image\//.test(tb.type||"")?new File([tb],"t_"+file.name+".jpg",{type:tb.type}):null}});
     n++;
    }catch(e){
     console.error("MIKA Drive import failed",f.id,e);bad++;
     toast(`Import failed: ${f.name||"file"} — ${e.message||"unknown error"}`);
-    if(["cloud_quota","offline","unauthorized"].includes(e.code))break;
+    if(["cloud_quota","offline","unauthorized","token_expired"].includes(e.code))break;
    }
   }
   await LSB.reload("photos");

@@ -5,7 +5,7 @@ const E = (k: string) => Deno.env.get(k)!;
 const admin = createClient(E("SUPABASE_URL"), E("SUPABASE_SERVICE_ROLE_KEY"));
 const APP = E("APP_URL"), CID = E("GOOGLE_CLIENT_ID"), CSEC = E("GOOGLE_CLIENT_SECRET");
 const REDIRECT = `${E("SUPABASE_URL")}/functions/v1/drive/callback`;
-const SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
+const SCOPE = "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
 const H = { "Access-Control-Allow-Origin": new URL(APP).origin, "Access-Control-Allow-Headers": "authorization, apikey, content-type, range", "Access-Control-Allow-Methods": "POST, GET, HEAD, OPTIONS", "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges", Vary: "Origin" };
 class Err extends Error { constructor(public code: string, public status = 400, msg?: string) { super(msg || code); } }
 const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...H, "Content-Type": "application/json" } });
@@ -66,7 +66,7 @@ async function callback(u: URL) {
   const r = await fetch("https://oauth2.googleapis.com/token", { method: "POST", body: new URLSearchParams({ code: u.searchParams.get("code") || "", client_id: CID, client_secret: CSEC, redirect_uri: REDIRECT, grant_type: "authorization_code" }) });
   const j = await r.json();
   if (!r.ok || !j.refresh_token) return back("drive=error&reason=no_refresh_token");
-  if (!String(j.scope).includes("drive.file")) return back("drive=error&reason=scope_denied");
+  if (!String(j.scope).includes("drive.readonly")) return back("drive=error&reason=scope_denied");
   const me = await (await fetch("https://www.googleapis.com/oauth2/v2/userinfo", { headers: { Authorization: "Bearer " + j.access_token } })).json();
   const list = await conns(uid), old = list.find((c) => c.google_email === me.email);
   const row: Record<string, unknown> = { user_id: uid, google_email: me.email, refresh_token_enc: await enc(j.refresh_token), status: "connected", updated_at: new Date().toISOString() };
@@ -115,7 +115,6 @@ Deno.serve(async (req) => {
       case "status": {
         const l = await conns(uid), d = pick(l);
         return json({ connected: !!d && d.status !== "disconnected", status: d?.status, email: d?.google_email, folder_id: d?.folder_id, folder_name: d?.folder_name, auto_backup: d?.auto_backup,
-          picker: !!(OPT("PICKER_API_KEY") && OPT("PROJECT_NUMBER")),
           drives: l.map((c) => ({ id: c.id, email: c.google_email, status: c.status, folder_id: c.folder_id, folder_name: c.folder_name, auto_backup: c.auto_backup, is_default: !!c.is_default })) });
       }
       case "disconnect": {
@@ -187,11 +186,21 @@ Deno.serve(async (req) => {
         const { t } = await tok(uid, o.cid || undefined), r = await G(`${FILES}/${fid}?alt=media&supportsAllDrives=true`, t);
         return new Response(r.body, { headers: { ...H, "Content-Type": r.headers.get("content-type") || "application/octet-stream" } });
       }
-      // ---- Impor dari Google Drive (file dipilih lewat Google Picker; scope drive.file otomatis memberi akses ke file yang dipilih) ----
-      case "pick_token": {
-        if (!OPT("PICKER_API_KEY") || !OPT("PROJECT_NUMBER")) throw new Err("picker_not_configured", 501);
-        const { t, c } = await tok(uid, b.conn_id);
-        return json({ token: t, api_key: OPT("PICKER_API_KEY"), app_id: OPT("PROJECT_NUMBER"), email: c.google_email, conn_id: c.id });
+      // ---- Daftar media untuk pemilih file bawaan MIKA; tidak memakai Google Picker iframe/API key ----
+      case "list_media": {
+        const { t } = await tok(uid, b.conn_id);
+        const term = String(b.search || "").trim().slice(0, 100).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        let q = "trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')";
+        if (term) q += " and name contains '" + term + "'";
+        const params = new URLSearchParams({
+          q, pageSize: "50", orderBy: "createdTime desc",
+          supportsAllDrives: "true", includeItemsFromAllDrives: "true",
+          corpora: "allDrives",
+          fields: "nextPageToken,incompleteSearch,files(" + META + ")"
+        });
+        if (b.page_token) params.set("pageToken", String(b.page_token));
+        const r = await G(`${FILES}?${params}`, t), j = await r.json();
+        return json({ files: j.files || [], next_page_token: j.nextPageToken || "", incomplete_search: !!j.incompleteSearch });
       }
       case "import_info": {
         const { t, c } = await tok(uid, b.conn_id), ids = (Array.isArray(b.ids) ? b.ids : []).map(String).filter((x: string) => FID.test(x)).slice(0, 50), out: unknown[] = [], skipped: unknown[] = [];
@@ -216,7 +225,7 @@ Deno.serve(async (req) => {
       }
       case "import_thumb": {
         const fid = String(b.file_id || ""); if (!FID.test(fid)) throw new Err("forbidden", 403);
-        const { t } = await tok(uid, b.conn_id), f = await (await G(`${FILES}/${fid}?supportsAllDrives=true&fields=${encodeURIComponent(META)}`, t)).json();
+        const cid = String(b.conn_id || ""), t = await tokCached(uid, cid), f = await (await G(`${FILES}/${fid}?supportsAllDrives=true&fields=${encodeURIComponent(META)}`, t)).json();
         if (f.thumbnailLink) {
           const r = await fetch(String(f.thumbnailLink).replace(/=s\d+$/, "=s800"), { headers: { Authorization: `Bearer ${t}` } });
           if (r.ok && /^image\//.test(r.headers.get("content-type") || "")) return new Response(r.body, { headers: { ...H, "Content-Type": r.headers.get("content-type")! } });
