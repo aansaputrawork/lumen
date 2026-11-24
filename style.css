@@ -163,3 +163,13 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .dalb-hero-empty{width:104px;height:104px;display:grid;place-items:center;border-radius:24px;background:var(--sf);font-size:42px}
 .dalb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 @media(min-width:700px){.dalb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Dedicated Google Drive folder detail page, styled like MIKA album detail. */
+.dalb-page{position:fixed;inset:0;z-index:90;overflow-y:auto;overscroll-behavior:contain;background:var(--bg);padding:calc(8px + env(safe-area-inset-top,0px)) 16px calc(100px + env(safe-area-inset-bottom,0px));}
+.dalb-page .dalb-detail-top{position:sticky;top:0;z-index:3;background:var(--bg);padding:6px 0 12px;margin:0 -2px 4px;}
+.dalb-page .dalb-detail-top h1{font-size:21px;font-weight:650;margin:0;}
+.dalb-page .dalb-detail-top .ic{flex:none;}
+.dalb-page .dalb-crumbs{margin:0 0 14px;}
+.dalb-page .dalb-hero{margin:0 0 18px;}
+.dalb-page .dalb-folder-list{margin:0 0 12px;}
+.dalb-page .dalb-grid{margin-top:8px;}
