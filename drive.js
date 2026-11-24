@@ -63,7 +63,7 @@ window.getBlob=async p=>{if(p._blob instanceof Blob)return p._blob;if(p.sp=="dri
 const VS={};
 window.vidSrc=async p=>{if(p.sp!="drive"&&p.url)return p.url;const id=p.aid||p.gid;if(!id)throw E("error","Video file not found");
  const h=VS[id];if(h&&h.e>Date.now())return h.u;
- const j=await call("stream_url",{file_id:id,mime:p.type||""});if(!j.url)throw E("error");VS[id]={u:j.url,e:Date.now()+5*36e5};return j.url};
+ const j=await call("stream_url",{conn_id:p.gconn||"",file_id:id,mime:p.type||""});if(!j.url)throw E("error");VS[id]={u:j.url,e:Date.now()+5*36e5};return j.url};
 window.lBadge=p=>p.sp=="drive"?'<i class=lb>Drive</i>':p.bs=="done"?'<i class=lb>S + Drive</i>':p.bs=="failed"?'<i class="lb f">Backup failed</i>':"";
 window.lLoc=p=>p.sp=="drive"?" · Google Drive":p.bs=="done"?" · Supabase + Drive":p.bs=="failed"?" · Supabase (Drive backup failed)":p.sp=="supabase"?" · Supabase":"";
 window.storagePicker=()=>{const d=dflt(),o=ok(),a=o&&d&&d.auto_backup,L=live();
@@ -102,7 +102,7 @@ const A={
  all(){backup(S.photos.filter(p=>p.sp=="supabase"&&p.bs!="done"))},
  manual(){manualBackup()},
  async orph(){try{toast("Recovered: "+await LSB.retryOrphans())}catch(e){toast("Failed: "+e.message)}},
- imp(){D.imp()},
+ imp(){D.imp()},\n logout(){LSB.logout()},
 };
 document.addEventListener("click",e=>{const b=e.target.closest("[data-dr]");if(b&&A[b.dataset.dr])A[b.dataset.dr](b.dataset.id)});
 
