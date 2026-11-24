@@ -44,6 +44,13 @@ D.up=async (f,onProgress)=>{
 };
 
 D.refresh=async()=>{try{D.st=await call("status")}catch(e){D.st={connected:false,err:e.code}}rr()};
+D.albumDrives=()=>live().map(d=>({...d}));
+D.listAlbum=async(connId,parentId="root",pageToken="")=>call("list_gallery",{conn_id:connId,parent_id:parentId,page_token:pageToken});
+D.albumThumb=async(connId,fileId)=>{const r=await raw("import_thumb",{conn_id:connId,file_id:fileId});if(!r.ok)throw E("error","Couldn't load the Google Drive thumbnail");return r.blob()};
+D.createAlbumFolder=(connId,parentId,name)=>call("create_gallery_folder",{conn_id:connId,parent_id:parentId,name});
+D.renameAlbumFolder=(connId,fileId,name)=>call("rename_gallery_folder",{conn_id:connId,file_id:fileId,name});
+D.trashAlbumFolder=(connId,fileId)=>call("trash_gallery_folder",{conn_id:connId,file_id:fileId});
+
 D.init=()=>{const q=new URLSearchParams(location.search),r=q.get("drive");if(r){history.replaceState(null,"",location.pathname+location.hash);toast(r=="connected"?"Google Drive connected":"Couldn't connect Google Drive ("+(q.get("reason")||"error")+")")}if(q.get("share")){history.replaceState(null,"",location.pathname+location.hash);toast("Receiving shared files…")}sb.auth.getSession().then(({data:{session}})=>{D.uid=session&&session.user.id;D.refresh().then(()=>setTimeout(D.tick,1500))});if(LSB.orphans())D.orphanWarn()};
 D.orphanWarn=()=>toast("The file is in Google Drive, but saving its details failed.",{l:"Retry",f:async()=>{try{toast("Recovered: "+await LSB.retryOrphans())}catch(e){toast("Failed: "+e.message)}}});
 // ---- Banyak akun Google Drive ----
@@ -82,59 +89,8 @@ function manualBackup(){
  s.addEventListener("click",e=>{if(e.target.closest("[data-mb-close]")||e.target===s){closeS(s);return}if(e.target.closest("[data-mb-all]")){if(chosen.size===items.length)chosen.clear();else items.forEach(p=>chosen.add(p.id));all.textContent=chosen.size===items.length?"Clear selection":"Select all";paint();return}const el=e.target.closest("[data-mb-id]");if(el){const id=el.dataset.mbId;chosen.has(id)?chosen.delete(id):chosen.add(id);all.textContent=chosen.size===items.length?"Clear selection":"Select all";paint()}});
  go.onclick=()=>{const picked=items.filter(p=>chosen.has(p.id));closeS(s);backup(picked)};
 }
-async function browseDrive(connId){
- const host=document.createElement("div");host.className="gdv";
- host.innerHTML=`<div class="top gdv-top"><button class=ic data-gclose aria-label="Back">${window.IC&&IC.back?`<svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`:"‹"}</button><div class=gdv-heading><h1>Google Drive</h1><span class=mu data-gpath>My Drive</span></div><button class=ic data-grefresh title="Refresh" aria-label="Refresh">↻</button><button class=chip data-gnew>+ Folder</button></div><div class=gdv-body><div class=gdv-crumb data-gcrumb></div><div class=gdv-status mu data-gstatus>Loading Google Drive…</div><div class=mas data-ggrid></div><button data-gmore class=chip style="display:none;width:100%;margin:16px 0 28px">Load more</button></div>`;
- document.body.append(host);
- const grid=host.querySelector("[data-ggrid]"),status=host.querySelector("[data-gstatus]"),crumb=host.querySelector("[data-gcrumb]"),path=host.querySelector("[data-gpath]"),more=host.querySelector("[data-gmore]");
- const stack=[{id:"root",name:"My Drive"}],thumbUrls=new Set(),previewUrls=new Set(),photos=[];let token="",busy=false,closed=false;
- const current=()=>stack[stack.length-1],revoke=set=>{for(const u of set)URL.revokeObjectURL(u);set.clear()};
- const drawCrumb=()=>{crumb.innerHTML=stack.map((f,i)=>`${i?'<span class=mu>›</span>':""}<button class="gdv-crumb-item${i===stack.length-1?" a":""}" data-gcrumb="${i}">${esc(f.name)}</button>`).join("");path.textContent=stack.map(x=>x.name).join(" / ")};
- const loadThumb=async(el,f,p)=>{try{const r=await raw("import_thumb",{conn_id:connId,file_id:f.id});if(!r.ok)return;const u=URL.createObjectURL(await r.blob());if(closed){URL.revokeObjectURL(u);return}thumbUrls.add(u);p.th=u;el.src=u;el.classList.add("l")}catch(_){}};
- const openPhoto=(p,card)=>{
-  if(!window.LViewer)return toast("Photo preview is unavailable");
-  const list=photos.slice(),resolveFull=async item=>{if(item.url)return item.url;const r=await raw("import_download",{conn_id:connId,file_id:item.aid});if(!r.ok)throw E("error","Couldn't load the original photo from Google Drive");const blob=await r.blob();item._blob=blob;item.url=URL.createObjectURL(blob);previewUrls.add(item.url);return item.url};
-  LViewer(p.id,list,card.querySelector("img"),{readonly:true,resolveFull,onClose:()=>{revoke(previewUrls);list.forEach(x=>{x.url="";x._blob=null})}});
- };
- const load=async(reset=false)=>{
-  if(busy||closed)return;busy=true;
-  if(reset){token="";photos.length=0;revoke(thumbUrls);grid.innerHTML="";more.style.display="none";status.textContent="Loading…";status.style.display="block"}
-  try{
-   const j=await call("list_gallery",{conn_id:connId,parent_id:current().id,page_token:token}),files=j.files||[],folders=files.filter(f=>f.mimeType==="application/vnd.google-apps.folder"),images=files.filter(f=>/^image\//.test(f.mimeType||""));
-   if(reset)status.style.display="none";
-   if(!files.length&&!grid.children.length){status.textContent="This folder is empty.";status.style.display="block"}
-   for(const f of folders){
-    const el=document.createElement("div");el.className="mi gdv-folder";el.dataset.gfolder=f.id;
-    el.innerHTML=`<span class=gdv-folder-icon aria-hidden=true>📁</span><span class=gdv-folder-name>${esc(f.name)}</span><button class=gdv-folder-more data-grename="${esc(f.id)}" aria-label="Rename ${esc(f.name)}" title="Rename folder">···</button>`;
-    grid.append(el);
-   }
-   for(const f of images){
-    const p={id:"gd_"+f.id,aid:f.id,gconn:connId,_gdrive:true,name:f.name||"Untitled",date:Date.parse(f.createdTime||"")||Date.now(),size:+f.size||0,type:f.mimeType||"image/jpeg",w:+(f.imageMediaMetadata&&f.imageMediaMetadata.width)||0,h:+(f.imageMediaMetadata&&f.imageMediaMetadata.height)||0,sp:"drive",url:"",th:""};
-    photos.push(p);
-    const card=document.createElement("div");card.className="mi gdv-photo";card.dataset.id=p.id;card.dataset.gphoto=p.id;
-    card.innerHTML=`<img alt="${esc(p.name)}" loading="lazy">`;
-    const im=card.querySelector("img");loadThumb(im,f,p);card.onclick=()=>openPhoto(p,card);grid.append(card);
-   }
-   token=j.next_page_token||"";more.style.display=token?"block":"none";
-  }catch(e){status.textContent="Couldn't load this folder: "+(e.message||"Unknown error");status.style.display="block";more.style.display="none"}
-  finally{busy=false}
- };
- const close=()=>{if(closed)return;closed=true;revoke(thumbUrls);revoke(previewUrls);host.remove()};
- host.querySelector("[data-gclose]").onclick=close;
- host.querySelector("[data-grefresh]").onclick=()=>load(true);
- more.onclick=()=>load(false);
- host.querySelector("[data-gnew]").onclick=()=>ask("New folder name","",async name=>{const n=String(name||"").trim();if(!n)return;try{await call("create_gallery_folder",{conn_id:connId,parent_id:current().id,name:n});toast("Folder created in Google Drive");await load(true)}catch(e){toast("Couldn't create folder: "+e.message)}});
- crumb.addEventListener("click",e=>{const b=e.target.closest("[data-gcrumb]");if(!b)return;stack.splice(+b.dataset.gcrumb+1);drawCrumb();load(true)});
- grid.addEventListener("click",e=>{
-  const rename=e.target.closest("[data-grename]");
-  if(rename){e.stopPropagation();const id=rename.dataset.grename,folder=rename.closest("[data-gfolder]"),old=folder&&folder.querySelector(".gdv-folder-name")?.textContent||"";ask("Rename folder",old,async name=>{const n=String(name||"").trim();if(!n||n===old)return;try{await call("rename_gallery_folder",{conn_id:connId,file_id:id,name:n});const item=stack.find(x=>x.id===id);if(item)item.name=n;toast("Folder renamed in Google Drive");drawCrumb();await load(true)}catch(err){toast("Couldn't rename folder: "+err.message)}});return}
-  const f=e.target.closest("[data-gfolder]");if(f){const name=f.querySelector(".gdv-folder-name")?.textContent||"Folder";stack.push({id:f.dataset.gfolder,name});drawCrumb();load(true)}
- });
- drawCrumb();load(true);
-}
 const A={
  async connect(){try{location.href=(await call("start")).url}catch(e){toast("Failed: "+e.message)}},
- browse(id){const d=dr(id);if(!d||d.status!=="connected")return toast(MSG.not_connected);browseDrive(d.id)},
  disc(id){const d=dr(id);actSheet("Disconnect "+(d.email||"Google Drive")+"?","Its access token is deleted from the server. Files in Drive are not deleted. Photos stored only in this Drive can't be opened or downloaded in full until you reconnect it.","Disconnect",async()=>{try{await call("disconnect",{conn_id:d.id});toast("Disconnected");D.refresh()}catch(e){toast("Failed: "+e.message)}})},
  async def(id){try{await call("set_default",{conn_id:id});toast("Default Drive changed");D.refresh()}catch(e){toast("Failed: "+e.message)}},
  async folder(id){const d=dr(id);try{const{folders}=await call("list_folders",{conn_id:d.id});sheet(`<h3 style="margin-top:0">Storage folder</h3><div class=mu style="font-size:12px;margin-bottom:6px">${esc(d.email||"")} · folders your Google account can access appear here.</div>`+folders.map(f=>`<button class=o data-x="f:${esc(f.id)}">${esc(f.name)}${f.id==d.folder_id?" ✓":""}</button>`).join("")+`<button class=o data-x=new>Create new folder…</button>`,async x=>{
@@ -147,7 +103,7 @@ const A={
  manual(){manualBackup()},
  async orph(){try{toast("Recovered: "+await LSB.retryOrphans())}catch(e){toast("Failed: "+e.message)}},
  imp(){D.imp()},
- logout(){LSB.logout()}};
+};
 document.addEventListener("click",e=>{const b=e.target.closest("[data-dr]");if(b&&A[b.dataset.dr])A[b.dataset.dr](b.dataset.id)});
 
 // ---- Menu Upload: dari perangkat ATAU impor dari Google Drive ----
@@ -386,8 +342,7 @@ window.driveCard=()=>{const s=D.st,P=S.photos,done=P.filter(p=>p.sp=="supabase"&
  else if(!L.length)h=R('<span class=dot></span>Not connected',B("connect","Connect"),' style="border:0"')+`<p class=mu style="font-size:12px;margin:4px 0 0">MIKA can browse the Google Drive files and folders you authorize. Your originals stay in Google Drive unless you explicitly upload or import them elsewhere. You can connect more than one Google account.</p>`;
  else h=L.map((d,i)=>{const on=d.status=="connected",e=esc(d.email||"Google account");
    return`<div class="dv${i?" dv2":""}">`+R(`<span class="dot ${on?"g":"r"}"></span><span style="color:var(--tx);min-width:0;overflow-wrap:anywhere">${e}</span>${d.is_default?'<span class=mu style="font-size:12px;margin-left:6px">Default</span>':""}`,"",' style="border:0;padding-bottom:2px"')
-   +(on?R("Browse Google Drive",B("browse","Open gallery",d.id))
-    +R("Folder",`<span style="display:flex;gap:6px;align-items:center"><span class="mu v">${esc(d.folder_name||"—")}</span>${B("folder","Change",d.id)}</span>`)
+   +(on?R("Folder",`<span style="display:flex;gap:6px;align-items:center"><span class="mu v">${esc(d.folder_name||"—")}</span>${B("folder","Change",d.id)}</span>`)
    +R("Open / share folder",`<span style="display:flex;gap:6px">${B("open","Open",d.id)}${B("share","Share",d.id)}</span>`)
    +(d.is_default?R("Auto backup to Drive",B("auto",d.auto_backup?"On":"Off",d.id)):""):"")
    +R("Account",`<span style="display:flex;gap:6px;flex-wrap:wrap">${on?B("connect","Update permissions",d.id):B("connect","Reconnect",d.id)}${on&&L.length>1&&!d.is_default?B("def","Make default",d.id):""}${B("disc","Disconnect",d.id)}</span>`,' style="border:0"')+`</div>`}).join("")
@@ -396,6 +351,6 @@ window.driveCard=()=>{const s=D.st,P=S.photos,done=P.filter(p=>p.sp=="supabase"&
   +abRows()+R("Backup status",`<span class=mu>${done} backed up${only?` · ${only} Drive only`:""}${fail?` · <b style="color:var(--ac2)">${fail} failed</b>`:""}</span>`)
   +(fail||todo?R(todo?`${todo} not backed up yet`:"",`<span style="display:flex;gap:6px">${fail?B("retry","Retry"):""}${todo?B("all","Back up all"):""}</span>`):"")
   +(L.some(d=>d.status=="connected")?R("Manual backup",B("manual","Choose files")):"")
-  +(LSB.orphans()?R("Pending details",B("orph","Recover")):"")+R("Sign out of MIKA",B("logout","Sign out"),' style="border:0"');
+  +(LSB.orphans()?R("Pending details",B("orph","Recover")):"");
  return`<div class=gp><div class=tt>Google Drive</div>${h}</div>`};
 })();
