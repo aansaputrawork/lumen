@@ -144,8 +144,8 @@
 
 
 /* Google Drive folders and media inside the Albums screen */
-.dalb{margin:10px 0 24px;padding:0}
-.dalb .sh{margin:0 0 12px;padding:0}
+.dalb{margin:15px 0 24px;padding:0}
+.dalb .sh{margin:0 0 10px;padding:0}
 .dalb-empty{padding:28px 14px;text-align:center;color:var(--mu);font-size:13px;border:1px solid var(--sh);border-radius:18px}
 .dalb-account{display:flex;align-items:center;gap:12px;width:100%;padding:14px 12px;margin:8px 0;border:1px solid var(--sh);border-radius:16px;background:var(--sf);color:var(--tx);text-align:left}
 .dalb-account>span:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
