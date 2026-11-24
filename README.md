@@ -95,3 +95,10 @@ Satu font (`--font`) dan satu skala ukuran: **12** keterangan/badge, **13** labe
 - **Banyak akun Google Drive**: tiap akun punya koneksi sendiri (`drive_connections.id`), folder, dan penanda *Default*. Foto menyimpan akun asalnya (`photos.drive_conn_id`). UI di Profile > Google Drive; pilihan akun tujuan muncul di sheet Upload. Perlu migrasi `004_multi_drive.sql` dan deploy ulang fungsi `drive` (lihat `docs/SETUP.md` bagian 7).
 - **Menu Upload**: bila ada Drive terhubung, ikon upload menampilkan *From this device* dan *From Google Drive*. Impor memakai pemilih file bawaan MIKA dan Drive API melalui Edge Function (lihat `docs/SETUP.md` bagian 8). Fungsi: `uploadMenu`, `D.imp`, `D.doImport` di `drive.js`; aksi server `list_media`, `import_info`, `import_download`, `import_thumb`.
 - **Streaming video Drive**: URL stream kini terikat ke akun Drive dan membawa tipe MIME agar Safari/Chrome memutar dengan benar.
+
+## Galeri Google Drive langsung
+`drive.js` + `supabase/functions/drive/index.ts`:
+- Profile → Google Drive → **Open gallery** membuka tampilan baca-saja dari folder Google Drive.
+- Struktur folder/subfolder, nama, dan breadcrumb mengikuti Google Drive; masuk ke subfolder untuk melihat isinya.
+- Foto diambil langsung dari Drive untuk thumbnail dan pratinjau; tidak disalin ke Supabase.
+- Fitur Import Google Drive tetap terpisah. Panduan penerapan: `docs/UPDATE-08.md`.

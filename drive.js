@@ -82,8 +82,34 @@ function manualBackup(){
  s.addEventListener("click",e=>{if(e.target.closest("[data-mb-close]")||e.target===s){closeS(s);return}if(e.target.closest("[data-mb-all]")){if(chosen.size===items.length)chosen.clear();else items.forEach(p=>chosen.add(p.id));all.textContent=chosen.size===items.length?"Clear selection":"Select all";paint();return}const el=e.target.closest("[data-mb-id]");if(el){const id=el.dataset.mbId;chosen.has(id)?chosen.delete(id):chosen.add(id);all.textContent=chosen.size===items.length?"Clear selection":"Select all";paint()}});
  go.onclick=()=>{const picked=items.filter(p=>chosen.has(p.id));closeS(s);backup(picked)};
 }
+async function browseDrive(connId){
+ const host=document.createElement("div");host.className="view";host.style.cssText="z-index:80;background:var(--bg);color:var(--tx);overflow:auto";
+ host.innerHTML=`<div style="position:sticky;top:0;z-index:3;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;background:var(--bg);border-bottom:1px solid var(--sh)"><div style="display:flex;align-items:center;gap:10px"><button class=ic data-gclose aria-label=Back>‹</button><div style="flex:1;min-width:0"><b>Google Drive</b><div class=mu style="font-size:12px" data-gpath>My Drive</div></div><button class=ic data-grefresh title=Refresh>↻</button></div></div><div style="padding:14px 16px 100px"><div data-gcrumb style="display:flex;gap:7px;overflow:auto;white-space:nowrap;padding-bottom:12px;font-size:13px"></div><div data-gstatus class=mu style="padding:22px 0;text-align:center">Loading Google Drive…</div><div data-ggrid style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px"></div><button data-gmore class=chip style="display:none;width:100%;margin-top:16px">Load more</button></div>`;
+ document.body.append(host);
+ const grid=host.querySelector("[data-ggrid]"),status=host.querySelector("[data-gstatus]"),crumb=host.querySelector("[data-gcrumb]"),path=host.querySelector("[data-gpath]"),more=host.querySelector("[data-gmore]");
+ const stack=[{id:"root",name:"My Drive"}];let token="",busy=false,closed=false;
+ const current=()=>stack[stack.length-1];
+ const drawCrumb=()=>{crumb.innerHTML=stack.map((f,i)=>`<button data-gcrumb="${i}" style="border:0;background:none;color:${i==stack.length-1?"var(--tx)":"var(--mu)"};padding:5px 0">${esc(f.name)}</button>${i<stack.length-1?'<span class=mu>›</span>':""}`).join("");path.textContent=stack.map(x=>x.name).join(" / ")};
+ const thumb=async(el,f)=>{try{const r=await raw("import_thumb",{conn_id:connId,file_id:f.id});if(!r.ok)return;const u=URL.createObjectURL(await r.blob());if(closed){URL.revokeObjectURL(u);return}el.src=u;el.dataset.objectUrl=u}catch(_){}};
+ const load=async(reset=false)=>{
+  if(busy||closed)return;busy=true;if(reset){token="";grid.innerHTML="";more.style.display="none";status.textContent="Loading…";status.style.display="block"}
+  try{const j=await call("list_gallery",{conn_id:connId,parent_id:current().id,page_token:token});const files=j.files||[],folders=files.filter(f=>f.mimeType=="application/vnd.google-apps.folder"),images=files.filter(f=>/^image\//.test(f.mimeType||""));
+   if(reset)status.style.display="none";
+   if(!files.length&&!grid.children.length){status.textContent="This folder is empty.";status.style.display="block"}
+   for(const f of folders){const el=document.createElement("button");el.type="button";el.style.cssText="display:flex;align-items:center;gap:10px;text-align:left;padding:14px 12px;border:1px solid var(--sh);border-radius:16px;background:var(--sf);color:var(--tx);min-width:0";el.innerHTML=`<span style="font-size:27px">📁</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${esc(f.name)}</span>`;el.onclick=()=>{stack.push({id:f.id,name:f.name});drawCrumb();load(true)};grid.append(el)}
+   for(const f of images){const card=document.createElement("button");card.type="button";card.style.cssText="padding:0;border:0;background:var(--sf);border-radius:15px;overflow:hidden;text-align:left;color:var(--tx);min-width:0";card.innerHTML=`<img alt="" style="display:block;width:100%;aspect-ratio:1;object-fit:cover;background:var(--sf)"><span style="display:block;padding:8px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.name)}</span>`;const im=card.querySelector("img");thumb(im,f);card.onclick=async()=>{try{const r=await raw("import_download",{conn_id:connId,file_id:f.id});if(!r.ok)throw E("error");const u=URL.createObjectURL(await r.blob());const v=document.createElement("div");v.className="view";v.style.cssText="z-index:90;background:#000";v.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top,0px)) 14px;color:#fff"><button class=ic data-vclose style="color:#fff;background:#333">×</button><span style="font-size:13px;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.name)}</span><span style="width:38px"></span></div><div style="flex:1;display:grid;place-items:center;min-height:0;padding:8px"><img src="${u}" style="max-width:100%;max-height:100%;object-fit:contain"></div>`;document.body.append(v);v.querySelector("[data-vclose]").onclick=()=>{URL.revokeObjectURL(u);v.remove()}}catch(e){toast("Couldn't open photo: "+e.message)}};grid.append(card)}
+   token=j.next_page_token||"";more.style.display=token?"block":"none";
+  }catch(e){status.textContent="Couldn't load this folder: "+e.message;status.style.display="block"}
+  finally{busy=false}
+ };
+ const close=()=>{closed=true;host.querySelectorAll("[data-object-url]").forEach(x=>URL.revokeObjectURL(x.dataset.objectUrl));host.remove()};
+ host.querySelector("[data-gclose]").onclick=close;host.querySelector("[data-grefresh]").onclick=()=>load(true);more.onclick=()=>load(false);
+ crumb.addEventListener("click",e=>{const b=e.target.closest("[data-gcrumb]");if(!b)return;stack.splice(+b.dataset.gcrumb+1);drawCrumb();load(true)});
+ drawCrumb();load(true);
+}
 const A={
  async connect(){try{location.href=(await call("start")).url}catch(e){toast("Failed: "+e.message)}},
+ browse(id){const d=dr(id);if(!d||d.status!=="connected")return toast(MSG.not_connected);browseDrive(d.id)},
  disc(id){const d=dr(id);actSheet("Disconnect "+(d.email||"Google Drive")+"?","Its access token is deleted from the server. Files in Drive are not deleted. Photos stored only in this Drive can't be opened or downloaded in full until you reconnect it.","Disconnect",async()=>{try{await call("disconnect",{conn_id:d.id});toast("Disconnected");D.refresh()}catch(e){toast("Failed: "+e.message)}})},
  async def(id){try{await call("set_default",{conn_id:id});toast("Default Drive changed");D.refresh()}catch(e){toast("Failed: "+e.message)}},
  async folder(id){const d=dr(id);try{const{folders}=await call("list_folders",{conn_id:d.id});sheet(`<h3 style="margin-top:0">Storage folder</h3><div class=mu style="font-size:12px;margin-bottom:6px">${esc(d.email||"")} · folders your Google account can access appear here.</div>`+folders.map(f=>`<button class=o data-x="f:${esc(f.id)}">${esc(f.name)}${f.id==d.folder_id?" ✓":""}</button>`).join("")+`<button class=o data-x=new>Create new folder…</button>`,async x=>{
@@ -335,7 +361,8 @@ window.driveCard=()=>{const s=D.st,P=S.photos,done=P.filter(p=>p.sp=="supabase"&
  else if(!L.length)h=R('<span class=dot></span>Not connected',B("connect","Connect"),' style="border:0"')+`<p class=mu style="font-size:12px;margin:4px 0 0">Access is limited to files created or picked in MIKA. Nothing is ever made public. You can connect more than one Google account.</p>`;
  else h=L.map((d,i)=>{const on=d.status=="connected",e=esc(d.email||"Google account");
    return`<div class="dv${i?" dv2":""}">`+R(`<span class="dot ${on?"g":"r"}"></span><span style="color:var(--tx);min-width:0;overflow-wrap:anywhere">${e}</span>${d.is_default?'<span class=mu style="font-size:12px;margin-left:6px">Default</span>':""}`,"",' style="border:0;padding-bottom:2px"')
-   +(on?R("Folder",`<span style="display:flex;gap:6px;align-items:center"><span class="mu v">${esc(d.folder_name||"—")}</span>${B("folder","Change",d.id)}</span>`)
+   +(on?R("Browse Google Drive",B("browse","Open gallery",d.id))
+    +R("Folder",`<span style="display:flex;gap:6px;align-items:center"><span class="mu v">${esc(d.folder_name||"—")}</span>${B("folder","Change",d.id)}</span>`)
    +R("Open / share folder",`<span style="display:flex;gap:6px">${B("open","Open",d.id)}${B("share","Share",d.id)}</span>`)
    +(d.is_default?R("Auto backup to Drive",B("auto",d.auto_backup?"On":"Off",d.id)):""):"")
    +R("Account",`<span style="display:flex;gap:6px">${!on?B("connect","Reconnect"):""}${on&&L.length>1&&!d.is_default?B("def","Make default",d.id):""}${B("disc","Disconnect",d.id)}</span>`,' style="border:0"')+`</div>`}).join("")

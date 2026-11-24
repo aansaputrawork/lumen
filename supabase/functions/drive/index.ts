@@ -202,6 +202,22 @@ Deno.serve(async (req) => {
         const r = await G(`${FILES}?${params}`, t), j = await r.json();
         return json({ files: j.files || [], next_page_token: j.nextPageToken || "", incomplete_search: !!j.incompleteSearch });
       }
+      // ---- Galeri Google Drive langsung: isi folder, tanpa mengimpor atau mengubah file ----
+      case "list_gallery": {
+        const { t } = await tok(uid, b.conn_id);
+        const parent = String(b.parent_id || "root");
+        if (parent !== "root" && !FID.test(parent)) throw new Err("bad_request");
+        const safe = parent.replace(/\\\\/g, "\\\\\\\\").replace(/'/g, "\\\\'");
+        const q = "'" + safe + "' in parents and trashed=false and (mimeType='application/vnd.google-apps.folder' or mimeType contains 'image/')";
+        const params = new URLSearchParams({
+          q, pageSize: "100", orderBy: "folder,name",
+          supportsAllDrives: "true", includeItemsFromAllDrives: "true", corpora: "allDrives",
+          fields: "nextPageToken,files(id,name,mimeType,thumbnailLink,webViewLink,createdTime,imageMediaMetadata(width,height),size,parents)"
+        });
+        if (b.page_token) params.set("pageToken", String(b.page_token));
+        const r = await G(`${FILES}?${params}`, t), j = await r.json();
+        return json({ files: j.files || [], next_page_token: j.nextPageToken || "" });
+      }
       case "import_info": {
         const { t, c } = await tok(uid, b.conn_id), ids = (Array.isArray(b.ids) ? b.ids : []).map(String).filter((x: string) => FID.test(x)).slice(0, 50), out: unknown[] = [], skipped: unknown[] = [];
         for (const id of ids) {
