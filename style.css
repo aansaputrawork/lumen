@@ -146,7 +146,8 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 
 
 /* Google Drive album folders and detail: align with native MIKA album UI */
-.dalb-folder-list{display:grid;gap:0;margin:0 0 12px}
+.dalb-folder-list{display:grid;gap:0;margin:12px 0 12px}
+.dalb-root-actions{display:flex;justify-content:flex-end;margin:12px 0 0}
 .dalb-folder-row{display:flex;align-items:center;gap:12px;min-height:64px;cursor:pointer}
 .dalb-folder-row>img,.dalb-folder-ph{width:48px;height:48px;flex:none;object-fit:cover;border-radius:12px}
 .dalb-folder-ph{display:grid;place-items:center;font-size:22px;background:var(--sf);color:var(--mu)}
