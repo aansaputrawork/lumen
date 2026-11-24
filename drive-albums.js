@@ -8,7 +8,7 @@
  const current=()=>state.stack[state.stack.length-1];
  const drives=()=>D.albumDrives?D.albumDrives():[];
  const esc=s=>String(s||"").replace(/[<>&"]/g,c=>"&#"+c.charCodeAt(0)+";");
- const isVideo=f=>(f.mimeType||"").startsWith("video/");
+ const isVideo=f=>(f.mimeType||f.type||"").startsWith("video/");
  const makeMedia=f=>({id:"gd_"+f.id,aid:f.id,gconn:state.conn,_gdrive:true,sp:"drive",name:f.name||"Untitled",type:f.mimeType||"image/jpeg",date:Date.parse(f.createdTime||"")||Date.now(),size:+f.size||0,w:+((f.imageMediaMetadata||f.videoMediaMetadata||{}).width)||0,h:+((f.imageMediaMetadata||f.videoMediaMetadata||{}).height)||0,dur:+(f.videoMediaMetadata||{}).durationMillis||0,url:"",th:""});
  const html=()=>{
   const ds=drives();
