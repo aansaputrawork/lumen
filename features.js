@@ -25,9 +25,7 @@ window.netOK=()=>{const c=navigator.connection;return!(S.prefs&&S.prefs.wifi&&c&
 LF.init=async()=>{
  try{const{data}=await sb.from("user_accounts").select("plan_id,quota_override,plans(name,storage_bytes,max_file_bytes)").maybeSingle();
   if(data&&data.plans){LQ.cap=data.quota_override||data.plans.storage_bytes;LQ.max=data.plans.max_file_bytes;LQ.plan=data.plans.name;render()}}catch(e){}
- try{let id=localStorage.getItem("lumen_dev");if(!id){id=crypto.randomUUID?crypto.randomUUID():String(Date.now());localStorage.setItem("lumen_dev",id)}
-  const ua=navigator.userAgent,pl=/iPhone|iPad/.test(ua)?"iOS":/Android/.test(ua)?"Android":/Mac/.test(ua)?"macOS":/Windows/.test(ua)?"Windows":"Web";
-  await sb.from("devices").upsert({id,name:pl+" · "+(/Edg|Firefox|Chrome|Safari/.exec(ua)||["Browser"])[0],platform:pl,last_seen:new Date().toISOString()},{onConflict:"user_id,id"})}catch(e){}};
+};
 LF.regroupRun=async x=>{
  const l=S.photos.filter(p=>!isVid(p)&&(x=="all"||!p.cat||p.cat=="Other"));if(!l.length)return toast("No photos to categorize");
  LF.aiFail=0;let n=0;for(const p of l){try{toast(`Categorizing ${++n}/${l.length}…`);const b=await(await fetch(p.th||p.url)).blob(),c=await autoCat(new File([b],p.name,{type:"image/jpeg"}));
@@ -38,8 +36,6 @@ LF.dup=()=>{const g=new Map();S.photos.forEach(p=>{const k=p.hash||p.name+"|"+p.
  const d=[...g.values()].filter(a=>a.length>1);if(!d.length)return toast("No duplicate photos");
  const extra=d.flatMap(a=>[...a].sort((x,y)=>(x.up||x.date)-(y.up||y.date)).slice(1));
  sheet(`<h3 style="margin-top:0">${d.length} duplicate group${d.length>1?"s":""}</h3><div class=mas style="columns:3">${d.map(a=>isVid(a[0])?"":`<img src="${T(a[0])}" style="opacity:1">`).join("")}</div><button class=o data-x=go>Move ${extra.length} cop${extra.length>1?"ies":"y"} to Recently Deleted</button>`,x=>{if(x=="go")delPhotos(extra)})};
-LF.dev=async()=>{try{const{data,error}=await sb.from("devices").select("*").order("last_seen",{ascending:false});if(error)throw error;const me=localStorage.getItem("lumen_dev");
- sheet(`<h3 style="margin-top:0">Devices</h3><div class=mu style="font-size:12px;margin-bottom:6px">Tap another device to remove it from the list. This does not sign it out.</div>`+(data||[]).map(d=>`<button class=o data-x="${esc(d.id)}">${esc(d.name||d.platform)}${d.id==me?" (this device)":""} · ${new Date(d.last_seen).toLocaleDateString()}</button>`).join(""),async id=>{if(id==me)return;await sb.from("devices").delete().eq("id",id);toast("Device removed from the list")})}catch(e){toast("Couldn't load devices")}};
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lf]");if(b&&LF[b.dataset.lf])LF[b.dataset.lf]()});
 // Aplikasi native (Capacitor): login Google kembali lewat deep link com.lumen.photos://login-callback?code=...
 const cap=window.Capacitor;if(cap&&cap.isNativePlatform&&cap.isNativePlatform()){window.LOGIN_REDIRECT="com.lumen.photos://login-callback";
