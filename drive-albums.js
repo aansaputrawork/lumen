@@ -41,7 +41,7 @@
  async function thumb(p){
   const marker=++state.loading;
   try{const b=await D.albumThumb(state.conn,p.aid),u=URL.createObjectURL(b);if(!document.body.contains(document.querySelector(".dalb"))){URL.revokeObjectURL(u);return}state.urls.add(u);p.th=u;
-   const q=[...document.querySelectorAll(".dalb-media")].find(x=>x.dataset.id===p.id);if(q){const im=q.querySelector("img");im.src=u;im.classList.add("l")}
+   const q=[...document.querySelectorAll(".dalb-media")].find(x=>x.dataset.gid===p.id);if(q){const im=q.querySelector("img");im.src=u;im.classList.add("l")}
   }catch(_){}
  }
  function openAccount(id){state.conn=id;state.stack=[{id:"root",name:"My Drive"}];load(true)}
@@ -58,7 +58,7 @@
  }
  document.addEventListener("click",async e=>{
   const b=e.target.closest("[data-dalb]");if(!b||!document.querySelector(".dalb"))return;
-  const action=b.dataset.dalb,id=b.dataset.id;
+  const action=b.dataset.dalb,id=b.dataset.gid;
   if(action==="account"){e.preventDefault();openAccount(id);return}
   if(action==="back"){e.preventDefault();if(state.stack.length){state.stack.pop();if(!state.stack.length){state.conn="";state.files=[];state.media=[];clean();refresh()}else load(true)}return}
   if(action==="crumb"){e.preventDefault();state.stack=state.stack.slice(0,+b.dataset.index+1);load(true);return}
