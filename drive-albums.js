@@ -19,7 +19,7 @@
   const media=state.media.map(p=>`<div class="mi dalb-media" data-dalb="photo" data-gid="${esc(p.id)}"><img loading="lazy" alt="${esc(p.name)}" data-thumb="${esc(p.aid)}">${isVideo(p)?'<i class="pb">▶</i>':""}</div>`).join("");
   const body=state.busy&&!state.files.length?'<div class="dalb-empty">Loading Google Drive…</div>':state.error?'<div class="dalb-empty">'+esc(state.error)+'</div>':(!folders&&!media?'<div class="dalb-empty">This folder is empty.</div>':"");
   return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3><span class="mu">${state.stack.length?esc(title):ds.length+" connected account"+(ds.length===1?"":"s")}</span></div>
-  ${!state.stack.length?ds.map(d=>`<button class="dalb-account" data-dalb="account" data-id="${esc(d.id)}"><span class="dalb-drive-icon">◉</span><span><b>${esc(d.email||"Google Drive")}</b><small>Browse My Drive folders and media</small></span><span class="mu">›</span></button>`).join(""):
+  ${!state.stack.length?ds.map(d=>`<button class="dalb-account" data-dalb="account" data-gid="${esc(d.id)}"><span class="dalb-drive-icon">◉</span><span><b>${esc(d.email||"Google Drive")}</b><small>Browse My Drive folders and media</small></span><span class="mu">›</span></button>`).join(""):
   `<div class="dalb-toolbar"><button class="chip" data-dalb="back">‹ Back</button><div class="dalb-crumbs">${crumbs}</div><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-path">${esc(title)}</div><div class="dalb-grid">${folders}${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="more">Load more</button>':""}`}
   </section>`;
  };
@@ -33,7 +33,7 @@
    const j=await D.listAlbum(state.conn,current().id,state.token),files=j.files||[];
    state.files=reset?files:[...state.files,...files];
    const media=files.filter(f=>/^(image|video)\//.test(f.mimeType||""));
-   for(const f of media){const p=makeMedia(f);state.media.push(p);thumb(p)}
+   for(const f of media)state.media.push(makeMedia(f))
    state.token=j.next_page_token||"";
   }catch(e){state.error="Couldn't load this folder: "+(e.message||"Unknown error")}
   finally{state.busy=false;refresh()}
