@@ -169,3 +169,10 @@
 .dalb-media .pb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:rgba(0,0,0,.45);color:#fff}
 .dalb-moreload{display:block;width:100%;margin:14px 0}
 @media(min-width:700px){.dalb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.dalb-folder{grid-column:span 1}}
+
+/* Google Drive folders use the same cover-card treatment as MIKA albums. */
+.dalb-folders{margin:0 -16px 14px;padding:0 16px;scroll-padding:0 16px}
+.dalb-folder-card{border:0;text-align:center}
+.dalb-folder-card .dalb-folder-fallback{position:absolute;inset:0;z-index:1;display:grid;place-items:center;font-size:58px;opacity:.65;pointer-events:none}
+.dalb-folder-card>b{font-size:clamp(18px,5cqw,30px)}
+.dalb-folder-card .glass{z-index:2}
