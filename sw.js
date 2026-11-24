@@ -1,6 +1,6 @@
 // Cache hanya file statis aplikasi (app shell). Supabase, Google, signed URL foto & Edge Function TIDAK di-cache.
 // Share target: foto/video yang dibagikan dari galeri HP ke MIKA disimpan sementara di cache "mika-share", lalu diunggah oleh drive.js.
-const V="mika-v25",SHARE="mika-share",SHELL=["./","index.html","style.css","login.css","popup.css","gallery.css","login.js","login-config.js","cover.js","profile.js","gallery.js","app.js","motion.js","config.js","supabase-adapter.js","drive.js","drive-albums.js","features.js","manifest.webmanifest","icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","assets/login-hero.png","assets/logo.png"];
+const V="mika-v26",SHARE="mika-share",SHELL=["./","index.html","style.css","login.css","popup.css","gallery.css","login.js","login-config.js","cover.js","profile.js","gallery.js","app.js","motion.js","config.js","supabase-adapter.js","drive.js","drive-albums.js","features.js","manifest.webmanifest","icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","assets/login-hero.png","assets/logo.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V&&x!==SHARE).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
 async function shareIn(req){
