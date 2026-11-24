@@ -43,7 +43,7 @@
   state.folderLoading.add(folder.id);
   const conn=state.conn,parent=current()&&current().id;
   try{
-   const j=await D.listAlbum(conn,folder.id,""),files=j.files||[],items=files.filter(f=>/^(image|video)\\//.test(f.mimeType||""));
+   const j=await D.listAlbum(conn,folder.id,""),files=j.files||[],items=files.filter(f=>/^(image|video)\//.test(f.mimeType||""));
    let url="";
    if(items.length){
     const b=await D.albumThumb(conn,items[0].id),u=URL.createObjectURL(b);
