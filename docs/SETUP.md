@@ -45,7 +45,7 @@ Produksi: host di Netlify/Vercel/Cloudflare Pages/GitHub Pages.
 - Token: refresh token Google dienkripsi AES-GCM di tabel `drive_connections` (tidak bisa dibaca klien). Browser hanya menyimpan sesi Supabase standar.
 
 ## Batasan yang perlu Anda ketahui
-- MIKA memakai scope **drive** untuk membaca foto/folder serta membuat dan mengganti nama folder yang Anda pilih di Google Drive. Token Google tetap berada di Edge Function dan tidak dikirim ke antarmuka browser. Scope ini termasuk restricted scope; aplikasi yang dipublikasikan untuk pengguna umum dapat memerlukan verifikasi Google. MIKA tidak menyediakan aksi menghapus file/folder Drive.
+- MIKA memakai scope **drive** untuk membaca foto/folder serta membuat, mengganti nama, dan memindahkan folder ke Google Drive Trash sesuai tindakan pengguna. Token Google tetap berada di Edge Function dan tidak dikirim ke antarmuka browser. Scope ini termasuk restricted scope; aplikasi yang dipublikasikan untuk pengguna umum dapat memerlukan verifikasi Google. MIKA tidak menghapus file secara permanen.
 - **Berbagi folder**: tombol *Bagikan* membuka folder di Google Drive, lalu Anda memakai tombol Bagikan resmi Drive. Aplikasi tidak mengubah izin dan tidak pernah membuat apa pun publik.
 - Video belum didukung untuk mode *Drive saja* (hanya gambar).
 - Menghapus permanen foto tidak menghapus salinan di Google Drive (disengaja, agar aman).
@@ -127,8 +127,10 @@ Profile > Google Drive > **Automatic backup**. Semua berjalan **selama MIKA terb
 File yang berubah: `drive.js`, `supabase-adapter.js` (opsi `f._mode`, `LSB.docs/loaded`), `sw.js` (v11, share target). Tidak ada migrasi SQL baru.
 
 
-## 10. Google Drive Gallery langsung (Update 09)
-- Profile → Google Drive → Open gallery menampilkan folder dan foto langsung dari Drive dengan hierarki folder asli. Foto tidak disalin ke Supabase hanya karena dilihat.
-- Preview memakai komponen preview foto utama MIKA (swipe, zoom, dan thumbnail filmstrip); unduhan tetap mengambil file asli dari Google Drive.
-- Tombol **+ Folder** membuat subfolder di folder yang sedang dibuka. Tombol `···` pada folder mengganti nama folder di Google Drive. Tidak ada aksi hapus folder/file di galeri ini.
-- Update 09 meminta scope OAuth `https://www.googleapis.com/auth/drive`. Setelah deploy, pengguna lama perlu memilih **Update permissions** di Profile → Google Drive dan menyetujui akses baru.
+## 11. Google Drive Albums (Update 10)
+- Buka tab **Albums** → bagian **Google Drive Albums** → pilih akun Drive untuk menelusuri My Drive dan seluruh folder/subfolder.
+- Foto dan video dibaca langsung dari Drive; preview memakai komponen viewer MIKA. File sumber tidak disalin ke Supabase.
+- Di dalam folder: **+ Folder** membuat subfolder, menu **···** dapat mengganti nama atau memindahkan folder beserta isinya ke Google Drive Trash. Folder di Trash dapat dipulihkan dari Google Drive.
+- Profile → Google Drive tetap untuk koneksi akun, Update permissions, Make default, Disconnect, dan backup.
+- Tidak ada lagi halaman terpisah Google Drive Gallery / tombol Open gallery.
+- Deploy ulang Edge Function: `supabase functions deploy drive --project-ref <PROJECT_REF>`.
