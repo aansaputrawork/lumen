@@ -77,7 +77,7 @@
   },onClose:()=>{list.forEach(x=>{if(x.url&&x.url.startsWith("blob:")){URL.revokeObjectURL(x.url);state.urls.delete(x.url)}x.url="";x._blob=null})}});
  }
  document.addEventListener("click",async e=>{
-  const b=e.target.closest("[data-dalb]");if(!b||!document.querySelector(".dalb"))return;
+  const b=e.target.closest("[data-dalb]");if(!b||!document.querySelector(".dalb,.dalb-page"))return;
   const action=b.dataset.dalb,id=b.dataset.gid;
   if(action==="account"){e.preventDefault();openAccount(id);return}
   if(action==="back"){e.preventDefault();if(state.stack.length>1){state.stack.pop();load(true)}return}
