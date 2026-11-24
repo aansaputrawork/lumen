@@ -14,17 +14,15 @@
   const ds=drives();
   if(!ds.length)return '<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div><div class="dalb-empty">Connect Google Drive in Profile to see its folders and media here.</div></section>';
   if(!state.conn){state.conn=ds[0].id;state.stack=[{id:"root",name:""}];queueMicrotask(()=>load(true));}
-  const title=state.stack.length>1?current().name:"";
-  const crumbs=state.stack.map((x,i)=>`${i?'<span class="mu">›</span>':""}<button class="dalb-crumb" data-dalb="crumb" data-index="${i}">${esc(x.name)}</button>`).join("");
+  const detail=state.stack.length>1,title=detail?current().name:"";
+  const crumbs=state.stack.slice(1).map((x,i)=>`<span class="mu">›</span><button class="dalb-crumb" data-dalb="crumb" data-index="${i+1}">${esc(x.name)}</button>`).join("");
   const folders=state.files.filter(f=>f.mimeType===folderMime).map(f=>{const c=state.folderCovers.get(f.id);return `<div class="ar dalb-folder-row" data-dalb="open" data-gid="${esc(f.id)}">${c&&c.url?`<img src="${c.url}" alt="">`:'<span class="ph dalb-folder-ph">📁</span>'}<span class="dalb-folder-label">${esc(f.name)}</span><span class="mu">${c?c.count+" items":"Folder"} ›</span><button class="dalb-folder-more" data-dalb="more" data-gid="${esc(f.id)}" data-name="${esc(f.name)}" aria-label="Folder options">···</button></div>`}).join("");
   const media=state.media.map(p=>`<div class="mi dalb-media" data-dalb="photo" data-gid="${esc(p.id)}"><img loading="lazy" alt="${esc(p.name)}" data-thumb="${esc(p.aid)}">${isVideo(p)?'<i class="pb">▶</i>':""}</div>`).join("");
   const body=state.busy&&!state.files.length?'<div class="dalb-empty">Loading Google Drive…</div>':state.error?'<div class="dalb-empty">'+esc(state.error)+'</div>':(!state.files.length?'<div class="dalb-empty">This folder is empty.</div>':"");
-  const cover=state.stack.length>1?state.folderCovers.get(current().id):null;
-  const heroMedia=state.media.find(p=>p.th);
-  return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div>
-  ${state.stack.length>1?`<div class="top dalb-detail-top"><button class="ic" data-dalb="back" aria-label="Back">‹</button><h1>${esc(title)}</h1><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-crumbs">${crumbs}</div><div class="hero dalb-hero">${cover&&cover.url?`<img src="${cover.url}" alt="">`:heroMedia?`<img src="${heroMedia.th}" alt="">`:'<div class="dalb-hero-empty">📁</div>'}<div><h3>${esc(title)}</h3><div class="mu">${state.media.length} media · ${state.files.filter(f=>f.mimeType===folderMime).length} folders</div><div class="mu">Google Drive</div></div></div>`:""}
-  <div class="dalb-folder-list">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}
-  </section>`;
+  const cover=detail?state.folderCovers.get(current().id):null,heroMedia=state.media.find(p=>p.th);
+  if(detail)return `<section class="dalb-page"><div class="top dalb-detail-top"><button class="ic" data-dalb="back" aria-label="Back">‹</button><h1>${esc(title)}</h1><button class="ic" data-dalb="new" aria-label="New folder">＋</button></div><div class="dalb-crumbs"><button class="dalb-crumb" data-dalb="crumb" data-index="0">Google Drive</button>${crumbs}</div><div class="hero dalb-hero">${cover&&cover.url?`<img src="${cover.url}" alt="">`:heroMedia?`<img src="${heroMedia.th}" alt="">`:'<div class="dalb-hero-empty">📁</div>'}<div><h3>${esc(title)}</h3><div class="mu">${state.media.length} media · ${state.files.filter(f=>f.mimeType===folderMime).length} folders</div><div class="mu">Google Drive</div></div></div><div class="dalb-folder-list">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}</section>`;
+  return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div><div class="dalb-folder-list">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}</section>`;
+
  };
  window.driveAlbumsSection=html;
  const refresh=()=>{if(typeof S!=="undefined"&&S.view==="alb")render()};
