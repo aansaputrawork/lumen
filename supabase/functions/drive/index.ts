@@ -5,7 +5,7 @@ const E = (k: string) => Deno.env.get(k)!;
 const admin = createClient(E("SUPABASE_URL"), E("SUPABASE_SERVICE_ROLE_KEY"));
 const APP = E("APP_URL"), CID = E("GOOGLE_CLIENT_ID"), CSEC = E("GOOGLE_CLIENT_SECRET");
 const REDIRECT = `${E("SUPABASE_URL")}/functions/v1/drive/callback`;
-const SCOPE = "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
+const SCOPE = "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email";
 const H = { "Access-Control-Allow-Origin": new URL(APP).origin, "Access-Control-Allow-Headers": "authorization, apikey, content-type, range", "Access-Control-Allow-Methods": "POST, GET, HEAD, OPTIONS", "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges", Vary: "Origin" };
 class Err extends Error { constructor(public code: string, public status = 400, msg?: string) { super(msg || code); } }
 const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...H, "Content-Type": "application/json" } });
@@ -66,7 +66,7 @@ async function callback(u: URL) {
   const r = await fetch("https://oauth2.googleapis.com/token", { method: "POST", body: new URLSearchParams({ code: u.searchParams.get("code") || "", client_id: CID, client_secret: CSEC, redirect_uri: REDIRECT, grant_type: "authorization_code" }) });
   const j = await r.json();
   if (!r.ok || !j.refresh_token) return back("drive=error&reason=no_refresh_token");
-  if (!String(j.scope).includes("drive.readonly")) return back("drive=error&reason=scope_denied");
+  if (!String(j.scope || "").split(" ").includes("https://www.googleapis.com/auth/drive")) return back("drive=error&reason=scope_denied");
   const me = await (await fetch("https://www.googleapis.com/oauth2/v2/userinfo", { headers: { Authorization: "Bearer " + j.access_token } })).json();
   const list = await conns(uid), old = list.find((c) => c.google_email === me.email);
   const row: Record<string, unknown> = { user_id: uid, google_email: me.email, refresh_token_enc: await enc(j.refresh_token), status: "connected", updated_at: new Date().toISOString() };
@@ -217,6 +217,28 @@ Deno.serve(async (req) => {
         if (b.page_token) params.set("pageToken", String(b.page_token));
         const r = await G(`${FILES}?${params}`, t), j = await r.json();
         return json({ files: j.files || [], next_page_token: j.nextPageToken || "" });
+      }
+      case "create_gallery_folder": {
+        const parent = String(b.parent_id || "root"), name = String(b.name || "").trim().slice(0, 100);
+        if (!name || (parent !== "root" && !FID.test(parent))) throw new Err("bad_request");
+        const { t } = await tok(uid, b.conn_id);
+        const body: Record<string, unknown> = { name, mimeType: "application/vnd.google-apps.folder" };
+        if (parent !== "root") {
+          const p = await (await G(`${FILES}/${encodeURIComponent(parent)}?supportsAllDrives=true&fields=id,name,mimeType,trashed`, t)).json();
+          if (p.trashed || p.mimeType !== "application/vnd.google-apps.folder") throw new Err("folder_missing", 404);
+          body.parents = [parent];
+        }
+        const r = await G(`${FILES}?supportsAllDrives=true&fields=id,name,mimeType,parents`, t, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        return json(await r.json());
+      }
+      case "rename_gallery_folder": {
+        const id = String(b.file_id || ""), name = String(b.name || "").trim().slice(0, 100);
+        if (!FID.test(id) || !name) throw new Err("bad_request");
+        const { t } = await tok(uid, b.conn_id);
+        const f = await (await G(`${FILES}/${encodeURIComponent(id)}?supportsAllDrives=true&fields=id,name,mimeType,trashed`, t)).json();
+        if (f.trashed || f.mimeType !== "application/vnd.google-apps.folder") throw new Err("folder_missing", 404);
+        const r = await G(`${FILES}/${encodeURIComponent(id)}?supportsAllDrives=true&fields=id,name,mimeType`, t, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+        return json(await r.json());
       }
       case "import_info": {
         const { t, c } = await tok(uid, b.conn_id), ids = (Array.isArray(b.ids) ? b.ids : []).map(String).filter((x: string) => FID.test(x)).slice(0, 50), out: unknown[] = [], skipped: unknown[] = [];

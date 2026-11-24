@@ -102,3 +102,7 @@ Satu font (`--font`) dan satu skala ukuran: **12** keterangan/badge, **13** labe
 - Struktur folder/subfolder, nama, dan breadcrumb mengikuti Google Drive; masuk ke subfolder untuk melihat isinya.
 - Foto diambil langsung dari Drive untuk thumbnail dan pratinjau; tidak disalin ke Supabase.
 - Fitur Import Google Drive tetap terpisah. Panduan penerapan: `docs/UPDATE-08.md`.
+
+
+### Update 09 — Google Drive Gallery
+Lihat `docs/UPDATE-09.md` untuk tampilan galeri langsung, preview foto MIKA, pembuatan/rename folder, dan pembaruan izin OAuth Google Drive.

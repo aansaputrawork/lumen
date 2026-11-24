@@ -81,7 +81,7 @@ document.addEventListener("click",e=>{
 })();
 
 /* ============================ PREVIEW FOTO ============================ */
-window.LViewer=function(id,list,srcEl){
+window.LViewer=function(id,list,srcEl,opts={}){
  IC.info="M12 21a9 9 0 100-18 9 9 0 000 18zM12 11v5M12 8h.01";IC.play="M7 4l13 8-13 8z";
  list=list&&list.length?list:[...document.querySelectorAll("[data-id]")].map(e=>S.photos.find(p=>p.id==e.dataset.id)).filter(Boolean);
  if(!list.length)return;
@@ -99,6 +99,7 @@ window.LViewer=function(id,list,srcEl){
   <div class="pv-bot pc">${multi?`<div class=pv-fs id=fs>${list.map(thumb).join("")}</div>`:""}
    <div class=pv-dock><span class=pv-cat id=pcat></span><div class=pv-bar><div class=pv-acts id=acts><button data-s aria-label="Share">${ico("sh",23)}</button><button data-f aria-label="Add to favorites" aria-pressed="false">${ico("heart",23)}</button><button data-i aria-label="Details">${ico("info",23)}</button><button data-d aria-label="Download">${ico("dl",23)}</button><button data-t aria-label="Delete" style="color:#ff6b6b">${ico("tr",23)}</button></div><button class=pv-tg data-tg aria-expanded="false" aria-label="Show actions">${ico("dots",24)}</button></div></div></div></div>`);
  document.body.append(v);
+ if(opts.readonly){["[data-s]","[data-f]","[data-i]","[data-t]"].forEach(q=>v.querySelector(q)?.remove())}
  const st=v.querySelector(".st"),sl=[...st.children],fs=v.querySelector("#fs"),bgw=v.querySelector(".pv-bgw"),pc=v.querySelector("#pcat");
  let z=1,tx=0,ty=0,d0=0,z0=1,sx=0,sy=0,dy=0,dx=0,md="",mv=0,ts=0,lt=0,raf=0,closing=0;
  const cur=()=>list[i];
@@ -138,8 +139,8 @@ window.LViewer=function(id,list,srcEl){
  const mark=sm=>{if(!fs)return;fs.querySelectorAll(".ft.a").forEach(e=>e.classList.remove("a"));const a=fs.children[i];if(!a)return;a.classList.add("a");
   fs.scrollTo({left:a.offsetLeft-fs.clientWidth/2+a.offsetWidth/2,behavior:sm?"smooth":"auto"})};
  // ganti thumbnail dengan foto penuh untuk foto aktif dan tetangganya
- const hiRes=k=>{for(let j=k-1;j<=k+1;j++){const im=sl[j]&&sl[j].querySelector("img[data-full]");if(!im||im.dataset.done)continue;im.dataset.done=1;
-  const f=im.dataset.full;if(!f||im.getAttribute("src")===f)continue;const x=new Image();x.onload=()=>{im.src=f};x.src=f}};
+ const hiRes=k=>{for(let j=k-1;j<=k+1;j++){const im=sl[j]&&sl[j].querySelector("img[data-full]");if(!im||im.dataset.done||im.dataset.loading)continue;im.dataset.loading="1";
+  (async()=>{try{const f=opts.resolveFull?await opts.resolveFull(list[j]):im.dataset.full;if(!f||im.getAttribute("src")===f)return;const x=new Image();x.onload=()=>{im.src=f;im.dataset.done="1"};x.onerror=()=>{im.dataset.loading=""};x.src=f}catch(e){im.dataset.loading=""}})()}};
  // foto di sebelah mengecil & memudar saat digeser
  const fx=()=>{raf=0;const w=st.clientWidth||1,fi=st.scrollLeft/w;
   for(let k=Math.max(0,Math.floor(fi)-1);k<=Math.min(sl.length-1,Math.ceil(fi)+1);k++){const o=Math.min(1,Math.abs(k-fi)),pw=sl[k].firstElementChild;pw.style.opacity=1-.5*o}};
@@ -184,7 +185,7 @@ window.LViewer=function(id,list,srcEl){
  const closeP=()=>{
   if(closing)return;closing=1;removeEventListener("keydown",kd);removeEventListener("resize",fit);pauseAll();
   const im=sl[i]&&sl[i].querySelector("img,video"),tg=home(cur()),from=im&&im.getBoundingClientRect();
-  const lit=document.querySelector(".dy.on"),fin=()=>{if(v.isConnected)v.remove();if(lit)lit.classList.remove("on");S.selDay=null};
+  const lit=document.querySelector(".dy.on");let cleaned=0;const fin=()=>{if(cleaned)return;cleaned=1;if(v.isConnected)v.remove();if(lit)lit.classList.remove("on");S.selDay=null;if(typeof opts.onClose==="function")try{opts.onClose()}catch(_){}};
   // hapus semua efek tarik/zoom supaya posisi akhir bisa diukur
   st.style.transition="none";st.style.transform="";if(im)im.style.transform="";
   v.classList.add("pcl");v.style.background="transparent";v.style.pointerEvents="none";

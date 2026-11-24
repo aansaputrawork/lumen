@@ -12,10 +12,9 @@ Isi ZIP tidak memuat secret apa pun. Semua nilai di bawah **Anda isi sendiri**.
 ## 2. Google Cloud (OAuth)
 1. https://console.cloud.google.com → buat project.
 2. APIs & Services → Library → aktifkan **Google Drive API**.
-3. OAuth consent screen: User type External, isi nama aplikasi & email. Tambahkan scope
-   `.../auth/drive.readonly`, `.../auth/drive.file`, dan `.../auth/userinfo.email`. Scope `drive.readonly` diperlukan agar MIKA dapat menelusuri media lama; scope ini termasuk restricted scope dan penggunaan publik dapat memerlukan verifikasi Google. Saat status *Testing*, tambahkan email Anda di **Test users**
-   (refresh token pada mode Testing kedaluwarsa tiap 7 hari; publish ke *Production* untuk penggunaan normal.
-   `drive.file` termasuk scope non-sensitif sehingga umumnya tanpa verifikasi penuh, tetapi tetap cek kebijakan Google terbaru).
+3. OAuth consent screen → Data Access: tambahkan scope
+   `https://www.googleapis.com/auth/drive` dan `https://www.googleapis.com/auth/userinfo.email`.
+   Scope `drive` memberi MIKA izin membaca file/folder Google Drive serta membuat dan mengganti nama folder sesuai tindakan yang Anda pilih. Scope ini termasuk **restricted**; aplikasi untuk pengguna umum dapat memerlukan verifikasi Google dan persyaratan tambahan. Saat status *Testing*, tambahkan akun Anda di **Test users**. Refresh token aplikasi External berstatus Testing dapat kedaluwarsa setelah 7 hari; untuk penggunaan berkelanjutan, tinjau opsi publikasi dan persyaratan verifikasi Google.
 4. Credentials → Create Credentials → OAuth client ID → **Web application**.
    - Authorized redirect URI: `https://<PROJECT_REF>.supabase.co/functions/v1/drive/callback`
    - Authorized JavaScript origins: alamat tempat aplikasi di-host.
@@ -46,7 +45,7 @@ Produksi: host di Netlify/Vercel/Cloudflare Pages/GitHub Pages.
 - Token: refresh token Google dienkripsi AES-GCM di tabel `drive_connections` (tidak bisa dibaca klien). Browser hanya menyimpan sesi Supabase standar.
 
 ## Batasan yang perlu Anda ketahui
-- MIKA memakai scope **drive.readonly** untuk membaca media lama dan **drive.file** untuk membuat/mengelola file yang dibuat MIKA. Daftar media dimuat melalui Edge Function; token Google tidak dikirim ke antarmuka browser. Scope `drive.readonly` termasuk restricted scope, sehingga aplikasi publik mungkin memerlukan verifikasi Google.
+- MIKA memakai scope **drive** untuk membaca foto/folder serta membuat dan mengganti nama folder yang Anda pilih di Google Drive. Token Google tetap berada di Edge Function dan tidak dikirim ke antarmuka browser. Scope ini termasuk restricted scope; aplikasi yang dipublikasikan untuk pengguna umum dapat memerlukan verifikasi Google. MIKA tidak menyediakan aksi menghapus file/folder Drive.
 - **Berbagi folder**: tombol *Bagikan* membuka folder di Google Drive, lalu Anda memakai tombol Bagikan resmi Drive. Aplikasi tidak mengubah izin dan tidak pernah membuat apa pun publik.
 - Video belum didukung untuk mode *Drive saja* (hanya gambar).
 - Menghapus permanen foto tidak menghapus salinan di Google Drive (disengaja, agar aman).
@@ -85,11 +84,11 @@ Belum ada: backup yang berjalan saat aplikasi tertutup (butuh aplikasi native), 
 4. Tiap foto/video mengingat akun Drive miliknya (`photos.drive_conn_id`), jadi pemutaran, unduhan, dan streaming selalu memakai akun yang benar. Memutus satu akun tidak mengganggu akun lain.
 
 ## 8. Import from Google Drive (menu Upload > From Google Drive)
-MIKA memakai pemilih file bawaan, bukan Google Picker/iframe. Daftar foto dan video diambil langsung dari Google Drive API melalui Edge Function dengan scope `drive.readonly`. Anda dapat mencari nama file, memilih banyak file, dan memuat halaman berikutnya untuk menemukan file lama. Tidak memerlukan Google Picker API, API key browser, atau Project number.
+MIKA memakai pemilih file bawaan, bukan Google Picker/iframe. Daftar foto dan video diambil langsung dari Google Drive API melalui Edge Function dengan scope `drive`. Anda dapat mencari nama file, memilih banyak file, dan memuat halaman berikutnya untuk menemukan file lama. Tidak memerlukan Google Picker API, API key browser, atau Project number.
 
 File asli yang dipilih diunduh melalui Edge Function lalu disalin ke MIKA Cloud (Supabase Storage). File sumber di Google Drive tidak diubah atau dihapus. Impor menghabiskan kuota penyimpanan MIKA Cloud. Proses berjalan saat MIKA terbuka; file besar memerlukan koneksi dan ruang memori browser yang cukup.
 
-Jika akun sebelumnya hanya memberikan izin `drive.file`, hubungkan ulang Google Drive dan setujui izin **See and download all your Google Drive files** agar MIKA dapat menampilkan file lama. Untuk aplikasi OAuth berstatus Testing, akun Google harus tercantum sebagai Test user. Karena `drive.readonly` adalah restricted scope, publikasi untuk pengguna umum dapat memerlukan proses verifikasi Google.
+Setelah memperbarui scope menjadi `drive`, buka Profile → Google Drive → **Update permissions**, pilih akun Google yang sama, lalu setujui akses Google Drive yang diminta. Untuk aplikasi OAuth berstatus Testing, akun Google harus tercantum sebagai Test user. Karena `drive` adalah restricted scope, publikasi untuk pengguna umum dapat memerlukan proses verifikasi Google. Pada status Testing, refresh token dapat kedaluwarsa setelah 7 hari.
 
 ## Video di Google Drive: batas yang perlu diketahui
 - Video diputar lewat endpoint `/drive/stream` (mendukung Range, jadi bisa seek). **Setiap video yang diputar melewati Edge Function**, sehingga ikut menghabiskan *egress* dan jumlah *invocation* Supabase (Free plan: 5 GB egress dan 500.000 invocation per bulan, dihitung bersama semua pemakaian lain). Peramban meminta video per potongan (Range), jadi satu kali putar bisa berarti beberapa invocation.
@@ -99,7 +98,7 @@ Jika akun sebelumnya hanya memberikan izin `drive.file`, hubungkan ulang Google 
 
 ### Import from Google Drive (copy into MIKA Cloud)
 
-The Import from Google Drive action uses MIKA's built-in file selector. It lists image/video files through the authenticated `drive` Edge Function using the `drive.readonly` scope, then downloads each selected original through that function and uploads it into the user's Supabase Storage. The source file in Google Drive is left unchanged. Imported media therefore consumes the user's MIKA Cloud storage quota. The import is performed sequentially while MIKA is open; large files require sufficient browser memory and an available network connection.
+The Import from Google Drive action uses MIKA's built-in file selector. It lists image/video files through the authenticated `drive` Edge Function using the `drive` scope, then downloads each selected original through that function and uploads it into the user's Supabase Storage. The source file in Google Drive is left unchanged. Imported media therefore consumes the user's MIKA Cloud storage quota. The import is performed sequentially while MIKA is open; large files require sufficient browser memory and an available network connection.
 
 ## 9. Perbaikan Import dari Google Drive (Update 07)
 - Impor kini menggunakan pemilih file bawaan MIKA. Daftar media dan unduhan file asli diproses melalui Edge Function terautentikasi; tidak ada iframe Google Picker atau token Google di browser.
@@ -126,3 +125,10 @@ Profile > Google Drive > **Automatic backup**. Semua berjalan **selama MIKA terb
 5. Untuk backup sungguhan di latar belakang (galeri HP, saat aplikasi tertutup), perlu pembungkus native (mis. Capacitor + plugin background upload). Kode `ingest()` di `drive.js` bisa dipakai ulang.
 
 File yang berubah: `drive.js`, `supabase-adapter.js` (opsi `f._mode`, `LSB.docs/loaded`), `sw.js` (v11, share target). Tidak ada migrasi SQL baru.
+
+
+## 10. Google Drive Gallery langsung (Update 09)
+- Profile → Google Drive → Open gallery menampilkan folder dan foto langsung dari Drive dengan hierarki folder asli. Foto tidak disalin ke Supabase hanya karena dilihat.
+- Preview memakai komponen preview foto utama MIKA (swipe, zoom, dan thumbnail filmstrip); unduhan tetap mengambil file asli dari Google Drive.
+- Tombol **+ Folder** membuat subfolder di folder yang sedang dibuka. Tombol `···` pada folder mengganti nama folder di Google Drive. Tidak ada aksi hapus folder/file di galeri ini.
+- Update 09 meminta scope OAuth `https://www.googleapis.com/auth/drive`. Setelah deploy, pengguna lama perlu memilih **Update permissions** di Profile → Google Drive dan menyetujui akses baru.
