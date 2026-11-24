@@ -2,7 +2,7 @@
 (()=> {
  const D=window.LDrive;
  if(!D)return;
- const state={conn:"",stack:[],files:[],media:[],token:"",busy:false,error:"",urls:new Set(),loading:0};
+ const state={conn:"",stack:[],files:[],media:[],token:"",busy:false,error:"",urls:new Set(),folderCovers:new Map(),folderLoading:new Set(),loading:0};
  const folderMime="application/vnd.google-apps.folder";
  const clean=()=>{for(const u of state.urls)URL.revokeObjectURL(u);state.urls.clear()};
  const current=()=>state.stack[state.stack.length-1];
@@ -15,28 +15,46 @@
   if(!ds.length)return '<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div><div class="dalb-empty">Connect Google Drive in Profile to see its folders and media here.</div></section>';
   const title=state.stack.length?current().name:"Google Drive";
   const crumbs=state.stack.map((x,i)=>`${i?'<span class="mu">›</span>':""}<button class="dalb-crumb" data-dalb="crumb" data-index="${i}">${esc(x.name)}</button>`).join("");
-  const folders=state.files.filter(f=>f.mimeType===folderMime).map(f=>`<div class="dalb-folder" data-dalb="open" data-gid="${esc(f.id)}"><span class="dalb-folder-icon">📁</span><span class="dalb-folder-name">${esc(f.name)}</span><button class="dalb-more" data-dalb="more" data-gid="${esc(f.id)}" data-name="${esc(f.name)}" aria-label="Folder options">···</button></div>`).join("");
+  const folders=state.files.filter(f=>f.mimeType===folderMime).map(f=>{const c=state.folderCovers.get(f.id),url=c&&c.url;return `<div class="card al pt dalb-folder-card" data-dalb="open" data-gid="${esc(f.id)}"><div class="bg" data-folder-cover="${esc(f.id)}" style="${url?`background-image:url('${url}')`:""}"></div>${!url?'<span class="dalb-folder-fallback">📁</span>':""}<span class="glass">${c?c.count+" items":"Google Drive"}</span><button class="glass rb" data-dalb="more" data-gid="${esc(f.id)}" data-name="${esc(f.name)}" aria-label="Folder options">···</button><b>${esc(f.name)}</b></div>`}).join("");
   const media=state.media.map(p=>`<div class="mi dalb-media" data-dalb="photo" data-gid="${esc(p.id)}"><img loading="lazy" alt="${esc(p.name)}" data-thumb="${esc(p.aid)}">${isVideo(p)?'<i class="pb">▶</i>':""}</div>`).join("");
   const body=state.busy&&!state.files.length?'<div class="dalb-empty">Loading Google Drive…</div>':state.error?'<div class="dalb-empty">'+esc(state.error)+'</div>':(!state.files.length?'<div class="dalb-empty">This folder is empty.</div>':"");
   return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3><span class="mu">${state.stack.length?esc(title):ds.length+" connected account"+(ds.length===1?"":"s")}</span></div>
   ${!state.stack.length?ds.map(d=>`<button class="dalb-account" data-dalb="account" data-gid="${esc(d.id)}"><span class="dalb-drive-icon">◉</span><span><b>${esc(d.email||"Google Drive")}</b><small>Browse My Drive folders and media</small></span><span class="mu">›</span></button>`).join(""):
-  `<div class="dalb-toolbar"><button class="chip" data-dalb="back">‹ Back</button><div class="dalb-crumbs">${crumbs}</div><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-path">${esc(title)}</div><div class="dalb-grid">${folders}${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}`}
+  `<div class="dalb-toolbar"><button class="chip" data-dalb="back">‹ Back</button><div class="dalb-crumbs">${crumbs}</div><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-path">${esc(title)}</div><div class="hs sl2 dalb-folders">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}`}
   </section>`;
  };
  window.driveAlbumsSection=html;
  const refresh=()=>{if(typeof S!=="undefined"&&S.view==="alb")render()};
  async function load(reset=true){
   if(state.busy)return;state.busy=true;state.error="";
-  if(reset){state.files=[];state.media=[];state.token="";clean()}
+  if(reset){state.files=[];state.media=[];state.token="";state.folderCovers.clear();state.folderLoading.clear();clean()}
   refresh();
   try{
    const j=await D.listAlbum(state.conn,current().id,state.token),files=j.files||[];
    state.files=reset?files:[...state.files,...files];
    const media=files.filter(f=>/^(image|video)\//.test(f.mimeType||""));
    for(const f of media)state.media.push(makeMedia(f));
-   state.token=j.next_page_token||"";refresh();for(const f of media){const p=state.media.find(x=>x.aid===f.id);if(p)thumb(p)}
+   state.token=j.next_page_token||"";refresh();for(const f of media){const p=state.media.find(x=>x.aid===f.id);if(p)thumb(p)}for(const f of files.filter(x=>x.mimeType===folderMime))folderCover(f)
   }catch(e){state.error="Couldn't load this folder: "+(e.message||"Unknown error")}
   finally{state.busy=false;refresh()}
+ }
+ async function folderCover(folder){
+  if(state.folderCovers.has(folder.id)||state.folderLoading.has(folder.id))return;
+  state.folderLoading.add(folder.id);
+  const conn=state.conn,parent=current()&&current().id;
+  try{
+   const j=await D.listAlbum(conn,folder.id,""),files=j.files||[],items=files.filter(f=>/^(image|video)\\//.test(f.mimeType||""));
+   let url="";
+   if(items.length){
+    const b=await D.albumThumb(conn,items[0].id),u=URL.createObjectURL(b);
+    if(state.conn!==conn||!current()||current().id!==parent){URL.revokeObjectURL(u);return}
+    state.urls.add(u);url=u;
+   }
+   if(state.conn!==conn||!current()||current().id!==parent)return;
+   state.folderCovers.set(folder.id,{url,count:files.length});
+   refresh();
+  }catch(_){}
+  finally{state.folderLoading.delete(folder.id)}
  }
  async function thumb(p){
   const marker=++state.loading;
