@@ -20,7 +20,7 @@
   const body=state.busy&&!state.files.length?'<div class="dalb-empty">Loading Google Drive…</div>':state.error?'<div class="dalb-empty">'+esc(state.error)+'</div>':(!state.files.length?'<div class="dalb-empty">This folder is empty.</div>':"");
   const cover=state.stack.length>1?state.folderCovers.get(current().id):null;
   const heroMedia=state.media.find(p=>p.th);
-  return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3><span class="mu">${state.stack.length?esc(title):ds.length+" connected account"+(ds.length===1?"":"s")}</span></div>
+  return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div>
   ${!state.stack.length?ds.map(d=>`<button class="dalb-account" data-dalb="account" data-gid="${esc(d.id)}"><span class="dalb-drive-icon">◉</span><span><b>${esc(d.email||"Google Drive")}</b><small>Browse My Drive folders and media</small></span><span class="mu">›</span></button>`).join(""):
   `<div class="top dalb-detail-top"><button class="ic" data-dalb="back" aria-label="Back">‹</button><h1>${esc(title)}</h1><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-crumbs">${crumbs}</div><div class="hero dalb-hero">${cover&&cover.url?`<img src="${cover.url}" alt="">`:heroMedia?`<img src="${heroMedia.th}" alt="">`:'<div class="dalb-hero-empty">📁</div>'}<div><h3>${esc(title)}</h3><div class="mu">${state.media.length} media · ${state.files.filter(f=>f.mimeType===folderMime).length} folders</div><div class="mu">Google Drive</div></div></div><div class="dalb-folder-list">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}`}
   </section>`;
