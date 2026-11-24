@@ -15,16 +15,16 @@
   if(!ds.length)return '<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div><div class="dalb-empty">Connect Google Drive in Profile to see its folders and media here.</div></section>';
   const title=state.stack.length?current().name:"Google Drive";
   const crumbs=state.stack.map((x,i)=>`${i?'<span class="mu">›</span>':""}<button class="dalb-crumb" data-dalb="crumb" data-index="${i}">${esc(x.name)}</button>`).join("");
-  const folders=state.files.filter(f=>f.mimeType===folderMime).map(f=>`<div class="dalb-folder" data-dalb="open" data-gid="${esc(f.id)}"><span class="dalb-folder-icon">📁</span><span class="dalb-folder-name">${esc(f.name)}</span><button class="dalb-more" data-dalb="menu" data-gid="${esc(f.id)}" data-name="${esc(f.name)}" aria-label="Folder options">···</button></div>`).join("");
+  const folders=state.files.filter(f=>f.mimeType===folderMime).map(f=>`<div class="dalb-folder" data-dalb="open" data-gid="${esc(f.id)}"><span class="dalb-folder-icon">📁</span><span class="dalb-folder-name">${esc(f.name)}</span><button class="dalb-more" data-dalb="more" data-gid="${esc(f.id)}" data-name="${esc(f.name)}" aria-label="Folder options">···</button></div>`).join("");
   const media=state.media.map(p=>`<div class="mi dalb-media" data-dalb="photo" data-gid="${esc(p.id)}"><img loading="lazy" alt="${esc(p.name)}" data-thumb="${esc(p.aid)}">${isVideo(p)?'<i class="pb">▶</i>':""}</div>`).join("");
-  const body=state.busy&&!state.files.length?'<div class="dalb-empty">Loading Google Drive…</div>':state.error?'<div class="dalb-empty">'+esc(state.error)+'</div>':(!folders&&!media?'<div class="dalb-empty">This folder is empty.</div>':"");
+  const body=state.busy&&!state.files.length?'<div class="dalb-empty">Loading Google Drive…</div>':state.error?'<div class="dalb-empty">'+esc(state.error)+'</div>':(!state.files.length?'<div class="dalb-empty">This folder is empty.</div>':"");
   return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3><span class="mu">${state.stack.length?esc(title):ds.length+" connected account"+(ds.length===1?"":"s")}</span></div>
   ${!state.stack.length?ds.map(d=>`<button class="dalb-account" data-dalb="account" data-gid="${esc(d.id)}"><span class="dalb-drive-icon">◉</span><span><b>${esc(d.email||"Google Drive")}</b><small>Browse My Drive folders and media</small></span><span class="mu">›</span></button>`).join(""):
   `<div class="dalb-toolbar"><button class="chip" data-dalb="back">‹ Back</button><div class="dalb-crumbs">${crumbs}</div><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-path">${esc(title)}</div><div class="dalb-grid">${folders}${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}`}
   </section>`;
  };
  window.driveAlbumsSection=html;
- const refresh=()=>{if(window.S&&S.view==="alb")render()};
+ const refresh=()=>{if(typeof S!=="undefined"&&S.view==="alb")render()};
  async function load(reset=true){
   if(state.busy)return;state.busy=true;state.error="";
   if(reset){state.files=[];state.media=[];state.token="";clean()}
