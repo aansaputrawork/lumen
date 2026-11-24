@@ -22,7 +22,7 @@
   const cover=state.stack.length>1?state.folderCovers.get(current().id):null;
   const heroMedia=state.media.find(p=>p.th);
   return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div>
-  ${state.stack.length>1?`<div class="top dalb-detail-top"><button class="ic" data-dalb="back" aria-label="Back">‹</button><h1>${esc(title)}</h1><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-crumbs">${crumbs}</div><div class="hero dalb-hero">${cover&&cover.url?`<img src="${cover.url}" alt="">`:heroMedia?`<img src="${heroMedia.th}" alt="">`:'<div class="dalb-hero-empty">📁</div>'}<div><h3>${esc(title)}</h3><div class="mu">${state.media.length} media · ${state.files.filter(f=>f.mimeType===folderMime).length} folders</div><div class="mu">Google Drive</div></div></div>`:'<div class="dalb-root-actions"><button class="chip" data-dalb="new">+ Folder</button></div>'}
+  ${state.stack.length>1?`<div class="top dalb-detail-top"><button class="ic" data-dalb="back" aria-label="Back">‹</button><h1>${esc(title)}</h1><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-crumbs">${crumbs}</div><div class="hero dalb-hero">${cover&&cover.url?`<img src="${cover.url}" alt="">`:heroMedia?`<img src="${heroMedia.th}" alt="">`:'<div class="dalb-hero-empty">📁</div>'}<div><h3>${esc(title)}</h3><div class="mu">${state.media.length} media · ${state.files.filter(f=>f.mimeType===folderMime).length} folders</div><div class="mu">Google Drive</div></div></div>`:""}
   <div class="dalb-folder-list">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}
   </section>`;
  };
@@ -65,6 +65,7 @@
    const q=[...document.querySelectorAll(".dalb-media")].find(x=>x.dataset.gid===p.id);if(q){const im=q.querySelector("img");im.src=u;im.classList.add("l")}
   }catch(_){}
  }
+ window.newDriveAlbumFolder=()=>{ask("New Google Drive folder","",async name=>{try{const conn=state.conn||drives()[0]?.id;await D.createAlbumFolder(conn,"root",name);toast("Folder created in Google Drive");if(!state.conn){state.conn=conn;state.stack=[{id:"root",name:""}]}await load(true)}catch(err){toast("Could not create folder: "+err.message)}})};
  function openAccount(id){state.conn=id;state.stack=[{id:"root",name:"My Drive"}];load(true)}
  function openFolder(id){const f=state.files.find(x=>x.id===id);if(!f)return;state.stack.push({id:f.id,name:f.name});load(true)}
  function preview(id,el){
