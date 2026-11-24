@@ -102,7 +102,8 @@ const A={
  all(){backup(S.photos.filter(p=>p.sp=="supabase"&&p.bs!="done"))},
  manual(){manualBackup()},
  async orph(){try{toast("Recovered: "+await LSB.retryOrphans())}catch(e){toast("Failed: "+e.message)}},
- imp(){D.imp()},\n logout(){LSB.logout()},
+ imp(){D.imp()},
+ logout(){LSB.logout()},
 };
 document.addEventListener("click",e=>{const b=e.target.closest("[data-dr]");if(b&&A[b.dataset.dr])A[b.dataset.dr](b.dataset.id)});
 
