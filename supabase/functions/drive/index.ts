@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
         const parent = String(b.parent_id || "root");
         if (parent !== "root" && !FID.test(parent)) throw new Err("bad_request");
         const safe = parent.replace(/\\\\/g, "\\\\\\\\").replace(/'/g, "\\\\'");
-        const q = "'" + safe + "' in parents and trashed=false and (mimeType='application/vnd.google-apps.folder' or (mimeType contains 'image/' or mimeType contains 'video/')";
+        const q = "'" + safe + "' in parents and trashed=false and (mimeType='application/vnd.google-apps.folder' or mimeType contains 'image/' or mimeType contains 'video/')";
         const params = new URLSearchParams({
           q, pageSize: "100", orderBy: "folder,name",
           supportsAllDrives: "true", includeItemsFromAllDrives: "true", corpora: "allDrives",
