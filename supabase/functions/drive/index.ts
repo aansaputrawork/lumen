@@ -208,11 +208,11 @@ Deno.serve(async (req) => {
         const parent = String(b.parent_id || "root");
         if (parent !== "root" && !FID.test(parent)) throw new Err("bad_request");
         const safe = parent.replace(/\\\\/g, "\\\\\\\\").replace(/'/g, "\\\\'");
-        const q = "'" + safe + "' in parents and trashed=false and (mimeType='application/vnd.google-apps.folder' or mimeType contains 'image/')";
+        const q = "'" + safe + "' in parents and trashed=false and (mimeType='application/vnd.google-apps.folder' or (mimeType contains 'image/' or mimeType contains 'video/')";
         const params = new URLSearchParams({
           q, pageSize: "100", orderBy: "folder,name",
           supportsAllDrives: "true", includeItemsFromAllDrives: "true", corpora: "allDrives",
-          fields: "nextPageToken,files(id,name,mimeType,thumbnailLink,webViewLink,createdTime,imageMediaMetadata(width,height),size,parents)"
+          fields: "nextPageToken,files(id,name,mimeType,thumbnailLink,webViewLink,createdTime,imageMediaMetadata(width,height),videoMediaMetadata(width,height,durationMillis),size,parents)"
         });
         if (b.page_token) params.set("pageToken", String(b.page_token));
         const r = await G(`${FILES}?${params}`, t), j = await r.json();
@@ -238,6 +238,15 @@ Deno.serve(async (req) => {
         const f = await (await G(`${FILES}/${encodeURIComponent(id)}?supportsAllDrives=true&fields=id,name,mimeType,trashed`, t)).json();
         if (f.trashed || f.mimeType !== "application/vnd.google-apps.folder") throw new Err("folder_missing", 404);
         const r = await G(`${FILES}/${encodeURIComponent(id)}?supportsAllDrives=true&fields=id,name,mimeType`, t, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+        return json(await r.json());
+      }
+      case "trash_gallery_folder": {
+        const id = String(b.file_id || "");
+        if (!FID.test(id)) throw new Err("bad_request");
+        const { t } = await tok(uid, b.conn_id);
+        const f = await (await G(`${FILES}/${encodeURIComponent(id)}?supportsAllDrives=true&fields=id,name,mimeType,trashed`, t)).json();
+        if (f.trashed || f.mimeType !== "application/vnd.google-apps.folder") throw new Err("folder_missing", 404);
+        const r = await G(`${FILES}/${encodeURIComponent(id)}?supportsAllDrives=true&fields=id,name,mimeType,trashed`, t, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trashed: true }) });
         return json(await r.json());
       }
       case "import_info": {
