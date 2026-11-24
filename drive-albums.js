@@ -13,7 +13,8 @@
  const html=()=>{
   const ds=drives();
   if(!ds.length)return '<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div><div class="dalb-empty">Connect Google Drive in Profile to see its folders and media here.</div></section>';
-  const title=state.stack.length?current().name:"Google Drive";
+  if(!state.conn){state.conn=ds[0].id;state.stack=[{id:"root",name:""}];queueMicrotask(()=>load(true));}
+  const title=state.stack.length>1?current().name:"";
   const crumbs=state.stack.map((x,i)=>`${i?'<span class="mu">›</span>':""}<button class="dalb-crumb" data-dalb="crumb" data-index="${i}">${esc(x.name)}</button>`).join("");
   const folders=state.files.filter(f=>f.mimeType===folderMime).map(f=>{const c=state.folderCovers.get(f.id);return `<div class="ar dalb-folder-row" data-dalb="open" data-gid="${esc(f.id)}">${c&&c.url?`<img src="${c.url}" alt="">`:'<span class="ph dalb-folder-ph">📁</span>'}<span class="dalb-folder-label">${esc(f.name)}</span><span class="mu">${c?c.count+" items":"Folder"} ›</span><button class="dalb-folder-more" data-dalb="more" data-gid="${esc(f.id)}" data-name="${esc(f.name)}" aria-label="Folder options">···</button></div>`}).join("");
   const media=state.media.map(p=>`<div class="mi dalb-media" data-dalb="photo" data-gid="${esc(p.id)}"><img loading="lazy" alt="${esc(p.name)}" data-thumb="${esc(p.aid)}">${isVideo(p)?'<i class="pb">▶</i>':""}</div>`).join("");
@@ -21,8 +22,8 @@
   const cover=state.stack.length>1?state.folderCovers.get(current().id):null;
   const heroMedia=state.media.find(p=>p.th);
   return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div>
-  ${!state.stack.length?ds.map(d=>`<button class="dalb-account" data-dalb="account" data-gid="${esc(d.id)}"><span class="dalb-drive-icon">◉</span><span><b>${esc(d.email||"Google Drive")}</b><small>Browse My Drive folders and media</small></span><span class="mu">›</span></button>`).join(""):
-  `<div class="top dalb-detail-top"><button class="ic" data-dalb="back" aria-label="Back">‹</button><h1>${esc(title)}</h1><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-crumbs">${crumbs}</div><div class="hero dalb-hero">${cover&&cover.url?`<img src="${cover.url}" alt="">`:heroMedia?`<img src="${heroMedia.th}" alt="">`:'<div class="dalb-hero-empty">📁</div>'}<div><h3>${esc(title)}</h3><div class="mu">${state.media.length} media · ${state.files.filter(f=>f.mimeType===folderMime).length} folders</div><div class="mu">Google Drive</div></div></div><div class="dalb-folder-list">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}`}
+  ${state.stack.length>1?`<div class="top dalb-detail-top"><button class="ic" data-dalb="back" aria-label="Back">‹</button><h1>${esc(title)}</h1><button class="chip" data-dalb="new">+ Folder</button></div><div class="dalb-crumbs">${crumbs}</div><div class="hero dalb-hero">${cover&&cover.url?`<img src="${cover.url}" alt="">`:heroMedia?`<img src="${heroMedia.th}" alt="">`:'<div class="dalb-hero-empty">📁</div>'}<div><h3>${esc(title)}</h3><div class="mu">${state.media.length} media · ${state.files.filter(f=>f.mimeType===folderMime).length} folders</div><div class="mu">Google Drive</div></div></div>`:'<div class="dalb-root-actions"><button class="chip" data-dalb="new">+ Folder</button></div>'}
+  <div class="dalb-folder-list">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}
   </section>`;
  };
  window.driveAlbumsSection=html;
@@ -80,7 +81,7 @@
   const b=e.target.closest("[data-dalb]");if(!b||!document.querySelector(".dalb"))return;
   const action=b.dataset.dalb,id=b.dataset.gid;
   if(action==="account"){e.preventDefault();openAccount(id);return}
-  if(action==="back"){e.preventDefault();if(state.stack.length){state.stack.pop();if(!state.stack.length){state.conn="";state.files=[];state.media=[];clean();refresh()}else load(true)}return}
+  if(action==="back"){e.preventDefault();if(state.stack.length>1){state.stack.pop();load(true)}return}
   if(action==="crumb"){e.preventDefault();state.stack=state.stack.slice(0,+b.dataset.index+1);load(true);return}
   if(action==="open"){e.preventDefault();openFolder(id);return}
   if(action==="photo"){e.preventDefault();preview(id,b);return}
