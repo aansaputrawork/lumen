@@ -142,10 +142,30 @@
 .hring{position:absolute;inset:3px;border-radius:50%;border:2px solid #FF4B5C;pointer-events:none;animation:hring .65s var(--e) forwards}
 @keyframes hring{from{opacity:.9;transform:scale(.5)}to{opacity:0;transform:scale(1.8)}}
 
-/* Google Drive gallery: shares MIKA's existing theme, spacing and masonry layout. */
-.gdv{position:fixed;inset:0;z-index:40;overflow:auto;background:var(--bg);color:var(--tx);padding:0 max(16px,calc((100vw - 980px)/2)) calc(28px + env(safe-area-inset-bottom,0px));box-sizing:border-box;animation:pop .3s var(--e)}
-.gdv .gdv-top{position:sticky;top:0;z-index:5;gap:10px;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:12px;background:var(--bg);border-bottom:1px solid var(--sh)}
-.gdv-heading{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.gdv-heading h1{font-size:15px;margin:0;font-weight:600}.gdv-heading .mu{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gdv-body{padding:12px 0 36px}.gdv-crumb{display:flex;align-items:center;gap:8px;overflow:auto;white-space:nowrap;padding:2px 0 14px;scrollbar-width:none}.gdv-crumb-item{border:0;background:transparent;color:var(--mu);padding:6px 2px;font-size:12px}.gdv-crumb-item.a{color:var(--tx);font-weight:600}
-.gdv-status{padding:42px 16px;text-align:center;color:var(--mu);font-size:13px}.gdv .mas{columns:2;column-gap:8px}.gdv-folder{display:flex;align-items:center;gap:10px;box-sizing:border-box;width:100%;min-height:78px;padding:13px 12px;border:1px solid var(--sh);background:var(--sf);color:var(--tx);cursor:pointer;break-inside:avoid}.gdv-folder-icon{flex:none;font-size:26px}.gdv-folder-name{min-width:0;flex:1;font-size:13px;font-weight:500;overflow-wrap:anywhere}.gdv-folder-more{flex:none;width:30px;height:34px;border:0;border-radius:50%;background:var(--pill);color:var(--tx);font-size:21px;line-height:1;cursor:pointer}.gdv-photo{cursor:pointer}.gdv-photo img{display:block;width:100%;height:auto;min-height:50px;object-fit:cover;border-radius:22px;background:var(--sf);opacity:0;transition:opacity .5s var(--e)}.gdv-photo img.l{opacity:1}
-@media(min-width:700px){.gdv .mas{columns:3;column-gap:12px}.gdv-folder{min-height:90px;padding:16px}}
+
+/* Google Drive folders and media inside the Albums screen */
+.dalb{margin:28px 0 34px;padding:0 16px}
+.dalb .sh{margin:0 0 12px;padding:0}
+.dalb .sh h3{font-size:16px}
+.dalb .sh .mu{font-size:11px}
+.dalb-empty{padding:28px 14px;text-align:center;color:var(--mu);font-size:13px;border:1px solid var(--sh);border-radius:18px}
+.dalb-account{display:flex;align-items:center;gap:12px;width:100%;padding:14px 12px;margin:8px 0;border:1px solid var(--sh);border-radius:16px;background:var(--sf);color:var(--tx);text-align:left}
+.dalb-account>span:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.dalb-account b{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.dalb-account small{font-size:11px;color:var(--mu)}
+.dalb-drive-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:11px;background:var(--pill);font-size:20px}
+.dalb-toolbar{display:flex;align-items:center;gap:8px;margin:12px 0}
+.dalb-crumbs{display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:auto;white-space:nowrap;scrollbar-width:none}
+.dalb-crumb{border:0;background:none;color:var(--mu);font-size:12px;padding:6px 2px}
+.dalb-path{font-size:12px;font-weight:600;margin:4px 0 10px;color:var(--mu)}
+.dalb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.dalb-folder{grid-column:1/-1;display:flex;align-items:center;gap:10px;min-height:60px;padding:10px 12px;border:1px solid var(--sh);border-radius:15px;background:var(--sf);color:var(--tx);cursor:pointer}
+.dalb-folder-icon{font-size:22px;flex:none}
+.dalb-folder-name{flex:1;min-width:0;font-size:13px;font-weight:500;overflow-wrap:anywhere}
+.dalb-more{width:34px;height:34px;border:0;border-radius:50%;background:var(--pill);color:var(--tx);font-size:21px;line-height:1}
+.dalb-media{position:relative;overflow:hidden;border-radius:16px;background:var(--sf);cursor:pointer;break-inside:avoid}
+.dalb-media img{display:block;width:100%;height:auto;min-height:80px;object-fit:cover;opacity:0;transition:opacity .4s var(--e)}
+.dalb-media img.l{opacity:1}
+.dalb-media .pb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:rgba(0,0,0,.45);color:#fff}
+.dalb-moreload{display:block;width:100%;margin:14px 0}
+@media(min-width:700px){.dalb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.dalb-folder{grid-column:span 1}}
