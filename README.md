@@ -28,7 +28,7 @@ Buka `preview.html` (satu file, tanpa server/Supabase): login (isi email/passwor
 `manifest.webmanifest`, `sw.js`, `icons/` (ikon buatan sendiri; ganti dengan logo resmi bila ada). `assets/demo/` = salinan foto demo yang tertanam di `app.js` (tidak dipakai kode).
 
 ## Baru
-`features.js` (kuota, kelompok otomatis, duplikat, perangkat), `admin.html`, `supabase/migrations/003_cloud_foundation.sql`, `capacitor.config.json` + `docs/MOBILE.md`. Login Google & cakupan fitur: lihat `docs/SETUP.md` bagian 5-6.
+`features.js` (kuota, kelompok otomatis, duplikat), `admin.html`, `supabase/migrations/003_cloud_foundation.sql`, `capacitor.config.json` + `docs/MOBILE.md`. Login Google & cakupan fitur: lihat `docs/SETUP.md` bagian 5-6.
 
 ## Galeri kalender & preview foto
 `gallery.js` + `gallery.css`:
@@ -96,13 +96,9 @@ Satu font (`--font`) dan satu skala ukuran: **12** keterangan/badge, **13** labe
 - **Menu Upload**: bila ada Drive terhubung, ikon upload menampilkan *From this device* dan *From Google Drive*. Impor memakai pemilih file bawaan MIKA dan Drive API melalui Edge Function (lihat `docs/SETUP.md` bagian 8). Fungsi: `uploadMenu`, `D.imp`, `D.doImport` di `drive.js`; aksi server `list_media`, `import_info`, `import_download`, `import_thumb`.
 - **Streaming video Drive**: URL stream kini terikat ke akun Drive dan membawa tipe MIME agar Safari/Chrome memutar dengan benar.
 
-## Galeri Google Drive langsung
-`drive.js` + `supabase/functions/drive/index.ts`:
-- Profile → Google Drive → **Open gallery** membuka tampilan baca-saja dari folder Google Drive.
-- Struktur folder/subfolder, nama, dan breadcrumb mengikuti Google Drive; masuk ke subfolder untuk melihat isinya.
-- Foto diambil langsung dari Drive untuk thumbnail dan pratinjau; tidak disalin ke Supabase.
-- Fitur Import Google Drive tetap terpisah. Panduan penerapan: `docs/UPDATE-08.md`.
-
-
-### Update 09 — Google Drive Gallery
-Lihat `docs/UPDATE-09.md` untuk tampilan galeri langsung, preview foto MIKA, pembuatan/rename folder, dan pembaruan izin OAuth Google Drive.
+## Google Drive Albums (Update 10)
+- Folder dan subfolder Google Drive dibuka langsung dari halaman **Albums** MIKA; hierarki dan nama folder mengikuti Google Drive.
+- Foto dan video ditampilkan serta dipratinjau langsung dari Google Drive. File tidak disalin ke Supabase hanya karena dibuka.
+- Folder dapat dibuat, diganti nama, atau dipindahkan ke Google Drive Trash (termasuk isinya).
+- Pengaturan koneksi, izin OAuth, akun default, dan backup tetap ada di Profile → Google Drive. Tidak ada lagi halaman terpisah atau tombol Open gallery.
+- Modul baru: `drive-albums.js`; cache PWA dinaikkan ke `mika-v15`. Deploy ulang Edge Function `drive` setelah update.
