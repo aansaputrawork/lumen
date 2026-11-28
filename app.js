@@ -250,7 +250,9 @@ function render0(){
  const screenClass=`scr${same?" st0":""}${S.selOn?" sm":""}${["album","albsm","albdrive"].includes(v)?" album-detail-screen":""}`;
  const _n=`<div class="${screenClass}" id=scr>${S.demo&&v==="home"?'<div class=mu style="text-align:center;font-size:12px;padding-top:6px">Sample photos. Your own uploads replace them.</div>':""}${h}</div>${S.selOn?selBar():nav()}`;
  if(same&&S._n===_n&&S._routeHash===routeHash){window.DriveAlbums?.mount();return}
- const keep=same&&oldScreen?{t:oldScreen.scrollTop,h:[...oldScreen.querySelectorAll(".hs,.pills")].map(el=>el.scrollLeft)}:null;
+ const snapshot=el=>({t:el.scrollTop,h:[...el.querySelectorAll(".hs,.pills")].map(x=>x.scrollLeft)});
+ if(oldScreen&&S._v==="alb"&&v!=="alb")S._albumsScroll=snapshot(oldScreen);
+ const keep=same&&oldScreen?snapshot(oldScreen):v==="alb"?S._albumsScroll:null;
  S._v=v;S._n=_n;S._routeHash=routeHash;
  document.body.classList.toggle("hm",["home","alb","me","map"].includes(v));
  if(same&&v==="alb"&&oldScreen?.querySelector("[data-album-track]")){
@@ -301,6 +303,11 @@ function render0(){
  }else app.innerHTML=_n;
  bind();
  if(keep){const screen=document.getElementById("scr");screen.scrollTop=keep.t;[...screen.querySelectorAll(".hs,.pills")].forEach((el,i)=>{if(el.scrollLeft!==(keep.h[i]||0)){el.style.scrollBehavior="auto";el.scrollLeft=keep.h[i]||0;el.style.scrollBehavior=""}})}
+ if(v==="alb"&&!same&&keep){
+  const screen=document.getElementById("scr");
+  const restore=()=>{if(S.view==="alb"&&screen.isConnected)screen.scrollTop=keep.t};
+  requestAnimationFrame(()=>{restore();requestAnimationFrame(restore)});
+ }
  if(location.hash.slice(1)!==routeHash){try{location.hash=routeHash}catch(e){}}
 }
 function bind(){
