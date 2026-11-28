@@ -204,7 +204,7 @@
   return detailHeader('<button class=ic data-dalb=back aria-label="Back">' + ico("back") + '</button>',
    '<button class=ic data-dalb=new aria-label="New folder">' + ico("plus") + '</button>') +
    detailHero(id, folder.name, "", '<div data-drive-info><div class=mu>Google Drive</div></div>',
-    `<button class=chip data-dalb=cover>Change Cover</button>${folder.id === "root" ? "" : '<button class=chip data-dalb=manage>Manage</button>'}`) +
+    `${folder.id === "root" ? '<button class=chip data-dalb=cover>Change Cover</button>' : '<button class=chip data-dalb=manage>Manage</button>'}`) +
    '<div data-drive-detail><div class=gp style="padding:4px 16px;margin:0 0 24px" data-drive-subfolders></div><div class=dalb-grid></div><div data-drive-status></div></div>';
  }
 
