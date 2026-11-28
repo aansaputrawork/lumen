@@ -126,11 +126,28 @@ async function exifDate(f){try{if(!/jpe?g/i.test(f.type))return 0;const d=new Da
 async function mkThumb(f){try{const bm=await createImageBitmap(f),k=Math.min(1,900/Math.max(bm.width,bm.height)),c=document.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);const b=await new Promise(r=>c.toBlob(r,"image/jpeg",.8));return{file:Object.assign(new File([b],"t_"+f.name+".jpg",{type:"image/jpeg"}),{_th:1}),w:bm.width,h:bm.height}}catch(e){return null}}
 async function purge(l){for(const p of l){try{await col("photos").doc(p.id).delete()}catch(e){}try{await assets.delete(p.aid)}catch(e){}if(p.tid)try{await assets.delete(p.tid)}catch(e){}}}
 function flip(fn){const f=()=>app.querySelectorAll(".mi[data-id]"),bf=new Map(),screen=document.getElementById("scr"),top=screen?.scrollTop||0,view=S.view;f().forEach(e=>bf.set(e.dataset.id,e.getBoundingClientRect()));fn();if(S.view!==view)return;const next=document.getElementById("scr");if(next)next.scrollTop=top;if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;f().forEach(e=>{const b=bf.get(e.dataset.id);if(!b)return;const a=e.getBoundingClientRect(),dx=b.left-a.left,dy=b.top-a.top;if(dx||dy)e.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:"none"}],{duration:260,easing:"cubic-bezier(.22,1,.36,1)"})})}
-function gone(ids,fn){fn()}
+function gone(ids,fn){
+ const screen=document.getElementById("scr"),grid=screen?.querySelector(".mas");
+ if(!grid||matchMedia("(prefers-reduced-motion: reduce)").matches){fn();return}
+ const nodes=[...grid.querySelectorAll(".mi[data-id]")],keys=new Set([...ids].map(String)),removed=nodes.filter(e=>keys.has(e.dataset.id));
+ if(!removed.length){fn();return}
+ const positions=new Map(nodes.filter(e=>!keys.has(e.dataset.id)).map(e=>[e.dataset.id,e.getBoundingClientRect()]));
+ // Animate only the deleted tiles; retain all surviving image elements.
+ removed.forEach(e=>{e.style.pointerEvents="none";e.animate([{opacity:1,transform:"scale(1)"},{opacity:0,transform:"scale(.82)"}],{duration:180,easing:"ease-in",fill:"forwards"})});
+ setTimeout(()=>{
+  fn();
+  if(!grid.isConnected)return;
+  grid.querySelectorAll(".mi[data-id]").forEach(e=>{
+   const old=positions.get(e.dataset.id);if(!old)return;
+   const rect=e.getBoundingClientRect(),dx=old.left-rect.left,dy=old.top-rect.top;
+   if(Math.abs(dx)+Math.abs(dy)>1)e.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:"none"}],{duration:300,easing:"cubic-bezier(.22,1,.36,1)"});
+  });
+ },180);
+}
 function delPhotos(list,exit){const ids=new Set(list.map(p=>p.id)),now=Date.now();
- gone(ids,()=>{S.photos=S.photos.filter(p=>!ids.has(p.id));S.trash=[...S.trash.filter(p=>!ids.has(p.id)),...list.map(p=>({...p,del:now}))];if(exit){S.selOn=false;S.sel.clear()}render()});
+ gone(ids,()=>{S.photos=S.photos.filter(p=>!ids.has(p.id));S.trash=[...S.trash.filter(p=>!ids.has(p.id)),...list.map(p=>({...p,del:now}))];if(exit){S.selOn=false;S.sel.clear()}render();
  if(!S.demo)list.forEach(p=>save(null,p.id,{...p,del:now},"photos").catch(()=>{}));
- toast(list.length>1?list.length+" items moved to Recently Deleted":"Moved to Recently Deleted",{l:"Undo",f:()=>{S.trash=S.trash.filter(p=>!ids.has(p.id));S.photos=[...S.photos.filter(p=>!ids.has(p.id)),...list];render();if(!S.demo)list.forEach(p=>save(null,p.id,p,"photos").catch(()=>{}))}})}
+ toast(list.length>1?list.length+" items moved to Recently Deleted":"Moved to Recently Deleted",{l:"Undo",f:()=>{S.trash=S.trash.filter(p=>!ids.has(p.id));S.photos=[...S.photos.filter(p=>!ids.has(p.id)),...list];render();if(!S.demo)list.forEach(p=>save(null,p.id,p,"photos").catch(()=>{}))}})});}
 const EXT={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif","image/svg+xml":"svg","image/svg":"svg","video/mp4":"mp4","video/webm":"webm","video/quicktime":"mov"};
 const fname=p=>{let n=(p.name||"photo").replace(/[\\\/:*?"<>|]/g,"_");if(!/\.(jpe?g|png|webp|gif|svg|mp4|webm|mov)$/i.test(n))n+="."+(EXT[p.type]||"jpg");return n};
 async function dlSave(filename,data,album){try{if(!window.LDL||typeof LDL.save!="function")throw new Error("Download service is not ready");const blob=data instanceof Blob?data:new Blob([data]);const r=await LDL.save(blob,filename,{album:album||"MIKA"});if(r&&r.msg)toast(r.msg);if(r&&r.kind==="pending")return false;if(r&&r.kind==="cancelled")return false;return !!(r&&(r.kind==="saved"||r.kind==="shared"))}catch(e){if(e&&e.name==="AbortError")return false;toast(e&&e.code==="too_large"?"File is too large":"Couldn't save: "+(e&&e.message||"unknown error"));return false}}
