@@ -148,10 +148,10 @@ window.LViewer=function(id,list,srcEl,opts={}){
  let i=Math.max(0,list.findIndex(p=>p.id==id));
  const src=srcEl||document.querySelector(`.mi[data-id="${id}"] img,.mi[data-id="${id}"] video`);
  const slide=p=>`<div class=sl><div class=pw>${isVid(p)
-  ?`<video ${p.sp!="drive"&&p.url?`src="${p.url}#t=0.1" preload=metadata`:"preload=none"} poster="${T(p)}" data-vt="${esc(p.id)}" playsinline></video><button class=vpl data-vp aria-label="Play video">${ico("play",30,"currentColor")}</button><input class=vsk type=range min=0 max=1000 value=0 step=1 aria-label="Seek">`
-  :`<img src="${T(p)}" data-full="${p.url}" data-z draggable="false" alt="">`}</div></div>`;
+  ?`<video preload="none" poster="${T(p)}" data-vt="${esc(p.id)}" playsinline></video><button class=vpl data-vp aria-label="Play video">${ico("play",30,"currentColor")}</button><input class=vsk type=range min=0 max=1000 value=0 step=1 aria-label="Seek">`
+  :`<img src="${T(p)}" loading="lazy" decoding="async" data-full="${p.url}" data-z draggable="false" alt="">`}</div></div>`;
  // thumbnail slider: video memakai poster (frame video) + tanda play
- const thumb=(p,k)=>`<button class="ft${k==i?" a":""}" data-k="${k}" aria-label="${isVid(p)?"Video":"Photo"} ${k+1}"><img src="${T(p)}"${isVid(p)?` data-vt="${esc(p.id)}"`:""} loading=lazy draggable="false" alt="">${isVid(p)?`<span class="fv ov">${ico("play",11,"currentColor")}</span>`:""}</button>`;
+ const thumb=(p,k)=>`<button class="ft${k==i?" a":""}" data-k="${k}" aria-label="${isVid(p)?"Video":"Photo"} ${k+1}"><img src="${T(p)}"${isVid(p)?` data-vt="${esc(p.id)}"`:""} loading=lazy decoding="async" draggable="false" alt="">${isVid(p)?`<span class="fv ov">${ico("play",11,"currentColor")}</span>`:""}</button>`;
  const multi=list.length>1&&list.length<=200;
  const v=$(`<div class="view pv${multi?" ms":""}"><div class=pv-bgw></div>
   <div class="pv-top pc"><button class=pv-b data-c aria-label="Close">${ico("x",22)}</button><div class=pv-t><b id=t></b><span id=m></span></div><button class=pv-cat id=pcat aria-label="Photo category"></button></div>
