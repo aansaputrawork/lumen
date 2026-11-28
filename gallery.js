@@ -348,6 +348,6 @@ window.LViewer=function(id,list,srcEl,opts={}){
    const u=p.url?new URL(p.url,location.href).href:"";if(navigator.share&&u){await navigator.share({title:p.name,url:u});return}if(u&&navigator.clipboard){await navigator.clipboard.writeText(u);toast("Link copied")}else toast("Sharing isn't available here")
   }catch(e){if(e&&e.name=="AbortError")return;toast("Couldn't share this file: "+(e.message||"unknown error"))}};
  v.querySelector("[data-t]").onclick=()=>{const p=cur(),vid=isVid(p);pauseAll();
-  confirmDelete([p],()=>{v.remove();delPhotos([p])},{title:vid?"Delete video?":"Delete photo?",sub:"It will be moved to Recently Deleted."})};
+  confirmDelete([p],()=>{closeP();delPhotos([p])},{title:vid?"Delete video?":"Delete photo?",sub:"It will be moved to Recently Deleted."})};
 };
 })();
