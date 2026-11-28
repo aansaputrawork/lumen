@@ -251,8 +251,12 @@ function render0(){
  const _n=`<div class="${screenClass}" id=scr>${S.demo&&v==="home"?'<div class=mu style="text-align:center;font-size:12px;padding-top:6px">Sample photos. Your own uploads replace them.</div>':""}${h}</div>${S.selOn?selBar():nav()}`;
  if(same&&S._n===_n&&S._routeHash===routeHash){window.DriveAlbums?.mount();return}
  const snapshot=el=>({t:el.scrollTop,h:[...el.querySelectorAll(".hs,.pills")].map(x=>x.scrollLeft)});
- if(oldScreen&&S._v==="alb"&&v!=="alb")S._albumsScroll=snapshot(oldScreen);
- const keep=same&&oldScreen?snapshot(oldScreen):v==="alb"?S._albumsScroll:null;
+ const scrollKey=JSON.stringify([v,v==="albdrive"?routeHash:v==="album"?S.album:v==="albsm"?S.sm?.key||S.sm?.t:v==="col"?[S.year,S.mon]:v==="me"?S.profileSection||"":v==="home"?S.year:""]);
+ const scrolls=S._screenScrolls||(S._screenScrolls=new Map());
+ const sameScroll=S._scrollKey===scrollKey;
+ if(oldScreen&&S._scrollKey)scrolls.set(S._scrollKey,snapshot(oldScreen));
+ const keep=scrolls.get(scrollKey)||null;
+ S._scrollKey=scrollKey;
  S._v=v;S._n=_n;S._routeHash=routeHash;
  document.body.classList.toggle("hm",["home","alb","me","map"].includes(v));
  if(same&&v==="alb"&&oldScreen?.querySelector("[data-album-track]")){
@@ -303,9 +307,9 @@ function render0(){
  }else app.innerHTML=_n;
  bind();
  if(keep){const screen=document.getElementById("scr");screen.scrollTop=keep.t;[...screen.querySelectorAll(".hs,.pills")].forEach((el,i)=>{if(el.scrollLeft!==(keep.h[i]||0)){el.style.scrollBehavior="auto";el.scrollLeft=keep.h[i]||0;el.style.scrollBehavior=""}})}
- if(v==="alb"&&!same&&keep){
+ if(!sameScroll&&keep){
   const screen=document.getElementById("scr");
-  const restore=()=>{if(S.view==="alb"&&screen.isConnected)screen.scrollTop=keep.t};
+  const restore=()=>{if(S._scrollKey===scrollKey&&screen.isConnected)screen.scrollTop=keep.t};
   requestAnimationFrame(()=>{restore();requestAnimationFrame(restore)});
  }
  if(location.hash.slice(1)!==routeHash){try{location.hash=routeHash}catch(e){}}
@@ -318,7 +322,7 @@ function bind(){
   else if(S.sm?.key)AlbumCovers.edit(AlbumCovers.key("category",S.sm.key),()=>S.photos.filter(S.sm.f));
  });
 
- document.querySelectorAll("[data-profile-section]").forEach(e=>e.onclick=()=>{S.profileSection=e.dataset.profileSection;render();document.getElementById("scr").scrollTop=0});
+ document.querySelectorAll("[data-profile-section]").forEach(e=>e.onclick=()=>{S.profileSection=e.dataset.profileSection;render()});
  const AL={sort:"Sort",newalb:"New album",up:"Upload",menu:"More options",albc:"Album options"};
  app.querySelectorAll("button").forEach(b=>{if(!b.textContent.trim()&&!b.getAttribute("aria-label"))b.setAttribute("aria-label",b.title||(b.dataset.go?(b.dataset.go=="search"?"Search":"Back"):Object.keys(b.dataset).map(k=>AL[k]).find(Boolean)||"Button"))});
  const sc=document.getElementById("scr"),$$=(s,f)=>app.querySelectorAll(s).forEach(f);
@@ -493,6 +497,7 @@ let _r=0;const rr=()=>{if(_r)return;_r=requestAnimationFrame(()=>{_r=0;render()}
  S.trash=[];
  S.me={name:"",email:""};
  S.prefs={notif:true};
+ S._screenScrolls=new Map();S._scrollKey=null;
  S.ready=false;
  render();
 
