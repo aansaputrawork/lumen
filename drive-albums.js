@@ -4,7 +4,7 @@
  if (!D) return;
  const folderMime = "application/vnd.google-apps.folder";
  const pages = new Map(), routes = new Map(), thumbnails = new Map(), observers = new Map();
- const queue = [];
+ const queue = [], pendingThumbs = new Map();
  let running = 0, account = "", route = null, rootSlot, detailSlot;
  const drives = () => D.albumDrives();
  const identity = (conn, id) => JSON.stringify([conn, id]);
@@ -65,6 +65,8 @@
  async function thumb(conn, id) {
   const key = identity(conn, id);
   if (thumbnails.has(key)) return thumbnails.get(key);
+  if (pendingThumbs.has(key)) return pendingThumbs.get(key);
+  const task = (async () => {
   const blob = await D.albumThumb(conn, id);
   // Keep compressed thumbnails in a bounded memory cache. Visible images own their data URLs.
   const src = await new Promise((resolve, reject) => {
@@ -76,6 +78,9 @@
   thumbnails.set(key, src);
   if (thumbnails.size > 160) thumbnails.delete(thumbnails.keys().next().value);
   return src;
+  })();
+  pendingThumbs.set(key, task);
+  try { return await task; } finally { pendingThumbs.delete(key); }
  }
 
  async function folderThumb(conn, id) {
@@ -95,12 +100,19 @@
    if (!host.isConnected) { observer.disconnect(); observers.delete(host); }
   }
   let observer = observers.get(container);
+  if (container.dataset.driveObserverAccount !== conn) {
+   observer?.disconnect();
+   observers.delete(container);
+   observer = null;
+   container.dataset.driveObserverAccount = conn;
+   container.querySelectorAll('[data-observed]').forEach(n => delete n.dataset.observed);
+  }
   const request = node => {
    queue.push({node, job: async () => {
     const image = node.matches("img") ? node : node.querySelector("img");
     const folder = node.dataset.driveFolderThumb, id = node.dataset.driveThumb;
     const src = folder ? await folderThumb(conn, folder) : await thumb(conn, id);
-    if (!src || !image?.isConnected) return;
+    if (!src || !image?.isConnected || container.dataset.driveObserverAccount !== conn) return;
     if (image.dataset.coverId) {
      image.dataset.coverFallback = src;
      AlbumCovers.paint();
@@ -158,6 +170,7 @@
    if (!ds.some(d => d.id === account)) account = (ds.find(d => d.is_default) || ds[0]).id;
    if (rootSlot.dataset.account !== account) {
     rootSlot.dataset.account = account;
+    rootSlot._driveHTML = null;
     setContent(rootSlot, '<div class=sh><h3>Gdrive Albums</h3><div data-drive-accounts></div></div><div class=gp style="padding:4px 16px;margin-top:0" data-drive-folders></div><div data-drive-status></div>');
    }
    const p = page(account, "root");
