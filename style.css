@@ -379,3 +379,6 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 /* Keep detail toolbar actions horizontal on web and native. */
 .top.detail-edge>.detail-actions,.dalb-detail-top>.detail-actions{display:flex;flex-direction:row;align-items:center;justify-content:flex-end;flex-wrap:nowrap;gap:8px;min-width:0}
 .top.detail-edge>.detail-actions>button,.dalb-detail-top>.detail-actions>button{flex:0 0 auto}
+
+/* Match Home year selector typography to Places heading. */
+.top.ht .yl select#yr{font:inherit;letter-spacing:inherit;line-height:inherit;-webkit-text-size-adjust:100%;text-size-adjust:100%}
