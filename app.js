@@ -255,6 +255,30 @@ function render0(){
    }else content.insertBefore(node,position);
   }
   while(position&&!persistent.has(position)){const after=position.nextElementSibling;position.remove();position=after}
+ }else if(same&&S._routeHash===routeHash&&["album","albsm"].includes(v)&&oldScreen?.querySelector(".mas")){
+  const tpl=document.createElement("template");tpl.innerHTML=_n;
+  const fresh=tpl.content.querySelector("#scr"),oldGrid=oldScreen.querySelector(".mas"),newGrid=fresh.querySelector(".mas");
+  if(newGrid&&oldGrid.parentElement===oldScreen&&newGrid.parentElement===fresh){
+   const existing=new Map([...oldGrid.querySelectorAll(":scope > .mi[data-id]")].map(node=>[node.dataset.id,node]));
+   let cursor=oldGrid.firstElementChild;
+   for(const node of [...newGrid.children]){
+    const prior=existing.get(node.dataset.id);
+    if(prior&&prior.isEqualNode(node)){existing.delete(node.dataset.id);if(prior!==cursor)oldGrid.insertBefore(prior,cursor);cursor=prior.nextElementSibling}
+    else if(prior&&prior.querySelector("img")?.getAttribute("src")===node.querySelector("img")?.getAttribute("src")&&prior.querySelector("img")){
+     existing.delete(node.dataset.id);prior.className=node.className;if(prior!==cursor)oldGrid.insertBefore(prior,cursor);cursor=prior.nextElementSibling
+    }else{oldGrid.insertBefore(node,cursor)}
+   }
+   existing.forEach(node=>node.remove());
+   oldScreen.className=screenClass;
+   // Keep the loaded grid connected; replace only its surrounding siblings.
+   const before=[...fresh.children].slice(0,[...fresh.children].indexOf(newGrid));
+   const after=[...fresh.children].slice([...fresh.children].indexOf(newGrid)+1);
+   for(const child of [...oldScreen.children])if(child!==oldGrid)child.remove();
+   for(const child of before)oldScreen.insertBefore(child,oldGrid);
+   for(const child of after)oldScreen.append(child);
+   while(oldScreen.nextSibling)oldScreen.nextSibling.remove();
+   app.insertAdjacentHTML("beforeend",S.selOn?selBar():nav());
+  }else app.innerHTML=_n;
  }else app.innerHTML=_n;
  bind();
  if(keep){const screen=document.getElementById("scr");screen.scrollTop=keep.t;[...screen.querySelectorAll(".hs,.pills")].forEach((el,i)=>{if(el.scrollLeft!==(keep.h[i]||0)){el.style.scrollBehavior="auto";el.scrollLeft=keep.h[i]||0;el.style.scrollBehavior=""}})}
