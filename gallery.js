@@ -264,10 +264,11 @@ window.LViewer=function(id,list,srcEl,opts={}){
   if(!el)return null;const r=el.getBoundingClientRect();
   return r.width<8||r.bottom<0||r.top>innerHeight||r.right<0||r.left>innerWidth?null:el};
  const rel=(a,b)=>({x:a.left+a.width/2-(b.left+b.width/2),y:a.top+a.height/2-(b.top+b.height/2),s:a.width/b.width});
- const closeP=()=>{
+ const closeP=(instant=false)=>{
   if(closing)return;closing=1;removeEventListener("keydown",kd);removeEventListener("resize",fit);pauseAll();
   const im=sl[i]&&sl[i].querySelector("img,video"),tg=home(cur()),from=im&&im.getBoundingClientRect();
   const lit=document.querySelector(".dy.on");let cleaned=0;const fin=()=>{if(cleaned)return;cleaned=1;fallbackVideoUrls.forEach(u=>{try{URL.revokeObjectURL(u)}catch(_){}});list.forEach(p=>{if(p._fu){URL.revokeObjectURL(p._fu);p._fu="";if(p.sp=="drive")p._blob=null}});if(v.isConnected)v.remove();if(lit)lit.classList.remove("on");S.selDay=null;if(typeof opts.onClose==="function")try{opts.onClose()}catch(_){}};
+  if(instant===true){fin();return}
   // hapus semua efek tarik/zoom supaya posisi akhir bisa diukur
   st.style.transition="none";st.style.transform="";if(im)im.style.transform="";
   v.classList.add("pcl");v.style.background="transparent";v.style.pointerEvents="none";
@@ -348,6 +349,6 @@ window.LViewer=function(id,list,srcEl,opts={}){
    const u=p.url?new URL(p.url,location.href).href:"";if(navigator.share&&u){await navigator.share({title:p.name,url:u});return}if(u&&navigator.clipboard){await navigator.clipboard.writeText(u);toast("Link copied")}else toast("Sharing isn't available here")
   }catch(e){if(e&&e.name=="AbortError")return;toast("Couldn't share this file: "+(e.message||"unknown error"))}};
  v.querySelector("[data-t]").onclick=()=>{const p=cur(),vid=isVid(p);pauseAll();
-  confirmDelete([p],()=>{closeP();delPhotos([p])},{title:vid?"Delete video?":"Delete photo?",sub:"It will be moved to Recently Deleted."})};
+  confirmDelete([p],()=>{closeP(true);delPhotos([p])},{title:vid?"Delete video?":"Delete photo?",sub:"It will be moved to Recently Deleted."})};
 };
 })();
