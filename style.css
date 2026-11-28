@@ -381,4 +381,4 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .top.detail-edge>.detail-actions>button,.dalb-detail-top>.detail-actions>button{flex:0 0 auto}
 
 /* Match Home year selector typography to Places heading. */
-.top.ht .yl select#yr{font:inherit;letter-spacing:inherit;line-height:inherit;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.top.ht .yl select#yr{font:inherit;font-size:28px!important;font-weight:700;letter-spacing:inherit;line-height:inherit;-webkit-text-size-adjust:100%;text-size-adjust:100%}
