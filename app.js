@@ -36,7 +36,7 @@ function vtGrab(src,cors){return new Promise((ok,no)=>{const v=document.createEl
  v.addEventListener("loadeddata",()=>{try{const d=isFinite(v.duration)&&v.duration>0?v.duration:1;v.currentTime=Math.min(.5,d/2)}catch(e){draw()}});
  v.addEventListener("seeked",()=>requestAnimationFrame(draw));
  tm=setTimeout(()=>end(new Error("timeout")),12000);v.src=src})}
-function vtPaint(id,url,w,h){document.querySelectorAll(`[data-vt="${id}"]`).forEach(e=>{if(e.tagName=="IMG"){e.src=url;if(w&&h)e.style.aspectRatio=w+"/"+h}else e.style.backgroundImage=`url('${url}')`})}
+function vtPaint(id,url,w,h){document.querySelectorAll(`[data-vt="${id}"]`).forEach(e=>{if(e.tagName=="IMG"){if(e.getAttribute("src")!==url)e.src=url;if(w&&h)e.style.aspectRatio=w+"/"+h}else e.style.backgroundImage=`url('${url}')`})}
 function vtFail(id){const p=S.photos.find(x=>x.id==id);if(!p||p.sp=="drive")return;document.querySelectorAll(`img[data-vt="${id}"]`).forEach(e=>{const v=document.createElement("video");v.className=e.className;v.setAttribute("style",e.getAttribute("style")||"");v.dataset.vt=id;v.muted=true;v.playsInline=true;v.preload="metadata";v.src=p.url+"#t=0.1";v.addEventListener("loadedmetadata",()=>v.classList.add("l"));e.replaceWith(v)})}
 
 function vtNext(){
@@ -260,6 +260,8 @@ function render0(){
   const fresh=tpl.content.querySelector("#scr"),oldGrid=oldScreen.querySelector(".mas"),newGrid=fresh.querySelector(".mas");
   if(newGrid&&oldGrid.parentElement===oldScreen&&newGrid.parentElement===fresh){
    const existing=new Map([...oldGrid.querySelectorAll(":scope > .mi[data-id]")].map(node=>[node.dataset.id,node]));
+   const wanted=new Set([...newGrid.children].map(node=>node.dataset.id));
+   for(const [id,node] of existing)if(!wanted.has(id)){node.remove();existing.delete(id)}
    let cursor=oldGrid.firstElementChild;
    for(const node of [...newGrid.children]){
     const prior=existing.get(node.dataset.id);
