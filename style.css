@@ -367,3 +367,11 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .card.al.album-slide b.album-title{z-index:2;font-family:var(--font);font-size:var(--title-size)!important;font-weight:800;letter-spacing:-.045em;line-height:.9;bottom:-.1em;left:0;right:0;white-space:nowrap;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.3))!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent;text-shadow:none;animation:none!important;transition:none!important}
 .card.al.album-slide .glass{z-index:3}
 .hero .detail-cover{width:104px;height:104px;flex:none;border-radius:20px!important;object-fit:cover}
+
+/* UPDATE-08: stable list layout and lightweight interaction motion. */
+.gp>.ar{animation:none!important;min-width:0;min-height:64px;touch-action:manipulation}
+.ar>span{min-width:0;overflow-wrap:anywhere}
+.ar>button{flex-shrink:0}
+.hs,.pills{scroll-behavior:auto}
+@media(prefers-reduced-motion:no-preference){.ar,.nav button,.chip,.ic{transition:background-color 160ms ease,opacity 160ms ease,transform 180ms var(--e)}.nav button:active,.chip:active,.ic:active{transform:scale(.96)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
