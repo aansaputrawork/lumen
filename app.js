@@ -203,9 +203,6 @@ function albUI(){IC.sort="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4";
  const extra=`<div class=sh><h3>Recent</h3><span class=mu data-sm=all style="cursor:pointer">${S.photos.length} ›</span></div><div class="hs sl3">${rcs}</div><div class=sh><h3>Media Types</h3></div><div class=gp style="padding:4px 16px;margin-top:0">${mt}</div><section class=dalb data-drive-root></section>${ct?`<div class=sh><h3>Categories</h3></div><div class=gp style="padding:4px 16px;margin-top:0">${ct}</div>`:""}<div class=sh style="margin-top:48px"><h3>Utilities</h3></div><div class=gp style="padding:4px 16px;margin-top:0"><div class=ar data-trash><span class=ph style="display:grid;place-items:center;color:var(--mu)">${ico("tr",20)}</span><span style="flex:1">Recently Deleted</span><span class=mu>${S.trash.length} \u203a</span></div></div>`;
  return `<div class="top ht"><span class=yl>Albums</span><span style="display:flex"><button class=cb data-sort>${ico("sort",26)}</button><button class=cb data-up>${ico("up",26)}</button><button class=cb data-newalb>${ico("plus",28)}</button></span></div><div class=mc><div class="hs sl2" data-album-track>${collectionCards[2]}${big}<div class="card nw pt" data-card-key=new data-newalb><div style="text-align:center">${ico("plus",26)}<div>New album</div></div></div></div>${extra}</div>`}
 function render(){const v=S.view;if(S._v!=null&&S._v!==v&&false&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.startViewTransition(()=>render0());return}render0()}
-const screenScrollMemory=new Map();
-let retainedAlbums=null;
-let renderedScrollKey="";
 function render0(){
  if(!S.ready){app.innerHTML=`<div class=empty style="padding-top:40vh">Loading your library…</div>`;return}
  const v=S.view;let h="";if(!["col","album","albsm","albtrash"].includes(v)){S.selOn=false;S.sel.clear()}else if(v=="albtrash"&&!S.selOn)S.selOn=true;
@@ -250,15 +247,10 @@ function render0(){
   <div class=gp><div class=tt>Connected Services</div>${link("drive","Manage connected accounts")}</div><div class=gp><div class=tt>Account</div><div class=row><span class=pfl>${u.photo?`<img src="${u.photo}" alt="">`:`<i>${esc(nm[0].toUpperCase())}</i>`}<span class=pfm><span>Edit profile</span><span class=mu>Photo and name</span></span></span><button class=chip data-pfe>Edit</button></div><div class=row><span>Notifications</span><button class=chip data-pref=notif>${S.prefs.notif!==false?"On":"Off"}</button></div><div class=row><span class=pfl><span class=pfm><span>Photo categories</span><span class=mu>Default for uploads: ${esc(S.prefs.cat||"Auto")}</span></span></span><button class=chip data-pcat>Manage</button></div><div class=row><span>Plan</span><span class=mu>${esc((p=>({Gratis:"Free",Bisnis:"Business"}[p]||p||"Free"))(window.LQ&&LQ.plan))}</span></div><div class=row><span>Upload on Wi-Fi only</span><button class=chip data-pref=wifi>${S.prefs.wifi?"On":"Off"}</button></div><div class=row><span>Duplicate photos</span><button class=chip data-lf=dup>Check</button></div><div class=row style="border:0"><span class=pfm style="min-width:0;overflow-wrap:anywhere"><span>Sign out</span>${u.email?`<span class=mu>${esc(u.email)}</span>`:""}</span><button class=chip data-dr=logout>Sign out</button></div></div></div>`}
  const same=S._v===v,oldScreen=document.getElementById("scr");
  const driveDetail=v==="albdrive", routeHash=driveDetail?DriveAlbums.hash():v;
- const scrollKey=v==="album"?v+":"+S.album:v==="albsm"?v+":"+(S.sm?.key||S.sm?.t||""):v==="col"?v+":"+S.year+":"+S.mon:v==="me"?v+":"+(S.profileSection||""):routeHash;
- const readScroll=el=>({t:el.scrollTop,h:[...el.querySelectorAll(".hs,.pills")].map(x=>x.scrollLeft)});
- if(oldScreen&&renderedScrollKey)screenScrollMemory.set(renderedScrollKey,readScroll(oldScreen));
- if(oldScreen&&renderedScrollKey==="alb"&&v!=="alb")retainedAlbums=oldScreen;
  const screenClass=`scr${same?" st0":""}${S.selOn?" sm":""}${["album","albsm","albdrive"].includes(v)?" album-detail-screen":""}`;
  const _n=`<div class="${screenClass}" id=scr>${S.demo&&v==="home"?'<div class=mu style="text-align:center;font-size:12px;padding-top:6px">Sample photos. Your own uploads replace them.</div>':""}${h}</div>${S.selOn?selBar():nav()}`;
- if(same&&renderedScrollKey===scrollKey&&S._n===_n&&S._routeHash===routeHash){window.DriveAlbums?.mount();return}
- const keep=screenScrollMemory.get(scrollKey)||null;
- renderedScrollKey=scrollKey;
+ if(same&&S._n===_n&&S._routeHash===routeHash){window.DriveAlbums?.mount();return}
+ const keep=same&&oldScreen?{t:oldScreen.scrollTop,h:[...oldScreen.querySelectorAll(".hs,.pills")].map(el=>el.scrollLeft)}:null;
  S._v=v;S._n=_n;S._routeHash=routeHash;
  document.body.classList.toggle("hm",["home","alb","me","map"].includes(v));
  if(same&&v==="alb"&&oldScreen?.querySelector("[data-album-track]")){
@@ -306,23 +298,9 @@ function render0(){
    while(oldScreen.nextSibling)oldScreen.nextSibling.remove();
    app.insertAdjacentHTML("beforeend",S.selOn?selBar():nav());
   }else app.innerHTML=_n;
- }else if(v==="alb"&&!same&&retainedAlbums){
-  const tpl=document.createElement("template");tpl.innerHTML=_n;
-  const fresh=tpl.content.querySelector("#scr");
-  fresh.replaceWith(retainedAlbums);
-  app.replaceChildren(tpl.content);
-  retainedAlbums=null;
-  // Refresh the existing Albums screen in place on the next render.
-  S._n="";
  }else app.innerHTML=_n;
  bind();
  if(keep){const screen=document.getElementById("scr");screen.scrollTop=keep.t;[...screen.querySelectorAll(".hs,.pills")].forEach((el,i)=>{if(el.scrollLeft!==(keep.h[i]||0)){el.style.scrollBehavior="auto";el.scrollLeft=keep.h[i]||0;el.style.scrollBehavior=""}})}
- if(v==="alb"&&!same&&S._albumReturn){
-  const anchor=S._albumReturn;S._albumReturn=null;
-  const screen=document.getElementById("scr");
-  const restore=()=>{if(S.view!=="alb"||!screen.isConnected)return;const row=[...screen.querySelectorAll("[data-sm]")].find(e=>e.dataset.sm===anchor.key&&e.classList.contains("ar"))||[...screen.querySelectorAll("[data-sm]")].find(e=>e.dataset.sm===anchor.key);if(row)screen.scrollTop+=row.getBoundingClientRect().top-screen.getBoundingClientRect().top-anchor.offset};
-  restore();requestAnimationFrame(()=>{restore();requestAnimationFrame(restore)});
- }
  if(location.hash.slice(1)!==routeHash){try{location.hash=routeHash}catch(e){}}
 }
 function bind(){
@@ -333,7 +311,7 @@ function bind(){
   else if(S.sm?.key)AlbumCovers.edit(AlbumCovers.key("category",S.sm.key),()=>S.photos.filter(S.sm.f));
  });
 
- document.querySelectorAll("[data-profile-section]").forEach(e=>e.onclick=()=>{S.profileSection=e.dataset.profileSection;render()});
+ document.querySelectorAll("[data-profile-section]").forEach(e=>e.onclick=()=>{S.profileSection=e.dataset.profileSection;render();document.getElementById("scr").scrollTop=0});
  const AL={sort:"Sort",newalb:"New album",up:"Upload",menu:"More options",albc:"Album options"};
  app.querySelectorAll("button").forEach(b=>{if(!b.textContent.trim()&&!b.getAttribute("aria-label"))b.setAttribute("aria-label",b.title||(b.dataset.go?(b.dataset.go=="search"?"Search":"Back"):Object.keys(b.dataset).map(k=>AL[k]).find(Boolean)||"Button"))});
  const sc=document.getElementById("scr"),$$=(s,f)=>app.querySelectorAll(s).forEach(f);
@@ -363,7 +341,7 @@ function bind(){
  $$("[data-al]",e=>e.onclick=()=>{S.album=e.dataset.al;S.view="album";S.cat="All";render()});
  $$("[data-auto]",e=>e.onclick=()=>{const sm=SM["c_"+e.dataset.auto];if(sm){S.sm={...sm,key:"c_"+e.dataset.auto};S.view="albsm";S.cat="All"}else{S.q=e.dataset.auto;S.view="search"}render()});
  $$("[data-newalb]",e=>e.onclick=()=>{const hasDrive=!!(window.LDrive&&window.LDrive.albumDrives&&window.LDrive.albumDrives().length);if(!hasDrive)return newAlbum();sheet(`<button class=o data-x=album>New MIKA album</button><button class=o data-x=drive>New Google Drive folder</button>`,x=>{if(x==="drive"){if(window.newDriveAlbumFolder)window.newDriveAlbumFolder();else toast("Google Drive folder creation is unavailable")}else if(x==="album")newAlbum()})});
- $("[data-sm]",e=>e.onclick=()=>{if(S.view==="alb")S._albumReturn={key:e.dataset.sm,offset:e.getBoundingClientRect().top-sc.getBoundingClientRect().top};S.sm={...SM[e.dataset.sm],key:e.dataset.sm};S.view="albsm";S.cat="All";render()});
+ $$("[data-sm]",e=>e.onclick=()=>{S.sm={...SM[e.dataset.sm],key:e.dataset.sm};S.view="albsm";S.cat="All";render()});
  $$("[data-albc]",e=>e.onclick=ev=>{ev.stopPropagation();const a=S.albums.find(x=>x.id==e.dataset.albc);sheet(`<button class=o data-x=open>Open</button><button class=o data-x=ren>Rename</button><button class=o data-x=add>Add photos</button><button class=o data-x=del style="color:#e5484d">Delete album</button>`,async x=>{if(x=="open"){S.album=a.id;S.view="album";S.cat="All";render()}if(x=="add")pick(a);if(x=="ren")ask("Rename album",a.name,n=>save(null,a.id,{...a,name:n},"albums"));if(x=="del")await deleteAlbumWithAnimation(a,false);})});
  $$("[data-pref]",e=>e.onclick=async()=>{S.prefs[e.dataset.pref]=e.dataset.pref=="notif"?S.prefs.notif===false:!S.prefs[e.dataset.pref];await save(null,"prefs",S.prefs,"settings");render()});
  $$("[data-albmenu]",e=>e.onclick=()=>{const a=S.albums.find(x=>x.id==S.album);sheet(`<button class=o data-x=ren>Rename</button><button class=o data-x=sel>Select photos… (cover, remove)</button><button class=o data-x=add>Add photos from library</button><button class=o data-x=del style="color:#e5484d">Delete album</button>`,async x=>{if(x=="ren")ask("Rename album",a.name,n=>save(null,a.id,{...a,name:n},"albums"));
