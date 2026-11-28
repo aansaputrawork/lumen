@@ -307,6 +307,12 @@ function render0(){
  }else app.innerHTML=_n;
  bind();
  if(keep){const screen=document.getElementById("scr");screen.scrollTop=keep.t;[...screen.querySelectorAll(".hs,.pills")].forEach((el,i)=>{if(el.scrollLeft!==(keep.h[i]||0)){el.style.scrollBehavior="auto";el.scrollLeft=keep.h[i]||0;el.style.scrollBehavior=""}})}
+ if(v==="alb"&&!same&&S._albumReturn){
+  const anchor=S._albumReturn;S._albumReturn=null;
+  const screen=document.getElementById("scr");
+  const restore=()=>{if(S.view!=="alb"||!screen.isConnected)return;const row=[...screen.querySelectorAll("[data-sm]")].find(e=>e.dataset.sm===anchor.key&&e.classList.contains("ar"))||[...screen.querySelectorAll("[data-sm]")].find(e=>e.dataset.sm===anchor.key);if(row)screen.scrollTop+=row.getBoundingClientRect().top-screen.getBoundingClientRect().top-anchor.offset};
+  restore();requestAnimationFrame(()=>{restore();requestAnimationFrame(restore)});
+ }
  if(location.hash.slice(1)!==routeHash){try{location.hash=routeHash}catch(e){}}
 }
 function bind(){
@@ -347,7 +353,7 @@ function bind(){
  $$("[data-al]",e=>e.onclick=()=>{S.album=e.dataset.al;S.view="album";S.cat="All";render()});
  $$("[data-auto]",e=>e.onclick=()=>{const sm=SM["c_"+e.dataset.auto];if(sm){S.sm={...sm,key:"c_"+e.dataset.auto};S.view="albsm";S.cat="All"}else{S.q=e.dataset.auto;S.view="search"}render()});
  $$("[data-newalb]",e=>e.onclick=()=>{const hasDrive=!!(window.LDrive&&window.LDrive.albumDrives&&window.LDrive.albumDrives().length);if(!hasDrive)return newAlbum();sheet(`<button class=o data-x=album>New MIKA album</button><button class=o data-x=drive>New Google Drive folder</button>`,x=>{if(x==="drive"){if(window.newDriveAlbumFolder)window.newDriveAlbumFolder();else toast("Google Drive folder creation is unavailable")}else if(x==="album")newAlbum()})});
- $$("[data-sm]",e=>e.onclick=()=>{S.sm={...SM[e.dataset.sm],key:e.dataset.sm};S.view="albsm";S.cat="All";render()});
+ $("[data-sm]",e=>e.onclick=()=>{if(S.view==="alb")S._albumReturn={key:e.dataset.sm,offset:e.getBoundingClientRect().top-sc.getBoundingClientRect().top};S.sm={...SM[e.dataset.sm],key:e.dataset.sm};S.view="albsm";S.cat="All";render()});
  $$("[data-albc]",e=>e.onclick=ev=>{ev.stopPropagation();const a=S.albums.find(x=>x.id==e.dataset.albc);sheet(`<button class=o data-x=open>Open</button><button class=o data-x=ren>Rename</button><button class=o data-x=add>Add photos</button><button class=o data-x=del style="color:#e5484d">Delete album</button>`,async x=>{if(x=="open"){S.album=a.id;S.view="album";S.cat="All";render()}if(x=="add")pick(a);if(x=="ren")ask("Rename album",a.name,n=>save(null,a.id,{...a,name:n},"albums"));if(x=="del")await deleteAlbumWithAnimation(a,false);})});
  $$("[data-pref]",e=>e.onclick=async()=>{S.prefs[e.dataset.pref]=e.dataset.pref=="notif"?S.prefs.notif===false:!S.prefs[e.dataset.pref];await save(null,"prefs",S.prefs,"settings");render()});
  $$("[data-albmenu]",e=>e.onclick=()=>{const a=S.albums.find(x=>x.id==S.album);sheet(`<button class=o data-x=ren>Rename</button><button class=o data-x=sel>Select photos… (cover, remove)</button><button class=o data-x=add>Add photos from library</button><button class=o data-x=del style="color:#e5484d">Delete album</button>`,async x=>{if(x=="ren")ask("Rename album",a.name,n=>save(null,a.id,{...a,name:n},"albums"));
