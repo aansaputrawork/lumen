@@ -235,19 +235,23 @@ window.LViewer=function(id,list,srcEl,opts={}){
     const mime=b.type&&b.type.startsWith("video/")?b.type:(p.type&&p.type.startsWith("video/")?p.type:"video/mp4");
     const playable=b.type===mime?b:new Blob([b],{type:mime});
     const u=URL.createObjectURL(playable);fallbackVideoUrls.push(u);vd.src=u;vd.load();
-    await vd.play();failed=0;
+    try{await vd.play();failed=0}catch(e){if(e.name!=="NotAllowedError")throw e;busy(false);vd.controls=true;}
    }catch(e){console.warn("MIKA video fallback failed",{id:p.id,source:p.sp,type:p.type,error:e});fail()}})();
    return fallbackPromise;
   };
   const load=async()=>{if(vd.getAttribute("src"))return true;busy(true);try{vd.src=await vidSrc(p);vd.load();return true}catch(e){console.warn("MIKA video stream URL failed",{id:p.id,source:p.sp,error:e});await viaBlob();return false}};
-  const toggle=async()=>{if(!vd.paused&&!vd.ended)return vd.pause();if(!(await load()))return;busy(true);vd.play().catch(e=>{if(e&&e.name==="NotAllowedError")busy(false);else viaBlob()})};
+  const toggle=async()=>{if(!vd.paused&&!vd.ended)return vd.pause();if(!(await load()))return;busy(true);vd.play().catch(e=>{if(e&&e.name==="NotAllowedError"){busy(false);vd.controls=true;toast("Tap the video play control to start.")}else viaBlob()})};
+  // Resolve protected video URLs before the user taps Play, preserving iOS user activation.
+  const prepare=()=>{if(!vd.getAttribute("src")&&!fallbackPromise)load().then(()=>busy(false)).catch(()=>busy(false))};
+  if(k===i)prepare();
+  bt.addEventListener("pointerdown",prepare,{passive:true});
   ["play","pause","ended"].forEach(ev=>vd.addEventListener(ev,sync));
   ["playing","canplay","pause"].forEach(ev=>vd.addEventListener(ev,()=>busy(false)));["waiting","seeking"].forEach(ev=>vd.addEventListener(ev,()=>{if(!vd.paused)busy(true)}));
   vd.addEventListener("error",()=>{if(!vd.getAttribute("src"))return;console.warn("MIKA video playback error",{id:p.id,source:p.sp,code:vd.error&&vd.error.code,message:vd.error&&vd.error.message});viaBlob()});
   vd.addEventListener("timeupdate",()=>{if(!seeking&&vd.duration)sk.value=Math.round(vd.currentTime/vd.duration*1000)});
   vd.addEventListener("ended",()=>{vd.currentTime=0;sk.value=0});
   bt.onclick=e=>{e.stopPropagation();toggle()};
-  vd.onclick=e=>{e.stopPropagation();toggle()};
+  vd.onclick=e=>{e.stopPropagation();if(!vd.controls)toggle()};
   sk.onclick=e=>e.stopPropagation();
   sk.onpointerdown=async()=>{seeking=1;await load()};sk.onpointerup=sk.onpointercancel=()=>{seeking=0};
   sk.oninput=()=>{if(vd.duration)vd.currentTime=sk.value/1000*vd.duration}});
