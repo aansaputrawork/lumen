@@ -204,6 +204,7 @@ function albUI(){IC.sort="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4";
  return `<div class="top ht"><span class=yl>Albums</span><span style="display:flex"><button class=cb data-sort>${ico("sort",26)}</button><button class=cb data-up>${ico("up",26)}</button><button class=cb data-newalb>${ico("plus",28)}</button></span></div><div class=mc><div class="hs sl2" data-album-track>${collectionCards[2]}${big}<div class="card nw pt" data-card-key=new data-newalb><div style="text-align:center">${ico("plus",26)}<div>New album</div></div></div></div>${extra}</div>`}
 function render(){const v=S.view;if(S._v!=null&&S._v!==v&&false&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.startViewTransition(()=>render0());return}render0()}
 const screenScrollMemory=new Map();
+let retainedAlbums=null;
 let renderedScrollKey="";
 function render0(){
  if(!S.ready){app.innerHTML=`<div class=empty style="padding-top:40vh">Loading your library…</div>`;return}
@@ -252,6 +253,7 @@ function render0(){
  const scrollKey=v==="album"?v+":"+S.album:v==="albsm"?v+":"+(S.sm?.key||S.sm?.t||""):v==="col"?v+":"+S.year+":"+S.mon:v==="me"?v+":"+(S.profileSection||""):routeHash;
  const readScroll=el=>({t:el.scrollTop,h:[...el.querySelectorAll(".hs,.pills")].map(x=>x.scrollLeft)});
  if(oldScreen&&renderedScrollKey)screenScrollMemory.set(renderedScrollKey,readScroll(oldScreen));
+ if(oldScreen&&renderedScrollKey==="alb"&&v!=="alb")retainedAlbums=oldScreen;
  const screenClass=`scr${same?" st0":""}${S.selOn?" sm":""}${["album","albsm","albdrive"].includes(v)?" album-detail-screen":""}`;
  const _n=`<div class="${screenClass}" id=scr>${S.demo&&v==="home"?'<div class=mu style="text-align:center;font-size:12px;padding-top:6px">Sample photos. Your own uploads replace them.</div>':""}${h}</div>${S.selOn?selBar():nav()}`;
  if(same&&renderedScrollKey===scrollKey&&S._n===_n&&S._routeHash===routeHash){window.DriveAlbums?.mount();return}
@@ -304,6 +306,14 @@ function render0(){
    while(oldScreen.nextSibling)oldScreen.nextSibling.remove();
    app.insertAdjacentHTML("beforeend",S.selOn?selBar():nav());
   }else app.innerHTML=_n;
+ }else if(v==="alb"&&!same&&retainedAlbums){
+  const tpl=document.createElement("template");tpl.innerHTML=_n;
+  const fresh=tpl.content.querySelector("#scr");
+  fresh.replaceWith(retainedAlbums);
+  app.replaceChildren(tpl.content);
+  retainedAlbums=null;
+  // Refresh the existing Albums screen in place on the next render.
+  S._n="";
  }else app.innerHTML=_n;
  bind();
  if(keep){const screen=document.getElementById("scr");screen.scrollTop=keep.t;[...screen.querySelectorAll(".hs,.pills")].forEach((el,i)=>{if(el.scrollLeft!==(keep.h[i]||0)){el.style.scrollBehavior="auto";el.scrollLeft=keep.h[i]||0;el.style.scrollBehavior=""}})}
