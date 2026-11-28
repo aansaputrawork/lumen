@@ -129,9 +129,9 @@
  }
 
  function folderCard(conn, folder, options = true) {
-  const actions = options ? `<button class="glass rb" data-dalb=more data-gid="${esc(folder.id)}" aria-label="Folder options">${ico("dots",18)}</button>` : "";
-  return albumCard(coverId(conn, folder.id), folder.name, folder.id === "root" ? "Google Drive" : "Folder",
-   `data-dalb=open data-gid="${esc(folder.id)}" data-drive-folder-thumb="${esc(folder.id)}"`, "", actions);
+  const p = page(conn, folder.id);
+  const count = p.updated && !p.next ? String(media(conn,p).length + folders(p).length) : "";
+  return `<div class=ar data-dalb=open data-gid="${esc(folder.id)}" data-drive-folder-thumb="${esc(folder.id)}">${AlbumCovers.image(coverId(conn,folder.id),"")}<span style="flex:1;min-width:0;overflow-wrap:anywhere">${esc(folder.name)}</span><span class=mu>${count ? esc(count)+" " : ""}›</span>${options ? `<button class=ic data-dalb=more data-gid="${esc(folder.id)}" aria-label="Folder options">${ico("dots",18)}</button>` : ""}</div>`;
  }
 
  function status(p, empty) {
@@ -158,11 +158,11 @@
    if (!ds.some(d => d.id === account)) account = (ds.find(d => d.is_default) || ds[0]).id;
    if (rootSlot.dataset.account !== account) {
     rootSlot.dataset.account = account;
-    setContent(rootSlot, '<div class=sh><h3>Google Drive Albums</h3><div data-drive-accounts></div></div><div class="hs sl2" data-drive-folders></div><div data-drive-status></div>');
+    setContent(rootSlot, '<div class=sh><h3>Google Drive Albums</h3><div data-drive-accounts></div></div><div class=gp style="padding:4px 16px;margin-top:0" data-drive-folders></div><div data-drive-status></div>');
    }
    const p = page(account, "root");
    setContent(rootSlot.querySelector("[data-drive-accounts]"), ds.length > 1 ? `<label>Account <select data-drive-account>${ds.map(d => `<option value="${esc(d.id)}" ${d.id === account ? "selected" : ""}>${esc(d.email || "Google Drive")}</option>`).join("")}</select></label>` : "");
-   patchAlbumTrack(rootSlot.querySelector("[data-drive-folders]"), folderCard(account, root, false) + folders(p).map(f => folderCard(account, f)).join(""));
+   setContent(rootSlot.querySelector("[data-drive-folders]"), folderCard(account, root, false) + folders(p).map(f => folderCard(account, f)).join(""));
    setContent(rootSlot.querySelector("[data-drive-status]"), status(p, ""));
    observe(rootSlot, account);
   } else if (S.view === "albdrive" && detailSlot?.isConnected && route) {
@@ -205,7 +205,7 @@
    '<button class=ic data-dalb=new aria-label="New folder">' + ico("plus") + '</button>') +
    detailHero(id, folder.name, "", '<div data-drive-info><div class=mu>Google Drive</div></div>',
     `<button class=chip data-dalb=cover>Change Cover</button>${folder.id === "root" ? "" : '<button class=chip data-dalb=manage>Manage</button>'}`) +
-   '<div data-drive-detail><div class="hs sl2" data-drive-subfolders></div><div class=dalb-grid></div><div data-drive-status></div></div>';
+   '<div data-drive-detail><div class=gp style="padding:4px 16px;margin:0 0 24px" data-drive-subfolders></div><div class=dalb-grid></div><div data-drive-status></div></div>';
  }
 
  function open(conn, stack) {
