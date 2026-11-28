@@ -2,6 +2,13 @@
 // Dipakai oleh app.js lewat 2 hook: calUI() untuk view "col" dan LViewer() untuk membuka foto.
 // Memakai global dari app.js (S, D, T, MON, ico, IC, esc, mb, $, isVid, hasLoc, placeOf, ...) saat dipanggil.
 (()=>{
+// Disable page zoom consistently across the app (including iOS Safari/WebView).
+const viewport=document.querySelector('meta[name="viewport"]')||(()=>{const m=document.createElement("meta");m.name="viewport";document.head.appendChild(m);return m})();
+viewport.content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover";
+if(!window.__mikaNoZoomBound){
+ window.__mikaNoZoomBound=true;
+ ["gesturestart","gesturechange","gestureend"].forEach(type=>document.addEventListener(type,e=>e.preventDefault(),{passive:false}));
+}
 const dkey=d=>d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate();
 const reduce=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -12,7 +19,7 @@ window.calUI=function(){
  if(enter)S.selDay=null;
  const by=new Map();
  S.photos.forEach(p=>{const d=D(p);if(isNaN(d)||d.getFullYear()!==y||d.getMonth()!==mo)return;const k=dkey(d);(by.get(k)||by.set(k,[]).get(k)).push(p)});
- const n=new Date(y,mo+1,0).getDate(),off=new Date(y,mo,1).getDay();
+ const n=new Date(y,mo+1,0).getDate(),off=(new Date(y,mo,1).getDay()+6)%7;
  let t="";
  for(let d=1;d<=n;d++){
   const k=y+"-"+mo+"-"+d,l=by.get(k),first=d==1?`;grid-column-start:${off+1}`:"";
@@ -23,12 +30,65 @@ window.calUI=function(){
    t+=`<button class="dy has${S.selDay===k?" on":""}"${isVid(c)?` data-vt="${esc(c.id)}"`:""} data-day="${k}" style="--i:${d}${first};background-image:url('${esc(T(c))}')"><span>${d}</span>${l.length>1?`<i class=n>${l.length}</i>`:""}${nv?`<i class=vi aria-label="${nv} video">${ico("play",9,"currentColor")}${nv>1?nv:""}</i>`:""}</button>`;
   }else t+=`<div class="dy em${k==tk?" td":""}" style="--i:${d}${first}"><span>${d}</span></div>`;
  }
- const wk=["S","M","T","W","T","F","S"].map(x=>`<span>${x}</span>`).join("");
- return `<div class=top><button class=ic data-go=home>${ico("back")}</button><h1 id=ct>${MON[mo]} ${y}</h1><span style="display:flex;gap:8px"><button class=ic data-go=search>${ico("search")}</button><button class=ic data-up>${ico("plus")}</button></span></div>${by.size?"":`<div class=empty>No photos in ${MON[mo]} ${y}.<br>Tap + to upload some.</div>`}<section class=cm><div class=cwk>${wk}</div><div class=cgd>${t}</div></section>`;
+ const wk=["M","T","W","T","F","S","S"].map(x=>`<span>${x}</span>`).join("");
+ const monthItems=S.photos.filter(p=>{const d=D(p);return !isNaN(d)&&d.getFullYear()===y&&d.getMonth()===mo});
+ const photoCount=monthItems.filter(p=>!isVid(p)).length,videoCount=monthItems.filter(isVid).length;
+ const locations=[...new Set(monthItems.filter(hasLoc).map(placeOf).filter(Boolean))];
+ const overview=`<section class=cm-overview><h2>Monthly Overview</h2><div class=cm-stats><div><span>Photos</span><b>${photoCount}</b></div><div><span>Videos</span><b>${videoCount}</b></div><div class=cm-locations><span>Locations</span><b>${locations.length?locations.map(esc).join(" · "):"—"}</b></div></div></section>`;
+ const monthSlider=monthItems.length?`<section class="cm-month-section">
+  <div class="cm-month-head"><h2>Photos this month</h2><span>${monthItems.length}</span></div>
+  <div class="cm-month-track">${monthItems.slice().sort((a,b)=>D(b)-D(a)).map(p=>`<button class="cm-month-card" data-month-photo="${esc(p.id)}" aria-label="Open ${isVid(p)?"video":"photo"}"><img src="${esc(T(p))}" loading="lazy" alt="">${isVid(p)?`<span>${ico("play",10,"currentColor")} Video</span>`:""}</button>`).join("")}</div>
+ </section>`:"";
+ return `<div class="top ht cal-header"><div class="cal-head-row"><button class="ic cal-back" data-go="home" aria-label="Back">${ico("back")}</button><h1 id="ct">${MON[mo]} ${y}</h1><button class="cal-today" data-cal-today>Today</button></div><label class="cal-search"><span>${ico("search")}</span><input id="cal-date-search" type="search" placeholder="Search month, day, date..." autocomplete="off" aria-label="Search photos by date"></label></div><div class="cal-search-results" hidden></div><div class="cal-content">${by.size?"":`<div class=empty>No photos in ${MON[mo]} ${y}.</div>`}<section class=cm><div class=cwk>${wk}</div><div class=cgd>${t}</div></section>${overview}${monthSlider}</div>`;
 };
 
-// ketuk hari berfoto: kotak menyala, lalu foto hari itu dibuka di preview
+// Pencarian kalender: hanya mencocokkan tanggal, bulan, dan tahun metadata foto/video.
+const calMonthNames=()=>Array.from({length:12},(_,i)=>{const d=new Date(2020,i,1);return [d.toLocaleString("en",{month:"long"}).toLowerCase(),d.toLocaleString("id",{month:"long"}).toLowerCase(),d.toLocaleString("en",{month:"short"}).toLowerCase(),d.toLocaleString("id",{month:"short"}).toLowerCase()]});
+const calSearchItems=q=>{
+ const raw=String(q||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");if(!raw)return[];
+ const months=calMonthNames(),tokens=raw.match(/[a-z]+|\d+/g)||[],monthIndex=tokens.map(t=>months.findIndex(a=>a.includes(t)||t.includes(a[0]))).find(i=>i>=0);
+ const nums=tokens.filter(t=>/^\d+$/.test(t)).map(Number);
+ return S.photos.filter(p=>{const d=D(p);if(isNaN(d))return false;const day=d.getDate(),month=d.getMonth(),year=d.getFullYear();
+  if(/^\d{4}$/.test(raw))return year===Number(raw);
+  if(/^\d{1,2}$/.test(raw))return day===Number(raw);
+  const iso=raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(iso)return year===Number(iso[1])&&month+1===Number(iso[2])&&day===Number(iso[3]);
+  const yearMonth=raw.match(/^(\d{4})-(\d{1,2})$/);
+  if(yearMonth)return year===Number(yearMonth[1])&&month+1===Number(yearMonth[2]);
+  const monthYear=raw.match(/^(\d{1,2})[\/.](\d{4})$/);
+  if(monthYear)return month+1===Number(monthYear[1])&&year===Number(monthYear[2]);
+  const slash=raw.match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?$/);
+  if(slash){const a=Number(slash[1]),b=Number(slash[2]),yy=slash[3]?Number(slash[3]):null;return day===a&&month+1===b&&(yy===null||year===yy||(yy<100&&year%100===yy));}
+  if(monthIndex>=0&&month!==monthIndex)return false;
+  const years=nums.filter(n=>n>31);if(years.length&&!years.some(n=>year===n))return false;
+  const days=nums.filter(n=>n>=1&&n<=31);if(days.length&&!days.some(n=>day===n))return false;
+  if(monthIndex<0&&!years.length&&!days.length)return false;
+  return true;
+ }).sort((a,b)=>D(b)-D(a));
+};
+const calRenderSearch=q=>{
+ const panel=document.querySelector(".cal-search-results"),content=document.querySelector(".cal-content");if(!panel||!content)return;
+ const query=String(q||"").trim();if(!query){panel.hidden=true;panel.innerHTML="";content.hidden=false;return;}
+ const items=calSearchItems(query);content.hidden=true;panel.hidden=false;
+ if(!items.length){panel.innerHTML='<div class="cal-search-empty">No photos found</div>';return;}
+ const groups=new Map();items.forEach(p=>{const d=D(p),key=d.getFullYear()+"-"+d.getMonth();if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)});
+ panel.innerHTML=[...groups.values()].sort((a,b)=>D(b[0])-D(a[0])).map(list=>{const d=D(list[0]),label=d.toLocaleString("en",{month:"long",year:"numeric"});return `<section class="cm-month-section cal-result-group"><div class="cm-month-head"><h2>${label}</h2><span>${list.length}</span></div><div class="cm-month-track">${list.map(p=>`<button class="cm-month-card" data-search-photo="${esc(p.id)}" aria-label="Open ${isVid(p)?"video":"photo"}"><img src="${esc(T(p))}" loading="lazy" alt="">${isVid(p)?`<span>${ico("play",10,"currentColor")} Video</span>`:""}</button>`).join("")}</div></section>`}).join("");
+};
+document.addEventListener("input",e=>{if(e.target&&e.target.id==="cal-date-search"&&S.view==="col")calRenderSearch(e.target.value)});
+
+// Ketuk hasil pencarian atau thumbnail bulan untuk membuka viewer.
 document.addEventListener("click",e=>{
+ const today=e.target.closest("[data-cal-today]");if(today&&S.view==="col"){const d=new Date();S.year=d.getFullYear();S.mon=d.getMonth();S.selDay=null;render();return;}
+ const searchCard=e.target.closest(".cm-month-card[data-search-photo]");
+ if(searchCard&&S.view==="col"){const id=searchCard.dataset.searchPhoto,list=calSearchItems(document.getElementById("cal-date-search")?.value||"");const p=list.find(x=>String(x.id)===String(id));if(p)LViewer(p.id,list,searchCard);return;}
+ const card=e.target.closest(".cm-month-card[data-month-photo]");
+ if(card&&S.view==="col"){
+  const id=card.dataset.monthPhoto;
+  const list=S.photos.filter(p=>{const d=D(p);return !isNaN(d)&&d.getFullYear()===S.year&&d.getMonth()===S.mon}).sort((a,b)=>D(b)-D(a));
+  const p=list.find(x=>String(x.id)===String(id));
+  if(p)LViewer(p.id,list,card);
+  return;
+ }
  const t=e.target.closest(".dy.has");if(!t||S.view!=="col")return;
  const k=t.dataset.day,l=S.photos.filter(p=>dkey(D(p))===k).sort((a,b)=>b.date-a.date);if(!l.length)return;
  document.querySelectorAll(".dy.on").forEach(x=>x.classList.remove("on"));t.classList.add("on");S.selDay=k;
@@ -94,12 +154,12 @@ window.LViewer=function(id,list,srcEl,opts={}){
  const thumb=(p,k)=>`<button class="ft${k==i?" a":""}" data-k="${k}" aria-label="${isVid(p)?"Video":"Photo"} ${k+1}"><img src="${T(p)}"${isVid(p)?` data-vt="${esc(p.id)}"`:""} loading=lazy draggable="false" alt="">${isVid(p)?`<span class="fv ov">${ico("play",11,"currentColor")}</span>`:""}</button>`;
  const multi=list.length>1&&list.length<=200;
  const v=$(`<div class="view pv${multi?" ms":""}"><div class=pv-bgw></div>
-  <div class="pv-top pc"><button class=pv-b data-c aria-label="Close">${ico("x",22)}</button><div class=pv-t><b id=t></b><span id=m></span></div><span aria-hidden=true></span></div>
+  <div class="pv-top pc"><button class=pv-b data-c aria-label="Close">${ico("x",22)}</button><div class=pv-t><b id=t></b><span id=m></span></div><button class=pv-cat id=pcat aria-label="Photo category"></button></div>
   <div class=st>${list.map(slide).join("")}</div>
   <div class="pv-bot pc">${multi?`<div class=pv-fs id=fs>${list.map(thumb).join("")}</div>`:""}
-   <div class=pv-dock><span class=pv-cat id=pcat></span><div class=pv-bar><div class=pv-acts id=acts><button data-s aria-label="Share">${ico("sh",23)}</button><button data-f aria-label="Add to favorites" aria-pressed="false">${ico("heart",23)}</button><button data-i aria-label="Details">${ico("info",23)}</button><button data-d aria-label="Download">${ico("dl",23)}</button><button data-t aria-label="Delete" style="color:#ff6b6b">${ico("tr",23)}</button></div><button class=pv-tg data-tg aria-expanded="false" aria-label="Show actions">${ico("dots",24)}</button></div></div></div></div>`);
+   <div class=pv-dock><div class=pv-bar><div class=pv-acts id=acts><button data-s aria-label="Share">${ico("sh",23)}</button><button data-f aria-label="Add to favorites" aria-pressed="false">${ico("heart",23)}</button><button data-i aria-label="Details">${ico("info",23)}</button><button data-d aria-label="Download">${ico("dl",23)}</button><button data-t aria-label="Delete" style="color:#ff6b6b">${ico("tr",23)}</button></div><button class=pv-tg data-tg aria-expanded="false" aria-label="Show actions">${ico("dots",24)}</button></div></div></div></div>`);
  document.body.append(v);
- if(opts.readonly){["[data-s]","[data-f]","[data-i]","[data-t]"].forEach(q=>v.querySelector(q)?.remove())}
+ if(opts.readonly){["[data-s]","[data-f]","[data-t]"].forEach(q=>v.querySelector(q)?.remove())}
  const st=v.querySelector(".st"),sl=[...st.children],fs=v.querySelector("#fs"),bgw=v.querySelector(".pv-bgw"),pc=v.querySelector("#pcat");
  let z=1,tx=0,ty=0,d0=0,z0=1,sx=0,sy=0,dy=0,dx=0,md="",mv=0,ts=0,lt=0,raf=0,closing=0;
  const cur=()=>list[i];
@@ -119,7 +179,10 @@ window.LViewer=function(id,list,srcEl,opts={}){
   // rasio asli file (kalau sudah termuat) > rasio dari data. Tanpa frame/kotak: foto ditampilkan apa adanya, hanya diskalakan muat di area.
   const nat=el.tagName=="IMG"?(el.naturalWidth&&el.naturalHeight?el.naturalWidth/el.naturalHeight:0):(el.videoWidth&&el.videoHeight?el.videoWidth/el.videoHeight:0);
   const ar=nat||(p.w&&p.h?p.w/p.h:0);if(!ar){el.style.width=el.style.height="";return}
-  const w=Math.min(W,H*ar),h=w/ar;el.style.width=w+"px";el.style.height=h+"px";el.style.borderRadius=Math.round(Math.min(26,Math.min(w,h)*.12))+"px";   // sudut membulat 26px, mengecil proporsional untuk gambar sangat kecil
+  const w=Math.min(W,H*ar),h=w/ar;
+  el.style.width=w+"px";el.style.height=h+"px";
+  el.style.maxWidth="100%";el.style.maxHeight="100%";el.style.objectFit="contain";el.style.objectPosition="center";
+  el.style.borderRadius=Math.round(Math.min(26,Math.min(w,h)*.12))+"px";   // sudut membulat 26px, mengecil proporsional untuk gambar sangat kecil
   const sk=pw.querySelector(".vsk");if(sk){sk.style.width=Math.max(120,w-24)+"px";sk.style.left=((W-w)/2+12)+"px";sk.style.right="auto";sk.style.bottom=((H-h)/2+6)+"px"}});
  sl.forEach(s=>{const el=s.querySelector("img,video");if(!el)return;el.addEventListener(el.tagName=="IMG"?"load":"loadedmetadata",fit)});
  addEventListener("resize",fit);
@@ -128,19 +191,21 @@ window.LViewer=function(id,list,srcEl,opts={}){
  const setBg=p=>{const d=document.createElement("div");d.className="pv-bg";d.style.backgroundImage=`url("${T(p)}")`;bgw.append(d);
   requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add("in")));
   while(bgw.children.length>3)bgw.firstElementChild.remove();
-  setTimeout(()=>{[...bgw.children].slice(0,-1).forEach(x=>x.remove())},700)};
+  setTimeout(()=>{if(d===bgw.lastElementChild)[...bgw.children].slice(0,-1).forEach(x=>x.remove())},500)};
+ pc.onclick=()=>{if(opts.readonly)return;const p=cur();sheet(CATS.slice(1).map(c=>`<button class=o data-x="${c}">${c}</button>`).join(""),async c=>{await save(null,p.id,{...p,cat:c},"photos");p.cat=c;info()})};
  const info=()=>{const p=cur();if(!p)return;
   v.querySelector("#t").textContent=p.name;
   v.querySelector("#m").textContent=D(p).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})+(list.length>1?`  ·  ${i+1} / ${list.length}`:"");
   // pil kategori sesuai foto yang sedang tampil
   if(pc.textContent!==(p.cat||"")){pc.textContent=p.cat||"";pc.classList.remove("pop");void pc.offsetWidth;pc.classList.add("pop")}
-  pc.style.display=p.cat?"":"none";
+  pc.textContent=p.cat||"Uncategorized";pc.disabled=!!opts.readonly;
   const fb=v.querySelector("[data-f]");if(fb){fb.classList.toggle("on",!!p.fav);fb.setAttribute("aria-pressed",p.fav?"true":"false");fb.setAttribute("aria-label",p.fav?"Remove from favorites":"Add to favorites");const sv=fb.querySelector("svg");if(sv)sv.setAttribute("fill",p.fav?"currentColor":"none")}};
  const mark=sm=>{if(!fs)return;fs.querySelectorAll(".ft.a").forEach(e=>e.classList.remove("a"));const a=fs.children[i];if(!a)return;a.classList.add("a");
   fs.scrollTo({left:a.offsetLeft-fs.clientWidth/2+a.offsetWidth/2,behavior:sm?"smooth":"auto"})};
  // ganti thumbnail dengan foto penuh untuk foto aktif dan tetangganya
+ const driveFull=async p=>{if(p._fu)return p._fu;const b=await getBlob(p);return p._fu=URL.createObjectURL(b)};
  const hiRes=k=>{for(let j=k-1;j<=k+1;j++){const im=sl[j]&&sl[j].querySelector("img[data-full]");if(!im||im.dataset.done||im.dataset.loading)continue;im.dataset.loading="1";
-  (async()=>{try{const f=opts.resolveFull?await opts.resolveFull(list[j]):im.dataset.full;if(!f||im.getAttribute("src")===f)return;const x=new Image();x.onload=()=>{im.src=f;im.dataset.done="1"};x.onerror=()=>{im.dataset.loading=""};x.src=f}catch(e){im.dataset.loading=""}})()}};
+  (async()=>{try{const f=opts.resolveFull?await opts.resolveFull(list[j]):(list[j].sp=="drive"&&window.getBlob?await driveFull(list[j]):im.dataset.full);if(!f||im.getAttribute("src")===f)return;const x=new Image();x.onload=()=>{im.src=f;im.dataset.done="1"};x.onerror=()=>{im.dataset.loading=""};x.src=f}catch(e){im.dataset.loading=""}})()}};
  // foto di sebelah mengecil & memudar saat digeser
  const fx=()=>{raf=0;const w=st.clientWidth||1,fi=st.scrollLeft/w;
   for(let k=Math.max(0,Math.floor(fi)-1);k<=Math.min(sl.length-1,Math.ceil(fi)+1);k++){const o=Math.min(1,Math.abs(k-fi)),pw=sl[k].firstElementChild;pw.style.opacity=1-.5*o}};
@@ -156,16 +221,29 @@ window.LViewer=function(id,list,srcEl,opts={}){
    first.complete||first.readyState>0?go():first.addEventListener(first.tagName=="IMG"?"load":"loadedmetadata",go,{once:true})}}
 
  /* ----- video: tombol play melayang. Video Drive dimuat lewat URL stream (bisa seek); jika gagal, unduh lalu putar dari blob ----- */
+ const fallbackVideoUrls=[];
  sl.forEach((s,k)=>{const vd=s.querySelector("video");if(!vd)return;const p=list[k];
-  const bt=s.querySelector(".vpl"),sk=s.querySelector(".vsk");let seeking=0,tried=0;
+  const bt=s.querySelector(".vpl"),sk=s.querySelector(".vsk");let seeking=0,fallbackPromise=null,failed=0;
   const sync=()=>s.classList.toggle("playing",!vd.paused&&!vd.ended),busy=on=>s.classList.toggle("ld",on);
-  const fail=()=>{busy(false);toast("Couldn't play this video")};
-  const viaBlob=async()=>{if(tried)return fail();tried=1;busy(true);try{const b=await getBlob(p);vd.src=URL.createObjectURL(b);vd.load();await vd.play()}catch(e){fail()}};
-  const load=async()=>{if(vd.getAttribute("src"))return true;busy(true);try{vd.src=await vidSrc(p);vd.load();return true}catch(e){await viaBlob();return false}};
-  const toggle=async()=>{if(!vd.paused&&!vd.ended)return vd.pause();if(!(await load()))return;busy(true);vd.play().catch(e=>{if(e&&e.name=="NotAllowedError")busy(false)})};
+  const fail=()=>{if(failed)return;failed=1;busy(false);s.classList.remove("playing");toast("Video couldn't be loaded. Check file access or video format.")};
+  // Fallback berlaku untuk semua sumber (MIKA Cloud maupun Google Drive), bukan Drive saja.
+  // Sebagian URL bertanda tangan/stream dapat gagal di WebView meskipun file aslinya masih bisa diunduh.
+  const viaBlob=()=>{
+   if(fallbackPromise)return fallbackPromise;
+   fallbackPromise=(async()=>{busy(true);try{
+    const b=await getBlob(p);if(!b||!b.size)throw new Error("Empty video file");
+    const mime=b.type&&b.type.startsWith("video/")?b.type:(p.type&&p.type.startsWith("video/")?p.type:"video/mp4");
+    const playable=b.type===mime?b:new Blob([b],{type:mime});
+    const u=URL.createObjectURL(playable);fallbackVideoUrls.push(u);vd.src=u;vd.load();
+    await vd.play();failed=0;
+   }catch(e){console.warn("MIKA video fallback failed",{id:p.id,source:p.sp,type:p.type,error:e});fail()}})();
+   return fallbackPromise;
+  };
+  const load=async()=>{if(vd.getAttribute("src"))return true;busy(true);try{vd.src=await vidSrc(p);vd.load();return true}catch(e){console.warn("MIKA video stream URL failed",{id:p.id,source:p.sp,error:e});await viaBlob();return false}};
+  const toggle=async()=>{if(!vd.paused&&!vd.ended)return vd.pause();if(!(await load()))return;busy(true);vd.play().catch(e=>{if(e&&e.name==="NotAllowedError")busy(false);else viaBlob()})};
   ["play","pause","ended"].forEach(ev=>vd.addEventListener(ev,sync));
   ["playing","canplay","pause"].forEach(ev=>vd.addEventListener(ev,()=>busy(false)));["waiting","seeking"].forEach(ev=>vd.addEventListener(ev,()=>{if(!vd.paused)busy(true)}));
-  vd.addEventListener("error",()=>{if(!vd.getAttribute("src"))return;p.sp=="drive"?viaBlob():fail()});
+  vd.addEventListener("error",()=>{if(!vd.getAttribute("src"))return;console.warn("MIKA video playback error",{id:p.id,source:p.sp,code:vd.error&&vd.error.code,message:vd.error&&vd.error.message});viaBlob()});
   vd.addEventListener("timeupdate",()=>{if(!seeking&&vd.duration)sk.value=Math.round(vd.currentTime/vd.duration*1000)});
   vd.addEventListener("ended",()=>{vd.currentTime=0;sk.value=0});
   bt.onclick=e=>{e.stopPropagation();toggle()};
@@ -185,7 +263,7 @@ window.LViewer=function(id,list,srcEl,opts={}){
  const closeP=()=>{
   if(closing)return;closing=1;removeEventListener("keydown",kd);removeEventListener("resize",fit);pauseAll();
   const im=sl[i]&&sl[i].querySelector("img,video"),tg=home(cur()),from=im&&im.getBoundingClientRect();
-  const lit=document.querySelector(".dy.on");let cleaned=0;const fin=()=>{if(cleaned)return;cleaned=1;if(v.isConnected)v.remove();if(lit)lit.classList.remove("on");S.selDay=null;if(typeof opts.onClose==="function")try{opts.onClose()}catch(_){}};
+  const lit=document.querySelector(".dy.on");let cleaned=0;const fin=()=>{if(cleaned)return;cleaned=1;fallbackVideoUrls.forEach(u=>{try{URL.revokeObjectURL(u)}catch(_){}});list.forEach(p=>{if(p._fu){URL.revokeObjectURL(p._fu);p._fu="";if(p.sp=="drive")p._blob=null}});if(v.isConnected)v.remove();if(lit)lit.classList.remove("on");S.selDay=null;if(typeof opts.onClose==="function")try{opts.onClose()}catch(_){}};
   // hapus semua efek tarik/zoom supaya posisi akhir bisa diukur
   st.style.transition="none";st.style.transform="";if(im)im.style.transform="";
   v.classList.add("pcl");v.style.background="transparent";v.style.pointerEvents="none";
@@ -236,15 +314,15 @@ window.LViewer=function(id,list,srcEl,opts={}){
  const detail=()=>{const p=cur(),al=S.albums.filter(a=>(a.ids||[]).includes(p.id)).map(a=>esc(a.name)).join(", "),
   stg=(typeof lLoc=="function"?lLoc(p):"").replace(/^ · /,""),
   row=(k,x,ex="")=>`<div class=row><span class=mu>${k}</span><span class=v ${ex}>${x}</span></div>`;
-  const s=$(`<div class="sheet pvi"><div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</h3><button class=chip data-rn>Rename</button></div><div style="margin-top:8px">
+  const s=$(`<div class="sheet pvi"><div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</h3>${opts.readonly?"":'<button class=chip data-rn>Rename</button>'}</div><div style="margin-top:8px">
    ${row("Date",D(p).toLocaleString(undefined,{dateStyle:"long",timeStyle:"short"}))}
    ${p.w?row("Dimensions",p.w+" × "+p.h):""}
    ${row("Size",mb(p.size))}
    ${row("Category",esc(p.cat||"—"))}
-   ${hasLoc(p)?`<div class=row data-map style="cursor:pointer"><span class=mu>Location</span><span class=v>${esc(placeOf(p))} ›</span></div>`:""}
+   ${hasLoc(p)?`<div class=row data-map style="cursor:pointer"><span class=mu>Location</span><span class=v>${esc(placeOf(p))} ›</span></div>`:row("Location","No location available")}
    ${al?row("Albums",al):""}
    ${stg?row("Storage",esc(stg)):""}
-  </div><button class=o data-alb style="margin-top:4px">Add to album…</button></div></div>`);
+  </div>${opts.readonly?"":'<button class=o data-alb style="margin-top:4px">Add to album…</button>'}</div></div>`);
   document.body.append(s);
   s.onclick=e=>{if(e.target==s)return closeS(s);
    if(e.target.closest("[data-alb]")){closeS(s);albumPick();return}
@@ -255,14 +333,16 @@ window.LViewer=function(id,list,srcEl,opts={}){
  /* ----- aksi ----- */
  const albumPick=()=>{const p=cur();if(!S.albums.length){ask("New album","",n=>newAlbum(n,[p.id]));return}
   sheet(S.albums.map(a=>`<button class=o data-x="${a.id}">${esc(a.name)}${(a.ids||[]).includes(p.id)?" ✓":""}</button>`).join(""),async x=>{const a=S.albums.find(z=>z.id==x);if(!a)return;const ids=a.ids||[],has=ids.includes(p.id),n=has?ids.filter(z=>z!=p.id):[...ids,p.id];await save(null,a.id,{...a,ids:n,cover:a.cover||p.id},"albums");toast(has?"Removed from "+a.name:"Added to "+a.name)})};
- v.querySelector("[data-f]").onclick=async()=>{const p=cur(),on=!p.fav;p.fav=on;info();
+ const favBtn=v.querySelector("[data-f]");if(favBtn)favBtn.onclick=async()=>{const p=cur(),on=!p.fav;p.fav=on;info();
   const sv=v.querySelector("[data-f] svg");if(sv&&!reduce())sv.animate([{transform:"scale(1)"},{transform:"scale(1.4)"},{transform:"scale(1)"}],{duration:380,easing:"cubic-bezier(.22,1,.36,1)"});
   if(on&&!reduce()){const b=v.querySelector("[data-f]"),r=document.createElement("i");r.className="hring";b.append(r);setTimeout(()=>r.remove(),700)}
   toast(on?"Added to Favorites":"Removed from Favorites");
   try{await save(null,p.id,{...p},"photos")}catch(_){p.fav=!on;info()}};
- v.querySelector("[data-d]").onclick=async()=>{const p=cur();toast("Preparing\u2026");try{if(await dlSave(fname(p),await getBlob(p)))toast("Saved")}catch(e){toast("Couldn't download")}};
- v.querySelector("[data-s]").onclick=async()=>{const p=cur();if(/^data:/.test(p.url))return toast("Sharing isn't available for sample photos");const u=new URL(p.url,location.href).href;
-  try{await navigator.share({title:p.name,url:u})}catch(e){if(e&&e.name=="AbortError")return;try{await navigator.clipboard.writeText(u);toast("Link copied")}catch(_){toast("Sharing isn't available here")}}};
+ v.querySelector("[data-d]").onclick=async()=>{const p=cur();toast("Preparing\u2026");try{await dlSave(fname(p),await getBlob(p))}catch(e){toast("Couldn't download: "+(e&&e.message||"unknown error"))}};
+ v.querySelector("[data-s]").onclick=async()=>{const p=cur();if(/^data:/.test(p.url))return toast("Sharing isn't available for sample photos");
+  try{const b=await getBlob(p),name=fname(p),file=new File([b],name,{type:b.type||p.type||"application/octet-stream"});if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:p.name,files:[file]});return}
+   const u=p.url?new URL(p.url,location.href).href:"";if(navigator.share&&u){await navigator.share({title:p.name,url:u});return}if(u&&navigator.clipboard){await navigator.clipboard.writeText(u);toast("Link copied")}else toast("Sharing isn't available here")
+  }catch(e){if(e&&e.name=="AbortError")return;toast("Couldn't share this file: "+(e.message||"unknown error"))}};
  v.querySelector("[data-t]").onclick=()=>{const p=cur(),vid=isVid(p);pauseAll();
   confirmDelete([p],()=>{v.remove();delPhotos([p])},{title:vid?"Delete video?":"Delete photo?",sub:"It will be moved to Recently Deleted."})};
 };

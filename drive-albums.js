@@ -1,95 +1,327 @@
-// Google Drive folders and media rendered inside MIKA Albums.
-(()=> {
- const D=window.LDrive;
- if(!D)return;
- const state={conn:"",stack:[],files:[],media:[],token:"",busy:false,error:"",urls:new Set(),folderCovers:new Map(),folderLoading:new Set(),loading:0};
- const folderMime="application/vnd.google-apps.folder";
- const clean=()=>{for(const u of state.urls)URL.revokeObjectURL(u);state.urls.clear()};
- const current=()=>state.stack[state.stack.length-1];
- const drives=()=>D.albumDrives?D.albumDrives():[];
- const esc=s=>String(s||"").replace(/[<>&"]/g,c=>"&#"+c.charCodeAt(0)+";");
- const isVideo=f=>(f.mimeType||f.type||"").startsWith("video/");
- const makeMedia=f=>({id:"gd_"+f.id,aid:f.id,gconn:state.conn,_gdrive:true,sp:"drive",name:f.name||"Untitled",type:f.mimeType||"image/jpeg",date:Date.parse(f.createdTime||"")||Date.now(),size:+f.size||0,w:+((f.imageMediaMetadata||f.videoMediaMetadata||{}).width)||0,h:+((f.imageMediaMetadata||f.videoMediaMetadata||{}).height)||0,dur:+(f.videoMediaMetadata||{}).durationMillis||0,url:"",th:""});
- const html=()=>{
-  const ds=drives();
-  if(!ds.length)return '<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div><div class="dalb-empty">Connect Google Drive in Profile to see its folders and media here.</div></section>';
-  if(!state.conn){state.conn=ds[0].id;state.stack=[{id:"root",name:""}];queueMicrotask(()=>load(true));}
-  const detail=state.stack.length>1,title=detail?current().name:"";
-  const crumbs=state.stack.slice(1).map((x,i)=>`<span class="mu">›</span><button class="dalb-crumb" data-dalb="crumb" data-index="${i+1}">${esc(x.name)}</button>`).join("");
-  const folders=state.files.filter(f=>f.mimeType===folderMime).map(f=>{const c=state.folderCovers.get(f.id);return `<div class="ar dalb-folder-row" data-dalb="open" data-gid="${esc(f.id)}">${c&&c.url?`<img src="${c.url}" alt="">`:'<span class="ph dalb-folder-ph">📁</span>'}<span class="dalb-folder-label">${esc(f.name)}</span><span class="mu">${c?c.count+" items":"Folder"} ›</span><button class="dalb-folder-more" data-dalb="more" data-gid="${esc(f.id)}" data-name="${esc(f.name)}" aria-label="Folder options">···</button></div>`}).join("");
-  const media=state.media.map(p=>`<div class="mi dalb-media" data-dalb="photo" data-gid="${esc(p.id)}"><img loading="lazy" alt="${esc(p.name)}" data-thumb="${esc(p.aid)}">${isVideo(p)?'<i class="pb">▶</i>':""}</div>`).join("");
-  const body=state.busy&&!state.files.length?'<div class="dalb-empty">Loading Google Drive…</div>':state.error?'<div class="dalb-empty">'+esc(state.error)+'</div>':(!state.files.length?'<div class="dalb-empty">This folder is empty.</div>':"");
-  const cover=detail?state.folderCovers.get(current().id):null,heroMedia=state.media.find(p=>p.th);
-  if(detail)return `<section class="dalb-page"><div class="top dalb-detail-top"><button class="ic" data-dalb="back" aria-label="Back">‹</button><h1>${esc(title)}</h1><button class="ic" data-dalb="new" aria-label="New folder">＋</button></div><div class="dalb-crumbs"><button class="dalb-crumb" data-dalb="crumb" data-index="0">Google Drive</button>${crumbs}</div><div class="hero dalb-hero">${cover&&cover.url?`<img src="${cover.url}" alt="">`:heroMedia?`<img src="${heroMedia.th}" alt="">`:'<div class="dalb-hero-empty">📁</div>'}<div><h3>${esc(title)}</h3><div class="mu">${state.media.length} media · ${state.files.filter(f=>f.mimeType===folderMime).length} folders</div><div class="mu">Google Drive</div></div></div><div class="dalb-folder-list">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}</section>`;
-  return `<section class="dalb"><div class="sh"><h3>Google Drive Albums</h3></div><div class="dalb-folder-list">${folders}</div><div class="dalb-grid">${media}</div>${body}${state.token?'<button class="chip dalb-moreload" data-dalb="loadmore">Load more</button>':""}</section>`;
-
+// Drive folders use the Albums navigation and detail shell.
+(() => {
+ const D = window.LDrive;
+ if (!D) return;
+ const folderMime = "application/vnd.google-apps.folder";
+ const pages = new Map(), routes = new Map(), thumbnails = new Map(), observers = new Map();
+ const queue = [];
+ let running = 0, account = "", route = null, rootSlot, detailSlot;
+ const drives = () => D.albumDrives();
+ const identity = (conn, id) => JSON.stringify([conn, id]);
+ const coverId = (conn, id) => AlbumCovers.key("drive", conn, id);
+ const path = r => "albdrive/" + [r.conn, ...r.stack.map(f => f.id)].map(encodeURIComponent).join("/");
+ const current = () => route?.stack.at(-1);
+ const root = {id: "root", name: "My Drive"};
+ const page = (conn, id) => {
+  const key = identity(conn, id);
+  if (!pages.has(key)) pages.set(key, {files: [], next: "", updated: 0, error: "", loading: null});
+  return pages.get(key);
  };
- window.driveAlbumsSection=html;
- const refresh=()=>{if(typeof S!=="undefined"&&S.view==="alb")render()};
- async function load(reset=true){
-  if(state.busy)return;state.busy=true;state.error="";
-  if(reset){state.files=[];state.media=[];state.token="";state.folderCovers.clear();state.folderLoading.clear();clean()}
-  refresh();
-  try{
-   const j=await D.listAlbum(state.conn,current().id,state.token),files=j.files||[];
-   state.files=reset?files:[...state.files,...files];
-   const media=files.filter(f=>/^(image|video)\//.test(f.mimeType||""));
-   for(const f of media)state.media.push(makeMedia(f));
-   state.token=j.next_page_token||"";refresh();for(const f of media){const p=state.media.find(x=>x.aid===f.id);if(p)thumb(p)}for(const f of files.filter(x=>x.mimeType===folderMime))folderCover(f)
-  }catch(e){state.error="Couldn't load this folder: "+(e.message||"Unknown error")}
-  finally{state.busy=false;refresh()}
- }
- async function folderCover(folder){
-  if(state.folderCovers.has(folder.id)||state.folderLoading.has(folder.id))return;
-  state.folderLoading.add(folder.id);
-  const conn=state.conn,parent=current()&&current().id;
-  try{
-   const j=await D.listAlbum(conn,folder.id,""),files=j.files||[],items=files.filter(f=>/^(image|video)\//.test(f.mimeType||""));
-   let url="";
-   if(items.length){
-    const b=await D.albumThumb(conn,items[0].id),u=URL.createObjectURL(b);
-    if(state.conn!==conn||!current()||current().id!==parent){URL.revokeObjectURL(u);return}
-    state.urls.add(u);url=u;
+ const folders = p => p.files.filter(f => f.mimeType === folderMime);
+ const media = (conn, p) => p.files.filter(f => /^(image|video)\//.test(f.mimeType)).map(f => ({
+  id: "gd_" + f.id, aid: f.id, gconn: conn, _gdrive: true, sp: "drive",
+  name: f.name || "Untitled", type: f.mimeType, date: Date.parse(f.createdTime) || 0,
+  lat: f.imageMediaMetadata?.location?.latitude, lng: f.imageMediaMetadata?.location?.longitude,
+  w: +(f.imageMediaMetadata || f.videoMediaMetadata || {}).width || 0,
+  h: +(f.imageMediaMetadata || f.videoMediaMetadata || {}).height || 0,
+  size: +f.size || 0, th: thumbnails.get(identity(conn, f.id)) || "", url: ""
+ }));
+
+ async function load(conn, id, {append = false, force = false} = {}) {
+  const p = page(conn, id);
+  if (p.loading) return p.loading;
+  if (!force && !append && Date.now() - p.updated < 60000) return;
+  if (append && !p.next) return;
+  p.error = "";
+  // Defer the network call until the loading state has been set.
+  p.loading = Promise.resolve().then(async () => {
+   try {
+    const result = await D.listAlbum(conn, id, append ? p.next : "");
+    const files = new Map((append ? p.files : []).map(f => [f.id, f]));
+    for (const f of result.files || []) files.set(f.id, f);
+    p.files = [...files.values()];
+    p.next = result.next_page_token || "";
+    p.updated = Date.now();
+   } catch (_) {
+    p.error = "Couldn't load this folder.";
+   } finally {
+    p.loading = null;
+    paint();
    }
-   if(state.conn!==conn||!current()||current().id!==parent)return;
-   state.folderCovers.set(folder.id,{url,count:files.length});
-   refresh();
-  }catch(_){}
-  finally{state.folderLoading.delete(folder.id)}
+  });
+  paint();
+  return p.loading;
  }
- async function thumb(p){
-  const marker=++state.loading;
-  try{const b=await D.albumThumb(state.conn,p.aid),u=URL.createObjectURL(b);if(!document.body.contains(document.querySelector(".dalb"))){URL.revokeObjectURL(u);return}state.urls.add(u);p.th=u;
-   const q=[...document.querySelectorAll(".dalb-media")].find(x=>x.dataset.gid===p.id);if(q){const im=q.querySelector("img");im.src=u;im.classList.add("l")}
-  }catch(_){}
+
+ function pump() {
+  while (running < 3 && queue.length) {
+   const {node, job} = queue.shift();
+   if (!node.isConnected || node.closest(".cl")) continue;
+   running++;
+   Promise.resolve().then(job).catch(() => {}).finally(() => { running--; pump(); });
+  }
  }
- window.newDriveAlbumFolder=()=>{ask("New Google Drive folder","",async name=>{try{const conn=state.conn||drives()[0]?.id;await D.createAlbumFolder(conn,"root",name);toast("Folder created in Google Drive");if(!state.conn){state.conn=conn;state.stack=[{id:"root",name:""}]}await load(true)}catch(err){toast("Could not create folder: "+err.message)}})};
- function openAccount(id){state.conn=id;state.stack=[{id:"root",name:"My Drive"}];load(true)}
- function openFolder(id){const f=state.files.find(x=>x.id===id);if(!f)return;state.stack.push({id:f.id,name:f.name});load(true)}
- function preview(id,el){
-  const p=state.media.find(x=>x.id===id);if(!p)return;
-  const list=state.media.slice();
-  if(!window.LViewer)return toast("Photo preview is unavailable");
-  LViewer(p.id,list,el&&el.querySelector("img"),{readonly:true,resolveFull:async item=>{
-   if(item.url)return item.url;
-   if(item.type.startsWith("video/"))return vidSrc(item);
-   const blob=await getBlob(item);item._blob=blob;item.url=URL.createObjectURL(blob);state.urls.add(item.url);return item.url;
-  },onClose:()=>{list.forEach(x=>{if(x.url&&x.url.startsWith("blob:")){URL.revokeObjectURL(x.url);state.urls.delete(x.url)}x.url="";x._blob=null})}});
+
+ async function thumb(conn, id) {
+  const key = identity(conn, id);
+  if (thumbnails.has(key)) return thumbnails.get(key);
+  const blob = await D.albumThumb(conn, id);
+  // Keep compressed thumbnails in a bounded memory cache. Visible images own their data URLs.
+  const src = await new Promise((resolve, reject) => {
+   const reader = new FileReader();
+   reader.onload = () => resolve(reader.result);
+   reader.onerror = reject;
+   reader.readAsDataURL(blob);
+  });
+  thumbnails.set(key, src);
+  if (thumbnails.size > 160) thumbnails.delete(thumbnails.keys().next().value);
+  return src;
  }
- document.addEventListener("click",async e=>{
-  const b=e.target.closest("[data-dalb]");if(!b||!document.querySelector(".dalb,.dalb-page"))return;
-  const action=b.dataset.dalb,id=b.dataset.gid;
-  if(action==="account"){e.preventDefault();openAccount(id);return}
-  if(action==="back"){e.preventDefault();if(state.stack.length>1){state.stack.pop();load(true)}return}
-  if(action==="crumb"){e.preventDefault();state.stack=state.stack.slice(0,+b.dataset.index+1);load(true);return}
-  if(action==="open"){e.preventDefault();openFolder(id);return}
-  if(action==="photo"){e.preventDefault();preview(id,b);return}
-  if(action==="more"){e.preventDefault();e.stopPropagation();const name=b.dataset.name||"Folder";sheet('<button class="o" data-x="rename">Rename folder</button><button class="o" data-x="trash" style="color:#e5484d">Move folder to Drive Trash</button>',async choice=>{
-   if(choice==="rename")ask("Rename folder",name,async n=>{try{await D.renameAlbumFolder(state.conn,id,n);toast("Folder renamed");await load(true)}catch(err){toast("Couldn't rename folder: "+err.message)}});
-   if(choice==="trash")actSheet("Move folder to Drive Trash?","The folder and its contents will be moved to Google Drive Trash. You can restore them from Google Drive Trash.", "Move to Trash",async()=>{try{await D.trashAlbumFolder(state.conn,id);toast("Folder moved to Google Drive Trash");await load(true)}catch(err){toast("Couldn't move folder: "+err.message)}});
-  });return}
-  if(action==="new"){e.preventDefault();ask("New folder name","",async n=>{try{await D.createAlbumFolder(state.conn,current().id,n);toast("Folder created in Google Drive");await load(true)}catch(err){toast("Couldn't create folder: "+err.message)}});return}
-  if(action==="more"){e.preventDefault();return}
-  if(action==="loadmore"){e.preventDefault();load(false);return}
+
+ async function folderThumb(conn, id) {
+  const listing = page(conn, id);
+  if (!listing.updated) await load(conn, id);
+  const items = media(conn, listing);
+  const ordered = [...items.filter(p => !isVid(p)), ...items.filter(isVid)];
+  for (const p of ordered.slice(0, 3)) {
+   try { return await thumb(conn, p.aid); } catch (_) {}
+  }
+  return "";
+ }
+
+ function observe(container, conn) {
+  if (!container) return;
+  for (const [host, observer] of observers) {
+   if (!host.isConnected) { observer.disconnect(); observers.delete(host); }
+  }
+  let observer = observers.get(container);
+  const request = node => {
+   queue.push({node, job: async () => {
+    const image = node.matches("img") ? node : node.querySelector("img");
+    const folder = node.dataset.driveFolderThumb, id = node.dataset.driveThumb;
+    const src = folder ? await folderThumb(conn, folder) : await thumb(conn, id);
+    if (!src || !image?.isConnected) return;
+    if (image.dataset.coverId) {
+     image.dataset.coverFallback = src;
+     AlbumCovers.paint();
+    } else {
+     image.src = src;
+     image.classList.add("l");
+    }
+   }});
+   pump();
+  };
+  if (!observer && window.IntersectionObserver) {
+   observer = new IntersectionObserver(entries => {
+    for (const entry of entries) if (entry.isIntersecting) {
+     observer.unobserve(entry.target);
+     request(entry.target);
+    }
+   }, {rootMargin: "100px"});
+   observers.set(container, observer);
+  }
+  container.querySelectorAll("[data-drive-thumb],[data-drive-folder-thumb]").forEach(node => {
+   if (node.dataset.observed) return;
+   node.dataset.observed = "1";
+   if (observer) observer.observe(node);
+   else request(node);
+  });
+ }
+
+ function folderCard(conn, folder, options = true) {
+  const actions = options ? `<button class="glass rb" data-dalb=more data-gid="${esc(folder.id)}" aria-label="Folder options">${ico("dots",18)}</button>` : "";
+  return albumCard(coverId(conn, folder.id), folder.name, folder.id === "root" ? "Google Drive" : "Folder",
+   `data-dalb=open data-gid="${esc(folder.id)}" data-drive-folder-thumb="${esc(folder.id)}"`, "", actions);
+ }
+
+ function status(p, empty) {
+  if (p.loading && !p.updated) return '<div class=dalb-empty>Loading Google Drive…</div>';
+  if (p.error) return `<div class=dalb-empty>${p.error} <button class=chip data-dalb=retry>Retry</button></div>`;
+  if (!p.files.length) return `<div class=dalb-empty>${empty}</div>`;
+  return p.next ? `<button class=chip data-dalb=loadmore ${p.loading ? "disabled" : ""}>Load more</button>` : "";
+ }
+
+ function setContent(node, html) {
+  if (node && node._driveHTML !== html) {
+   node._driveHTML = html;
+   node.innerHTML = html;
+  }
+ }
+
+ function paint() {
+  if (S.view === "alb" && rootSlot?.isConnected) {
+   const ds = drives();
+   if (!ds.length) {
+    setContent(rootSlot, '<div class=sh><h3>Google Drive Albums</h3></div><div class=dalb-empty>Connect Google Drive in Profile to see its folders here.</div>');
+    return;
+   }
+   if (!ds.some(d => d.id === account)) account = (ds.find(d => d.is_default) || ds[0]).id;
+   if (rootSlot.dataset.account !== account) {
+    rootSlot.dataset.account = account;
+    setContent(rootSlot, '<div class=sh><h3>Google Drive Albums</h3><div data-drive-accounts></div></div><div class="hs sl2" data-drive-folders></div><div data-drive-status></div>');
+   }
+   const p = page(account, "root");
+   setContent(rootSlot.querySelector("[data-drive-accounts]"), ds.length > 1 ? `<label>Account <select data-drive-account>${ds.map(d => `<option value="${esc(d.id)}" ${d.id === account ? "selected" : ""}>${esc(d.email || "Google Drive")}</option>`).join("")}</select></label>` : "");
+   patchAlbumTrack(rootSlot.querySelector("[data-drive-folders]"), folderCard(account, root, false) + folders(p).map(f => folderCard(account, f)).join(""));
+   setContent(rootSlot.querySelector("[data-drive-status]"), status(p, ""));
+   observe(rootSlot, account);
+  } else if (S.view === "albdrive" && detailSlot?.isConnected && route) {
+   const {conn} = route, id = current().id, p = page(conn, id), items = media(conn, p);
+   const first = items.find(x => !isVid(x)) || items[0];
+   const info = document.querySelector("[data-drive-info]");
+   info.firstElementChild.textContent = p.updated ? `${pl(items.length, "item")} · ${pl(folders(p).length, "folder")}` : "Google Drive";
+   const cover = document.querySelector(".hero [data-cover-id]");
+   if (first && cover.dataset.driveThumb !== first.aid) {
+    cover.dataset.driveThumb = first.aid;
+    delete cover.dataset.observed;
+    if (first.th) cover.dataset.coverFallback = first.th;
+   }
+   setContent(detailSlot.querySelector("[data-drive-subfolders]"), folders(p).map(f => folderCard(conn, f)).join(""));
+   const grid = detailSlot.querySelector(".dalb-grid");
+   const existing = new Map([...grid.children].map(node => [node.dataset.gid, node]));
+   for (const item of items) {
+    const node = existing.get(item.id);
+    if (node) { existing.delete(item.id); continue; }
+    grid.insertAdjacentHTML("beforeend", `<button class="mi dalb-media" data-dalb=photo data-gid="${esc(item.id)}" aria-label="${esc(item.name)}"><img alt="" loading=lazy ${item.th ? `src="${esc(item.th)}"` : `data-drive-thumb="${esc(item.aid)}"`}>${isVid(item) ? '<i class=pb>▶</i>' : ""}</button>`);
+   }
+   existing.forEach(node => node.remove());
+   setContent(detailSlot.querySelector("[data-drive-status]"), status(p, "This folder is empty."));
+   AlbumCovers.paint();
+   observe(detailSlot.parentElement, conn);
+  }
+ }
+
+ function mount() {
+  rootSlot = document.querySelector("[data-drive-root]");
+  detailSlot = document.querySelector("[data-drive-detail]");
+  paint();
+  if (rootSlot && drives().length && !page(account, "root").error) load(account, "root");
+  if (detailSlot && route && !page(route.conn, current().id).error) load(route.conn, current().id);
+ }
+
+ function detail() {
+  const {conn} = route, folder = current(), id = coverId(conn, folder.id);
+  return detailHeader('<button class=ic data-dalb=back aria-label="Back">' + ico("back") + '</button>',
+   '<button class=ic data-dalb=new aria-label="New folder">' + ico("plus") + '</button>') +
+   detailHero(id, folder.name, "", '<div data-drive-info><div class=mu>Google Drive</div></div>',
+    `<button class=chip data-dalb=cover>Change Cover</button>${folder.id === "root" ? "" : '<button class=chip data-dalb=manage>Manage</button>'}`) +
+   '<div data-drive-detail><div class="hs sl2" data-drive-subfolders></div><div class=dalb-grid></div><div data-drive-status></div></div>';
+ }
+
+ function open(conn, stack) {
+  const next = {conn, stack};
+  routes.set(path(next), next);
+  navigate(next);
+ }
+
+ function navigate(next) {
+  route = next;
+  S.view = "albdrive";
+  render();
+  document.getElementById("scr").scrollTop = 0;
+ }
+
+ function fromHash(hash) {
+  const next = routes.get(hash);
+  if (next) navigate(next);
+ }
+
+ function editCover(conn, id) {
+  const p = page(conn, id);
+  AlbumCovers.edit(coverId(conn, id), () => media(conn, p), {
+   available: () => !!(p.next || p.loading || p.error),
+   load: () => p.loading || load(conn, id, {append: !!p.next, force: true}),
+   observe: panel => observe(panel, conn)
+  });
+ }
+
+ function preview(conn, id, mediaId, source) {
+  const list = media(conn, page(conn, id));
+  if (!window.LViewer || !list.some(p => p.id === mediaId)) return;
+  const urls = new Set();
+  let closed = false;
+  LViewer(mediaId, list, source.querySelector("img"), {readonly: true, resolveFull: async item => {
+   if (item.type.startsWith("video/")) return vidSrc(item);
+   const blob = await getBlob(item);
+   if (closed) return "";
+   if (item.url) return item.url;
+   item.url = URL.createObjectURL(blob);
+   urls.add(item.url);
+   return item.url;
+  }, onClose: () => { closed = true; urls.forEach(url => URL.revokeObjectURL(url)); }});
+ }
+
+ function create(conn, id) {
+  ask("New Google Drive folder", "", async name => {
+   try {
+    await D.createAlbumFolder(conn, id, name);
+    await load(conn, id, {force: true});
+    toast("Folder created in Google Drive");
+   } catch (_) { toast("Couldn't create folder"); }
+  });
+ }
+ window.newDriveAlbumFolder = () => create(account || drives()[0]?.id, "root");
+
+ function manage(conn, folder, parent) {
+  sheet('<button class=o data-x=cover>Change Cover</button><button class=o data-x=rename>Rename folder</button><button class=o data-x=trash>Move folder to Drive Trash</button>', async choice => {
+   if (choice === "cover") {
+    load(conn, folder.id);
+    return editCover(conn, folder.id);
+   }
+   if (choice === "rename") ask("Rename folder", folder.name, async name => {
+    try {
+     await D.renameAlbumFolder(conn, folder.id, name);
+     for (const entry of routes.values()) if (entry.conn === conn) {
+      entry.stack = entry.stack.map(f => f.id === folder.id ? {...f, name} : f);
+     }
+     if (S.view === "albdrive") render();
+     await load(conn, parent, {force: true});
+     toast("Folder renamed");
+    } catch (_) { toast("Couldn't rename folder"); }
+   });
+   if (choice === "trash") actSheet("Move folder to Drive Trash?", "You can restore the folder and its contents from Google Drive Trash.", "Move to Trash", async () => {
+    try {
+     await D.trashAlbumFolder(conn, folder.id);
+     if (S.view === "albdrive" && route.conn === conn && current().id === folder.id) back();
+     await load(conn, parent, {force: true});
+     toast("Folder moved to Google Drive Trash");
+    } catch (_) { toast("Couldn't move folder to Drive Trash"); }
+   });
+  });
+ }
+
+ function back() {
+  if (route.stack.length > 1) open(route.conn, route.stack.slice(0, -1));
+  else { S.view = "alb"; render(); }
+ }
+
+ document.addEventListener("change", e => {
+  if (!e.target.matches("[data-drive-account]")) return;
+  account = e.target.value;
+  paint();
+  load(account, "root");
  });
+ document.addEventListener("click", e => {
+  const button = e.target.closest("[data-dalb]");
+  if (!button) return;
+  const inDetail = S.view === "albdrive", conn = inDetail ? route.conn : account;
+  const id = inDetail ? current().id : "root", p = page(conn, id);
+  const folder = folders(p).find(f => f.id === button.dataset.gid);
+  switch (button.dataset.dalb) {
+   case "open": {
+    const child = button.dataset.gid === "root" ? root : folder;
+    if (child) open(conn, inDetail ? [...route.stack, child] : [child]);
+    break;
+   }
+   case "back": back(); break;
+   case "new": create(conn, id); break;
+   case "more": if (folder) manage(conn, folder, id); break;
+   case "manage": manage(conn, current(), route.stack.at(-2)?.id || "root"); break;
+   case "cover": editCover(conn, id); break;
+   case "photo": preview(conn, id, button.dataset.gid, button); break;
+   case "retry": load(conn, id, {force: !p.next, append: !!p.next}); break;
+   case "loadmore": load(conn, id, {append: true}); break;
+  }
+ });
+ window.DriveAlbums = {mount, detail, fromHash, hash: () => path(route)};
 })();

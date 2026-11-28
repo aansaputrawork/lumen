@@ -63,7 +63,7 @@
 .pv.hb .pv-bot{opacity:0;transform:translateY(16px);pointer-events:none}
 
 .pv-top{position:absolute;left:0;right:0;top:0;z-index:3;display:grid;grid-template-columns:minmax(44px,1fr) auto minmax(44px,1fr);align-items:center;gap:8px;
- padding:calc(8px + env(safe-area-inset-top,0px)) 12px 0;animation:pvtop .55s var(--e)}
+ padding:calc(8px + env(safe-area-inset-top,0px)) 26px 0;animation:pvtop .55s var(--e)}
 .pv-b,.pv-cat{color:#fff;background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);border:1.3px solid rgba(255,255,255,.4)}
 .pv-b{justify-self:start;width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
 .pv-t{min-width:0;max-width:100%;display:grid;justify-items:center;gap:1px;padding:4px 0;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.6),0 0 2px rgba(0,0,0,.35);pointer-events:none}
@@ -174,3 +174,289 @@
 .dalb-folder-card .dalb-folder-fallback{position:absolute;inset:0;z-index:1;display:grid;place-items:center;font-size:58px;opacity:.65;pointer-events:none}
 .dalb-folder-card>b{font-size:clamp(18px,5cqw,30px)}
 .dalb-folder-card .glass{z-index:2}
+
+
+/* MIKA preview alignment v1 */
+/* Toggle mengikuti posisi tengah menu navigasi utama */
+.pv {
+  --pvb: 104px;
+}
+.pv.ms {
+  --pvb: 170px;
+}
+
+/* Tombol X dan nama foto diturunkan mengikuti jarak top bar utama */
+.pv-top {
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+}
+
+/* Area foto menyesuaikan ruang baru dan tetap proporsional melalui fit() */
+.pv .sl {
+  padding-top: calc(66px + env(safe-area-inset-top, 0px));
+  padding-bottom: var(--pvb);
+}
+
+/* Toggle berada di tengah bawah seperti menu utama */
+.pv-bot {
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+.pv-dock {
+  justify-content: center;
+}
+.pv-bar {
+  margin-left: 0;
+}
+
+/* Animasi buka-tutup menu lebih lembut */
+.pv-acts {
+  transform: translateX(10px) scale(.97);
+  transform-origin: right center;
+  transition:
+    max-width .55s var(--e),
+    opacity .4s var(--e),
+    margin .55s var(--e),
+    transform .55s var(--e);
+}
+.pv.mx .pv-acts {
+  transform: translateX(0) scale(1);
+}
+.pv-bar button {
+  transition:
+    color .3s ease,
+    background-color .3s ease,
+    transform .45s var(--e);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-acts,
+  .pv-bar button,
+  .pv-top,
+  .pv-bot {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
+
+
+/* MIKA calendar overview + precise preview spacing */
+.cm-overview{padding:2px 0 24px;color:var(--tx);font-family:var(--font)}
+.cm-overview h2{margin:0 0 8px;font-size:13px;line-height:1.35;font-weight:600;letter-spacing:0;color:var(--tx)}
+.cm-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 18px;font-size:12px;line-height:1.45;color:var(--mu)}
+.cm-stats>div{display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0}
+.cm-stats b{font-size:12px;font-weight:600;color:var(--tx);text-align:right}
+.cm-stats .cm-locations{grid-column:1/-1;align-items:flex-start}
+.cm-stats .cm-locations b{max-width:78%;font-weight:500;overflow-wrap:anywhere}
+
+/* Preview: safe-area-aware controls, fixed centered dock, proportional image fit */
+.pv{--pvb:88px}
+.pv.ms{--pvb:164px}
+.pv .sl{padding-bottom:var(--pvb)}
+.pv-top{padding-top:calc(20px + env(safe-area-inset-top,0px))}
+.pv-bot{gap:16px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.pv-dock{position:relative;justify-content:center}
+.pv-cat{position:absolute;left:12px;max-width:calc(50% - 40px);font-size:12px;padding:7px 11px}
+.pv-bar{margin-left:0}
+.pv-acts{transform:none;transition:max-width .35s var(--e),opacity .25s,margin .35s var(--e)}
+.pv.mx .pv-acts{transform:none}
+.pv-bar button{transition:none}
+@media(prefers-reduced-motion:reduce){.pv-acts{transition:none!important}}
+
+
+/* MIKA calendar photo slider — roomy cards without decorative outlines */
+.cm-month-section{width:100%;min-width:0;max-width:100%;margin-top:24px;padding-bottom:28px;overflow:hidden;}
+.cm-month-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+.cm-month-head h2{margin:0;font-size:15px;font-weight:600;letter-spacing:0;color:var(--tx);}
+.cm-month-head>span{flex:none;color:var(--mu);font-size:13px;font-weight:500;}
+.cm-month-track{display:flex;gap:12px;width:100%;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 0 12px;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.cm-month-track::-webkit-scrollbar{display:none;}
+.cm-month-card{position:relative;display:block;flex:0 0 min(78%,300px);min-width:0;aspect-ratio:4/3;padding:0;overflow:hidden;border:0!important;border-radius:24px;background:var(--sf);scroll-snap-align:start;}
+.cm-month-card img{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;border:0;border-radius:0;}
+.cm-month-card>span{position:absolute;left:12px;bottom:12px;padding:6px 10px;border-radius:99px;color:#fff;background:rgba(0,0,0,.48);font-size:12px;backdrop-filter:blur(12px);}
+
+/* Photo viewer controls and image remain within the iPhone safe-area bounds. */
+.pv{width:100vw;max-width:100vw;height:100vh;height:100dvh;overflow:hidden;border:0!important;outline:0!important;}
+.pv .st{min-width:0;min-height:0;}
+.pv .sl{min-width:100%;max-width:100%;box-sizing:border-box;}
+.pv .pw,.pv .pw img,.pv .pw video{max-width:100%;}
+.pv-top{left:0;right:0;max-width:100%;box-sizing:border-box;}
+.pv-bot{left:0;right:0;max-width:100%;box-sizing:border-box;padding-left:0;padding-right:0;}
+.pv-dock{width:100%;min-width:0;padding-left:12px;padding-right:12px;}
+.pv-bar{max-width:100%;border:0!important;}
+@media(max-width:360px){.pv-bar button{width:38px;height:40px}.pv-dock{gap:4px}.pv-cat{max-width:calc(50% - 28px);}}
+
+/* Hilangkan garis kontur pada kontrol preview; bentuk tombol tetap dipertahankan. */
+.pv-b,.pv-cat,.pv-bar,.pv .pw .vpl,.pvi .chip{border:0!important;}
+
+/* Calendar photo slider: true edge-to-edge track, with no inset clipping frame. */
+.cm-month-section{
+  width:calc(100% + 32px);
+  max-width:none;
+  margin-left:-16px;
+  padding-left:0;
+  padding-right:0;
+  box-sizing:border-box;
+  overflow:visible;
+}
+.cm-month-head{padding-left:26px;padding-right:26px;}
+.cm-month-track{
+  width:100%;
+  max-width:none;
+  box-sizing:border-box;
+  padding-left:26px;
+  padding-right:26px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  border:0;
+  outline:0;
+  box-shadow:none;
+}
+@media(max-width:360px){
+  .cm-month-head{padding-left:26px;padding-right:26px;}
+  .cm-month-track{padding-left:30px;padding-right:30px;}
+}
+
+/* Calendar content: keep the calendar grid and monthly overview 26px from the phone edges. */
+.cm,
+.cm-overview{
+  margin-left:10px;
+  margin-right:10px;
+  width:auto;
+  max-width:none;
+  box-sizing:border-box;
+}
+@media(max-width:360px){
+  .cm,
+  .cm-overview{
+    margin-left:10px;
+    margin-right:10px;
+  }
+}
+
+/* First and last monthly thumbnails align with the title at 26px from each screen edge. */
+.cm-month-head{padding-left:26px;padding-right:26px;}
+.cm-month-track{padding-left:26px;padding-right:26px;}
+@media(max-width:360px){
+  .cm-month-head{padding-left:26px;padding-right:26px;}
+  .cm-month-track{padding-left:26px;padding-right:26px;}
+}
+
+
+/* Calendar slider alignment fix: the first card must share the title's exact 26px inset in every month/year. */
+.cm-month-section{
+  width:calc(100% + 32px);
+  margin-left:-16px;
+  padding-left:0;
+  padding-right:0;
+  box-sizing:border-box;
+}
+.cm-month-head{
+  padding-left:26px !important;
+  padding-right:26px !important;
+}
+.cm-month-track{
+  padding-left:26px !important;
+  padding-right:26px !important;
+  scroll-padding-inline-start:26px;
+  scroll-padding-inline-end:26px;
+  scroll-snap-type:x mandatory;
+}
+.cm-month-card{scroll-snap-align:start;}
+@media(max-width:360px){
+  .cm-month-section{width:calc(100% + 28px);margin-left:-14px;}
+  .cm-month-head{padding-left:26px !important;padding-right:26px !important;}
+  .cm-month-track{padding-left:26px !important;padding-right:26px !important;scroll-padding-inline:26px;}
+}
+
+/* MIKA: kategori foto hanya ditampilkan pada panel Info, bukan di preview. */
+.pv .pv-cat{display:none!important}
+
+
+/* MIKA preview image fit: reserve separate safe zones for header and thumbnail/action dock. */
+.pv{
+  --pv-top-reserve:calc(88px + env(safe-area-inset-top,0px));
+  --pv-bottom-reserve:calc(var(--pvb,88px) + env(safe-area-inset-bottom,0px));
+}
+.pv .st{
+  position:absolute;
+  inset:0;
+  min-width:0;
+  min-height:0;
+  overflow-x:auto;
+  overflow-y:hidden;
+  align-items:stretch;
+}
+.pv .sl{
+  box-sizing:border-box;
+  height:100%;
+  min-height:0;
+  min-width:100%;
+  max-width:100%;
+  padding:var(--pv-top-reserve) 5px var(--pv-bottom-reserve);
+  display:grid;
+  grid-template: minmax(0,1fr) / minmax(0,1fr);
+  place-items:center;
+  overflow:hidden;
+}
+.pv .pw{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  box-sizing:border-box;
+  display:grid;
+  place-items:center;
+  overflow:visible;
+}
+.pv .pw img,
+.pv .pw video{
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  object-position:center;
+}
+@media(max-height:620px){
+  .pv{--pv-top-reserve:calc(76px + env(safe-area-inset-top,0px))}
+  .pv:not(.ms){--pv-bottom-reserve:calc(76px + env(safe-area-inset-bottom,0px))}
+  .pv.ms{--pv-bottom-reserve:calc(142px + env(safe-area-inset-bottom,0px))}
+}
+
+
+/* MIKA Calendar date search results */
+.cal-content[hidden],.cal-search-results[hidden]{display:none!important}
+.cal-search-results{padding-top:4px}
+.cal-result-group{margin-top:10px;margin-bottom:18px}
+.cal-search-empty{padding:28px 26px;color:var(--mu);font-size:14px}
+
+
+/* MIKA Calendar: search field has a 26px visual inset from both screen edges. */
+.cal-search{margin-left:10px!important;margin-right:10px!important;min-width:0;width:auto;box-sizing:border-box}
+.cal-search input{font-size:16px!important;min-width:0}
+/* Hide the horizontal slider scrollbar/indicator while preserving swipe scrolling. */
+.cm-month-track,.cal-search-results .cm-month-track{scrollbar-width:none!important;-ms-overflow-style:none!important}
+.cm-month-track::-webkit-scrollbar,.cal-search-results .cm-month-track::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;background:transparent!important}
+
+/* Full-bleed gradient behind the photo detail header, including iPhone safe area. */
+.pv-top{isolation:isolate;padding-top:calc(20px + env(safe-area-inset-top,0px));}
+.pv-top::before{content:"";position:absolute;z-index:-1;pointer-events:none;left:50%;right:auto;top:calc(-1 * env(safe-area-inset-top,0px));width:100vw;height:calc(100% + env(safe-area-inset-top,0px) + 30px);transform:translateX(-50%);background:linear-gradient(to bottom,rgba(0,0,0,.78) 0%,rgba(0,0,0,.48) 58%,rgba(0,0,0,0) 100%);}
+/* Keep album names stable while their cards are swiped or parallax-scrolled. */
+.card.al b{will-change:auto;transform:none!important;backface-visibility:visible;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;}
+
+/* Album removal transition: fade and gently shrink before the grid reflows. */
+.card.al.album-removing{pointer-events:none;will-change:transform,opacity;}
+
+
+/* MIKA DETAIL PHOTO — header gradient full-bleed */
+.pv-top{isolation:isolate;overflow:visible;}
+.pv-top::before{
+  content:"";position:absolute;z-index:-1;pointer-events:none;
+  left:50%!important;right:auto!important;width:100vw!important;
+  top:calc(-1 * env(safe-area-inset-top,0px));
+  height:calc(100% + env(safe-area-inset-top,0px) + 30px);
+  transform:translateX(-50%)!important;
+  background:linear-gradient(to bottom,rgba(0,0,0,.82) 0%,rgba(0,0,0,.52) 58%,rgba(0,0,0,0) 100%);
+}
+/* Unified calendar and media viewer spacing. */
+.cm,.cm-overview{margin-inline:0!important}.cal-search{margin-inline:0!important}.cal-head-row .cal-back,.cal-today{margin-inline:0!important}.cm-month-section{width:calc(100% + 52px)!important;margin-inline:-26px!important;max-width:none!important}.cm-month-head,.cm-month-track{padding-inline:26px!important}
+.pv-top{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr);padding:calc(20px + env(safe-area-inset-top,0px)) 26px 0}.pv-top::before{display:none}.pv .pv-top .pv-cat{display:block!important;position:static;justify-self:end;max-width:100%;font-size:12px;font-weight:500;padding:7px 9px;background:rgba(0,0,0,.3);animation:none!important}.pv-cat:disabled{opacity:1}.pv-t span{max-width:100%;overflow:hidden;text-overflow:ellipsis}.pv-bot{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));gap:16px}.pv-dock{justify-content:center}.pv-bar{margin-inline:auto}.pv{--pv-top-reserve:calc(76px + env(safe-area-inset-top,0px));--pv-bottom-reserve:calc(78px + env(safe-area-inset-bottom,0px))}.pv.ms{--pv-bottom-reserve:calc(154px + env(safe-area-inset-bottom,0px))}.pv-bg{inset:-15%;filter:blur(80px) saturate(1.2) brightness(.4);transition:opacity 450ms ease-in-out}.pv-bgw::after{background:linear-gradient(rgba(0,0,0,.65),transparent 35%,transparent 55%,rgba(0,0,0,.75));pointer-events:none}
+.pv:not(.zm) .pw img,.pv:not(.zm) .pw video{border-radius:20px!important}
+.dalb-media,.cm-month-card{border-radius:20px!important}

@@ -6,7 +6,7 @@ const admin = createClient(E("SUPABASE_URL"), E("SUPABASE_SERVICE_ROLE_KEY"));
 const APP = E("APP_URL"), CID = E("GOOGLE_CLIENT_ID"), CSEC = E("GOOGLE_CLIENT_SECRET");
 const REDIRECT = `${E("SUPABASE_URL")}/functions/v1/drive/callback`;
 const SCOPE = "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email";
-const H = { "Access-Control-Allow-Origin": new URL(APP).origin, "Access-Control-Allow-Headers": "authorization, apikey, content-type, range", "Access-Control-Allow-Methods": "POST, GET, HEAD, OPTIONS", "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges", Vary: "Origin" };
+const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, apikey, content-type, range", "Access-Control-Allow-Methods": "POST, GET, HEAD, OPTIONS", "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges", Vary: "Origin" };
 class Err extends Error { constructor(public code: string, public status = 400, msg?: string) { super(msg || code); } }
 const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...H, "Content-Type": "application/json" } });
 
@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
         const params = new URLSearchParams({
           q, pageSize: "100", orderBy: "folder,name",
           supportsAllDrives: "true", includeItemsFromAllDrives: "true", corpora: "allDrives",
-          fields: "nextPageToken,files(id,name,mimeType,thumbnailLink,webViewLink,createdTime,imageMediaMetadata(width,height),videoMediaMetadata(width,height,durationMillis),size,parents)"
+          fields: "nextPageToken,files(id,name,mimeType,thumbnailLink,webViewLink,createdTime,imageMediaMetadata(width,height,location(latitude,longitude)),videoMediaMetadata(width,height,durationMillis),size,parents)"
         });
         if (b.page_token) params.set("pageToken", String(b.page_token));
         const r = await G(`${FILES}?${params}`, t), j = await r.json();

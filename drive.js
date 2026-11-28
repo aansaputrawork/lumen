@@ -5,7 +5,7 @@ const MSG={offline:"You're offline. Check your connection and try again.",not_co
 const E=(c,m)=>Object.assign(new Error(m&&m!==c?m:(MSG[c]||c)),{code:c});
 const D=window.LDrive={st:null,busy:false,uf:0,ff:[],lastErr:"",lastCid:""};
 const hdr=async()=>{const{data:{session}}=await sb.auth.getSession();return{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token,apikey:C.SUPABASE_ANON_KEY}};
-async function raw(action,body={}){if(!navigator.onLine)throw E("offline");try{return await fetch(FN,{method:"POST",headers:await hdr(),body:JSON.stringify({action,...body})})}catch(e){throw E("offline")}}
+async function raw(action,body={}){if(!navigator.onLine)throw E("offline");try{return await fetch(FN,{method:"POST",headers:await hdr(),body:JSON.stringify({action,...body})})}catch(e){console.error("[MIKA Drive] Request failed:",{action,url:FN,error:e,message:e&&e.message,stack:e&&e.stack});throw E("offline")}}
 async function call(action,body){const r=await raw(action,body),j=await r.json().catch(()=>({}));if(!r.ok)throw E(j.code||"error",j.message);return j}
 
 D.up=async (f,onProgress)=>{
@@ -57,7 +57,7 @@ D.orphanWarn=()=>toast("The file is in Google Drive, but saving its details fail
 const drives=()=>{const s=D.st;if(!s)return[];if(s.drives)return s.drives;return s.connected?[{id:"",email:s.email,status:s.status,folder_id:s.folder_id,folder_name:s.folder_name,auto_backup:s.auto_backup,is_default:true}]:[]};
 const live=()=>drives().filter(d=>d.status=="connected"),ok=()=>live().length>0,dflt=()=>drives().find(d=>d.is_default)||drives()[0];
 const dr=id=>drives().find(d=>d.id==id)||dflt();
-window.getBlob=async p=>{if(p._blob instanceof Blob)return p._blob;if(p.sp=="drive"){const r=p._gdrive?await raw("import_download",{conn_id:p.gconn,file_id:p.aid}):await raw("download",{file_id:p.aid});if(!r.ok)throw E((await r.json().catch(()=>({}))).code||"error");p._blob=await r.blob();return p._blob}const r=await fetch(p.url);if(!r.ok)throw E("error","Couldn't read the file from MIKA Cloud ("+r.status+")");return r.blob()};
+window.getBlob=async p=>{if(p._blob instanceof Blob)return p._blob;if(p.sp=="drive"){const cid=p.gconn||p.cid||p.drive_conn_id||"";const fid=p.aid||p.gid||p.source_drive_id;if(!fid)throw E("error","Google Drive file ID is missing");const r=await raw("import_download",{conn_id:cid,file_id:fid});if(!r.ok){const j=await r.json().catch(()=>({}));throw E(j.code||"error",j.message||"Couldn't download this file from Google Drive")}p._blob=await r.blob();if(!p._blob.size)throw E("error","Google Drive returned an empty file");return p._blob}const r=await fetch(p.url);if(!r.ok)throw E("error","Couldn't read the file from MIKA Cloud ("+r.status+")");return r.blob()};
 // URL yang bisa diputar <video>. Video di Supabase: signed URL biasa. Video yang hanya ada di Google Drive: URL stream bertanda tangan
 // dari Edge Function (mendukung Range, jadi bisa seek). Di-cache sampai mendekati kedaluwarsa (6 jam).
 const VS={};
@@ -72,11 +72,16 @@ window.storagePicker=()=>{const d=dflt(),o=ok(),a=o&&d&&d.auto_backup,L=live();
 window.lMode=s=>{const m=(s.querySelector("#sm")||{}).value||"supabase";D.ff.length=0;D.uf=0;if(m!="supabase"&&!ok()){toast(MSG[drives().some(x=>x.status=="expired")?"token_expired":"not_connected"]);return null}window.LUMEN_DRIVE=(s.querySelector("#dc")||{}).value||"";return m};
 window.lSuffix=()=>(D.ff.length?" · failed: "+D.ff.length:"")+(D.uf?" · Drive backup failed: "+D.uf:"");
 window.lAct=()=>{if(D.ff.length){const l=D.ff.splice(0);D.uf=0;return{l:"Retry",f:()=>upload(l)}}if(D.uf){D.uf=0;return{l:"Retry",f:()=>backup(S.photos.filter(p=>p.bs=="failed"))}}};
-async function backup(l,o={}){if(D.busy||!l.length)return;D.busy=true;let n=0,bad=0,last;const say=o.silent?()=>{}:toast;
- for(const p of l){try{say(`Backing up ${n+bad+1}/${l.length}…`);AB.msg=`Backing up to Drive ${n+bad+1}/${l.length}…`;R2();const b=await getBlob(p),f=new File([b],p.name||"photo",{type:p.type||b.type});f._conn="";const did=await D.up(f),{error}=await sb.from("photos").update({backup_drive_file_id:did,backup_status:"done",drive_conn_id:D.lastCid||null}).eq("id",p.id);if(error)throw error;n++}
+async function backup(l,o={}){if(D.busy||!l.length)return;D.busy=true;let n=0,bad=0,last;const N=l.length;
+ if(!o.silent)LProg.start("Backing up to Google Drive",`0 of ${N}`);
+ for(const p of l){const k=n+bad,at=(f=0)=>k/N*100+f/N*100;
+  try{if(!o.silent)LProg.set({sub:`${k+1} of ${N} · ${p.name||"photo"}`,pct:at()});AB.msg=`Backing up to Drive ${k+1}/${N}…`;R2();
+   const b=await getBlob(p),f=new File([b],p.name||"photo",{type:p.type||b.type});f._conn="";
+   const did=await D.up(f,pc=>{if(!o.silent)LProg.set({pct:at(.25+.75*pc/100)})}),{error}=await sb.from("photos").update({backup_drive_file_id:did,backup_status:"done",drive_conn_id:D.lastCid||null}).eq("id",p.id);if(error)throw error;n++}
   catch(e){bad++;last=e;await sb.from("photos").update({backup_status:"failed"}).eq("id",p.id);if(["token_expired","not_connected","quota","offline","folder_missing"].includes(e.code))break}}
  D.busy=false;await LSB.reload("photos");D.refresh();AB.msg=bad?`${n} backed up to Drive, ${bad} failed`:`${n} backed up to Drive`;R2();
- if(n||bad||!o.silent)toast(bad?`${n} backed up, ${bad} failed: ${last.message}`:`${n} photo${n==1?"":"s"} backed up to Google Drive`)}
+ if(!o.silent)bad?LProg.fail(`${n} backed up, ${bad} failed`,last&&last.message):LProg.done(`${n} photo${n==1?"":"s"} backed up to Google Drive`);
+ else if(n||bad)toast(bad?`${n} backed up, ${bad} failed: ${last.message}`:`${n} photo${n==1?"":"s"} backed up to Google Drive`)}
 const furl=d=>"https://drive.google.com/drive/folders/"+d.folder_id;
 function manualBackup(){
  const items=S.photos.filter(p=>p.sp=="supabase"&&p.bs!="done");
@@ -119,7 +124,7 @@ const fpOf=f=>[f.name,f.size,f.lastModified].join("|");
 // Indeks perpustakaan untuk deteksi duplikat. Memakai data adapter (bukan S) supaya tidak bergantung pada kapan UI selesai render.
 const lib=()=>{const fp=new Set(),ns=new Set(),dr=new Set(),all=[...LSB.docs("photos"),...((typeof S!="undefined"&&S.trash)||[])];
  for(const p of all){if(p.src_fp)fp.add(p.src_fp);if(p.name&&p.size)ns.add(p.name+"|"+p.size);[p.source_drive_id,p.gid,p.sp=="drive"?p.aid:null].forEach(x=>x&&dr.add(x))}
- return{fp,ns,dr,used:all.reduce((a,p)=>a+(+p.size||0),0)}};
+ return{fp,ns,dr,used:all.reduce((a,p)=>a+(p.sp=="drive"?0:(+p.size||0)),0)}};
 const isDup=(f,L)=>L.fp.has(fpOf(f))||L.ns.has(f.name+"|"+f.size);
 const isoDate=s=>Date.parse(String(s||"").replace(/^(\d{4}):(\d\d):(\d\d) /,"$1-$2-$3T"))||0;
 const saveRow=async(id,row)=>{if(typeof save=="function")return save(null,id,row,"photos");return(await window.claude.use("db")).collection("photos").doc(id).set(row)};
@@ -237,43 +242,103 @@ async function importBlob(cid,f,cb){
 D.doImport=async(cid,ids)=>{
  if(!Array.isArray(ids)||!ids.length)return toast("No files selected");
  if(D.importing)return toast("An import is already running");
- D.importing=true;
+ D.importing=true;LProg.start("Importing from Google Drive","Reading selected files…");LProg.set({ind:true});
  try{
-  toast("Reading selected files…");
   const files=[],skipped=[];
   for(let i=0;i<ids.length;i+=50){const j=await call("import_info",{conn_id:cid,ids:ids.slice(i,i+50)});files.push(...(j.files||[]));skipped.push(...(j.skipped||[]))}
-  if(!files.length){console.warn("MIKA Drive import: no readable media returned",{selected:ids.length,skipped});return toast(skipped.length?(skipped[0].code=="not_media"?"The selected items are not supported photos or videos.":`Google Drive couldn't read the selected file (${skipped[0].code||"access error"}). Reconnect the account in Profile and try again.`):"The selected items are not supported photos or videos.")}
+  if(!files.length){console.warn("MIKA Drive import: no readable media returned",{selected:ids.length,skipped});
+   return LProg.fail("Nothing to import",skipped.length&&skipped[0].code!="not_media"?`Google Drive couldn't read the selected file (${skipped[0].code||"access error"}). Reconnect the account in Profile and try again.`:"The selected items are not supported photos or videos.")}
   const have=lib().dr,todo=files.filter(f=>!have.has(f.id));
-  if(!todo.length)return toast("All selected files are already in your MIKA library");
-  let n=0,bad=0;
-  for(const f of todo){
-   const at=n+bad+1,tot=todo.length;
+  if(!todo.length)return LProg.done("Already imported","All selected files are already in your MIKA library");
+  // Bobot tiap file = ukurannya, jadi persentase total bergerak rata (bukan melompat per file).
+  const W=todo.map(f=>Math.max(1,+f.size||1)),T=W.reduce((a,b)=>a+b,0);let before=0,n=0,bad=0,lastErr="";
+  const tot=todo.length,mbs=x=>(x/1048576).toFixed(x>=1e7?0:1);
+  LProg.set({ind:false,pct:0});
+  for(let i=0;i<tot;i++){
+   const f=todo[i],w=W[i],at=i+1,tag=`${at} of ${tot} · ${f.name||"file"}`,pc=fr=>(before+w*fr)/T*100;
+   LProg.set({title:tot>1?`Importing ${at} of ${tot}`:"Importing 1 file",sub:`Downloading · ${tag}`,pct:pc(0)});
    try{
-    toast(`Downloading from Google Drive ${at}/${tot}…`);
-    let last=0;const blob=await importBlob(cid,f,(got,len)=>{const now=Date.now();if(now-last>700){last=now;toast(`Downloading ${at}/${tot}… ${len?Math.round(got/len*100)+"%":(got/1048576).toFixed(0)+" MB"}`)}});
+    // Tahap: unduh dari Drive 0–50%, unggah ke MIKA Cloud 50–98%, simpan data 98–100%
+    const blob=await importBlob(cid,f,(got,len)=>{const total=len||+f.size||0;LProg.set({sub:`Downloading ${mbs(got)}${total?" / "+mbs(total):""} MB · ${f.name||"file"}`,pct:pc(total?Math.min(.5,got/total*.5):.25)})});
     const mime=f.mime||blob.type||guessMime(f.name)||"application/octet-stream";
     const file=new File([blob],f.name||("Google-Drive-"+f.id),{type:mime,lastModified:Date.parse(f.created||"")||Date.now()});
-    await ingest(file,{mode:"supabase",srcDriveId:f.id,meta:f,prog:p=>toast(`Uploading to MIKA Cloud ${at}/${tot}… ${p}%`),
+    LProg.set({sub:`Uploading · ${tag}`,pct:pc(.5)});
+    await ingest(file,{mode:"supabase",srcDriveId:f.id,meta:f,prog:p=>LProg.set({sub:`Uploading ${Math.round(p)}% · ${f.name||"file"}`,pct:pc(.5+Math.min(.48,p/100*.48))}),
      thumbFallback:async()=>{const r=await raw("import_thumb",{conn_id:cid,file_id:f.id});if(!r.ok)return null;const tb=await r.blob();return tb.size&&/^image\//.test(tb.type||"")?new File([tb],"t_"+file.name+".jpg",{type:tb.type}):null}});
     n++;
    }catch(e){
-    console.error("MIKA Drive import failed",f.id,e);bad++;
-    toast(`Import failed: ${f.name||"file"} — ${e.message||"unknown error"}`);
+    console.error("MIKA Drive import failed",f.id,e);bad++;lastErr=`${f.name||"file"}: ${e.message||"unknown error"}`;
     if(["cloud_quota","offline","unauthorized","token_expired"].includes(e.code))break;
    }
+   before+=w;LProg.set({pct:before/T*100});
   }
   await LSB.reload("photos");
-  toast(bad?`Imported ${n}, ${bad} failed`:`Imported ${n} file${n==1?"":"s"} into MIKA Cloud`);
- }catch(e){console.error("MIKA Drive import failed",e);toast("Import failed: "+(e.message||"Something went wrong"))}
+  if(bad&&!n)LProg.fail("Import failed",lastErr);
+  else if(bad)LProg.fail(`Imported ${n}, ${bad} failed`,lastErr);
+  else LProg.done(`Imported ${n} file${n==1?"":"s"} into MIKA Cloud`);
+ }catch(e){console.error("MIKA Drive import failed",e);LProg.fail("Import failed",e.message||"Something went wrong")}
  finally{D.importing=false}
 };
+
+// ======================= Kategori untuk foto Google Drive =======================
+// Foto yang hanya ada di Drive tidak punya baris di perpustakaan MIKA, jadi tidak punya kategori dan tidak masuk album kategori.
+// Di sini tiap foto Drive dibuatkan baris ringan (id file Drive + thumbnail kecil + kategori hasil AI di perangkat). File aslinya TETAP di Drive,
+// tidak disalin; foto penuh dibaca langsung dari Drive saat dibuka. Menjalankan ulang aman: file yang sudah terdaftar dilewati.
+const SMALL=n=>String(n||"photo").replace(/\.[^.]+$/,"");
+async function indexOne(cid,f,A){
+ const mime=f.mimeType||f.mime||"",vid=mime.startsWith("video/");
+ let tb=null;
+ try{const r=await raw("import_thumb",{conn_id:cid,file_id:f.id});if(r.ok){const b=await r.blob();if(b.size&&/^image\//.test(b.type||""))tb=b}}catch(e){if(e.code=="offline")throw e}
+ if(!tb)return false;                                        // tanpa thumbnail grid-nya kosong; lewati
+ let cat="Motion";
+ if(!vid){cat="Other";
+  if(typeof autoCat=="function"){window.LF&&(LF.aiFail=0);cat=await autoCat(new File([tb],"t.jpg",{type:tb.type}));if(window.LF&&LF.aiFail)throw E("ai","Couldn't load the on-device AI model. Check your connection and try again.")}}
+ const tf=new File([tb],"t_"+SMALL(f.name)+".jpg",{type:tb.type});tf._th=1;
+ const t=await A.upload(tf),im=f.imageMediaMetadata||{},vm=f.videoMediaMetadata||{};
+ try{
+  const id="p"+Date.now()+"_"+Math.random().toString(36).slice(2,6);
+  const row={sp:"drive",cid,gconn:cid,name:f.name||"Untitled",url:"",th:t.url,tid:t.id,aid:f.id,up:Date.now(),type:mime,size:+f.size||0,w:+(im.width||vm.width)||0,h:+(im.height||vm.height)||0,dur:Math.round((+vm.durationMillis||0)/1000),cat,
+   date:isoDate(im.time)||Date.parse(f.createdTime||f.created||"")||Date.now(),fav:false,hash:"",src_fp:"gd:"+f.id,source_drive_id:f.id};
+  LSB.meta(f.id,{prov:"drive",did:f.id,bs:"done",cid});
+  await saveRow(id,row);
+ }catch(e){try{await A.delete(t.id)}catch(_){}throw e}
+ return true}
+async function catRun(cid,files,label,held){
+ if(!held&&D.importing)return toast("Another task is still running. Wait until it finishes.");
+ const have=lib().dr,todo=files.filter(f=>/^(image|video)\//.test(f.mimeType||f.mime||"")&&!have.has(f.id));
+ if(!todo.length){if(held){D.importing=false;LProg.done("Nothing new to sort","Every photo in Drive is already in your categories")}else toast(files.length?"These photos are already in your categories":"No photos or videos found");return}
+ D.importing=true;LProg.start(label||"Sorting Drive photos into categories",`Preparing on-device AI…`);
+ let n=0,skip=0,stop="";
+ try{
+  const A=await window.claude.use("assets"),N=todo.length;
+  for(let i=0;i<N;i++){const f=todo[i];
+   LProg.set({title:`Sorting ${i+1} of ${N}`,sub:f.name||"",pct:i/N*100});
+   try{if(await indexOne(cid,f,A))n++;else skip++}
+   catch(e){if(["ai","offline","unauthorized","token_expired","not_connected"].includes(e.code)){stop=e.message;break}skip++;console.warn("MIKA Drive categorize skipped",f.id,e)}}
+  await LSB.reload("photos")}
+ catch(e){stop=e.message||"Something went wrong"}
+ finally{D.importing=false}
+ if(stop)LProg.fail(n?`Sorted ${n}, then stopped`:"Couldn't sort Drive photos",stop);
+ else LProg.done(`${n} Drive photo${n==1?"":"s"} added to categories`,skip?`${skip} skipped (no preview available)`:"")}
+// Satu folder (dipanggil dari Albums > Google Drive)
+// Seluruh akun Drive
+D.catAll=async cid=>{
+ const L=live();if(!L.length)return toast(MSG.not_connected);
+ if(cid==null&&L.length>1)return sheet(`<h3 style="margin-top:0">Sort which account?</h3>`+L.map(d=>`<button class=o data-x="c:${esc(d.id)}">${esc(d.email||"")}${d.is_default?" (default)":""}</button>`).join(""),x=>{if(x&&x.startsWith("c:"))D.catAll(x.slice(2))});
+ if(cid==null)cid=L[0].id;
+ if(D.importing)return toast("Another task is still running. Wait until it finishes.");
+ D.importing=true;LProg.start("Looking through Google Drive…","0 photos and videos found");LProg.set({ind:true});
+ const all=[];let tk="";
+ try{do{const j=await call("list_media",{conn_id:cid,page_token:tk,search:""});all.push(...(j.files||[]));tk=j.next_page_token||"";LProg.set({sub:`${all.length} photos and videos found`})}while(tk&&all.length<5000)}
+ catch(e){D.importing=false;return LProg.fail("Couldn't read Google Drive",e.message)}
+ return catRun(cid,all,"Sorting Drive photos into categories",true)};
 
 // ======================= Backup otomatis =======================
 // (1) Cloud → Drive: bila "Auto backup" Drive default aktif, semua file MIKA Cloud yang belum tercadangkan dikirim ke Drive di latar depan.
 // (2) HP → MIKA: pantau satu folder (File System Access API, Chrome/Edge desktop) dan terima foto yang dibagikan dari galeri (Share Target PWA).
 // Peramban TIDAK mengizinkan pemindaian galeri di latar belakang saat aplikasi tertutup; semua berjalan saat MIKA terbuka.
 const AB=D.ab={q:[],run:false,n:0,bad:0,msg:"",perm:"",skip:new Set(),tried:new Set(),cap:false};
-const CK=()=>"mika_ab_"+(D.uid||""),DEF={dev:false,wifi:true,dest:"both",since:0,dirName:""};
+const CK=()=>"mika_ab_"+(D.uid||""),DEF={dev:false,wifi:true,dest:"both",since:0,dirName:"",gal:false};
 const cfg=()=>{try{return{...DEF,...JSON.parse(localStorage.getItem(CK())||"{}")}}catch(e){return{...DEF}}};
 const setCfg=p=>{try{localStorage.setItem(CK(),JSON.stringify({...cfg(),...p}))}catch(e){}};
 const dest=()=>cfg().dest=="both"&&ok()?"both":"supabase";
@@ -312,44 +377,80 @@ async function scanFolder(ask){const c=cfg();if(!c.dev||!window.showDirectoryPic
  const n=enqueue(fs);if(n&&!AB.run)AB.msg=`Found ${n} new file${n==1?"":"s"}`}
 function cloudSync(){const d=dflt();if(!d||d.status!="connected"||!d.auto_backup||D.busy||AB.run||!netOK())return;
  const l=LSB.docs("photos").filter(p=>p.sp=="supabase"&&p.bs!="done"&&p.url&&!AB.tried.has(p.id));if(!l.length)return;l.forEach(p=>AB.tried.add(p.id));return backup(l,{silent:true})}
+// ---- Simpan semua foto MIKA ke galeri HP (aplikasi native + plugin Media). Satu album per kategori: "MIKA Portraits", "MIKA Nature", ... ----
+const GK=()=>"mika_gal_"+(D.uid||""),galDone=()=>{try{return new Set(JSON.parse(localStorage.getItem(GK())||"[]"))}catch(e){return new Set()}},galSave=x=>{try{localStorage.setItem(GK(),JSON.stringify([...x]))}catch(e){}};
+let galBusy=false;
+async function galSync(manual){
+ if(!window.LDL||!LDL.hasGallery()||galBusy||D.importing||D.busy)return;
+ const done=galDone(),todo=LSB.docs("photos").filter(p=>(p.sp=="supabase"||p.sp=="drive")&&!done.has(p.id));
+ if(!todo.length){if(manual)toast("Everything is already in your phone gallery");return}
+ if(!manual&&!netOK())return;
+ galBusy=true;if(manual)LProg.start("Saving to your phone gallery",`0 of ${todo.length}`);
+ let n=0,bad=0,last="";
+ for(const p of todo){
+  try{if(manual)LProg.set({title:`Saving ${n+bad+1} of ${todo.length}`,sub:p.name||"",pct:(n+bad)/todo.length*100});
+   const b=await getBlob(p),r=await LDL.save(b,fname(p),{album:p.cat?"MIKA "+p.cat:"MIKA"});p._blob=null;
+   if(r.kind=="saved"){done.add(p.id);n++;if(n%10==0)galSave(done)}else bad++}
+  catch(e){bad++;last=e.message||"error";if(e.code=="offline")break}}
+ galSave(done);galBusy=false;
+ if(manual)bad&&!n?LProg.fail("Couldn't save to your gallery",last):LProg.done(`${n} saved to your phone gallery`,bad?`${bad} failed${last?": "+last:""}`:"");
+ else if(n)toast(`${n} photo${n==1?"":"s"} saved to your phone gallery`)}
+let driveIndexAt=0;
+async function autoDriveIndex(){
+ if(Date.now()-driveIndexAt<15*60*1000)return;
+ for(const d of live()){
+  try{await D.catAll(d.id||undefined)}
+  catch(e){if(e.code==="offline")throw e;console.warn("MIKA Drive indexing",e)}
+ }
+ driveIndexAt=Date.now();
+}
 let tk=false;
 async function tick(){if(tk||document.hidden||!D.uid||!D.st||!LSB.loaded("photos"))return;tk=true;
- try{await shareIntake();await cloudSync();await scanFolder(false)}catch(e){console.warn("MIKA auto backup",e)}finally{tk=false}}
+ try{await shareIntake();await cloudSync();await autoDriveIndex();await scanFolder(false);if(cfg().gal)await galSync(false)}catch(e){console.warn("MIKA auto backup",e)}finally{tk=false}}
 D.tick=tick;
 setInterval(tick,60000);["visibilitychange","online","focus"].forEach(ev=>addEventListener(ev,()=>setTimeout(tick,800)));
 addEventListener("beforeunload",e=>{if(AB.run||D.busy||D.importing){e.preventDefault();e.returnValue=""}});
+const RF=()=>{try{typeof rr=="function"&&rr()}catch(e){}};
 Object.assign(A,{
- async abdev(){if(cfg().dev){setCfg({dev:false});AB.msg="";return R2()}
+ async abdev(){if(cfg().dev){setCfg({dev:false});AB.msg="";return RF()}
   if(!window.showDirectoryPicker)return toast("This browser can't watch a folder. Share photos from your gallery to MIKA instead.");
   try{const h=await showDirectoryPicker({id:"mika-backup",mode:"read"});await idb("set","dir:"+D.uid,h);AB.perm="";
-   sheet(`<h3 style="margin-top:0">Back up “${esc(h.name)}”</h3><div class=mu style="font-size:12px;margin-bottom:6px">New photos and videos in this folder are backed up automatically whenever MIKA is open.</div><button class=o data-x=all>Existing and new files</button><button class=o data-x=new>Only new files from now</button>`,x=>{setCfg({dev:true,dirName:h.name,since:x=="new"?Date.now():0});R2();tick()})}
+   sheet(`<h3 style="margin-top:0">Back up “${esc(h.name)}”</h3><div class=mu style="font-size:12px;margin-bottom:6px">New photos and videos in this folder are backed up automatically whenever MIKA is open.</div><button class=o data-x=all>Existing and new files</button><button class=o data-x=new>Only new files from now</button>`,x=>{setCfg({dev:true,dirName:h.name,since:x=="new"?Date.now():0});RF();tick()})}
   catch(e){if(e.name!="AbortError")toast("Failed: "+e.message)}},
- async abfolder(){if(!window.showDirectoryPicker)return;try{const h=await showDirectoryPicker({id:"mika-backup",mode:"read"});await idb("set","dir:"+D.uid,h);setCfg({dirName:h.name});AB.perm="";R2();tick()}catch(e){if(e.name!="AbortError")toast("Failed: "+e.message)}},
- async abresume(){try{await scanFolder(true);R2()}catch(e){toast("Failed: "+e.message)}},
- abwifi(){setCfg({wifi:!cfg().wifi});R2()},
- abdest(){setCfg({dest:cfg().dest=="both"?"supabase":"both"});R2()}});
-const abRows=()=>{const c=cfg(),sup=!!window.showDirectoryPicker,B=(k,t)=>`<button class=chip data-dr=${k}>${t}</button>`,Rw=(a,b,x="")=>`<div class=row${x}><span>${a}</span>${b}</div>`;
+ async abfolder(){if(!window.showDirectoryPicker)return;try{const h=await showDirectoryPicker({id:"mika-backup",mode:"read"});await idb("set","dir:"+D.uid,h);setCfg({dirName:h.name});AB.perm="";RF();tick()}catch(e){if(e.name!="AbortError")toast("Failed: "+e.message)}},
+ async abresume(){try{await scanFolder(true);RF()}catch(e){toast("Failed: "+e.message)}},
+ abwifi(){setCfg({wifi:!cfg().wifi});RF()},
+ abdest(){setCfg({dest:cfg().dest=="both"?"supabase":"both"});RF()},
+ galall(){galSync(true)},
+ galauto(){setCfg({gal:!cfg().gal});RF();if(cfg().gal)galSync(true)}});
+const abRows=()=>{const c=cfg(),sup=!!window.showDirectoryPicker,B=(k,t)=>`<button class=chip data-dr=${k}>${t}</button>`,
+  Rw=(a,b,d="")=>`<div class=row><span${d?" class=rl":""}>${a}${d?`<small class=rdesc>${d}</small>`:""}</span>${b}</div>`;
  let h=`<div class=mu style="font-size:12px;margin:12px 0 2px"><b style="color:var(--tx)">Automatic backup</b> · runs while MIKA is open</div>`;
- h+=Rw("Watch a phone folder",sup?B("abdev",c.dev?"On":"Off"):`<span class=mu style="font-size:12px">Not supported here</span>`);
- if(c.dev&&sup){h+=Rw("Folder",`<span style="display:flex;gap:6px;align-items:center"><span class="mu v">${esc(c.dirName||"—")}</span>${B("abfolder","Change")}</span>`);
-  if(AB.perm=="needed")h+=Rw('<b style="color:var(--ac2)">Permission needed</b>',B("abresume","Allow"))}
- h+=Rw("Wi-Fi only",B("abwifi",c.wifi?"On":"Off"))+Rw("Send to",B("abdest",dest()=="both"?"MIKA Cloud + Drive":"MIKA Cloud only"));
- h+=`<p class=mu style="font-size:12px;margin:4px 0 0">${sup?"":"This browser can't watch folders. "}Photos shared from your gallery (Share → MIKA) are also backed up automatically once MIKA is installed.</p>`;
+ // Pantau folder hanya ada di peramban desktop (Chrome/Edge). Di HP baris ini tidak berguna, jadi disembunyikan.
+ if(sup){h+=Rw("Watch folder",B("abdev",c.dev?"On":"Off"),"Desktop only: automatically backs up new photos and videos from a folder on this computer.");
+  if(c.dev){h+=Rw("Folder",`<span class=acts><span class="mu v">${esc(c.dirName||"—")}</span>${B("abfolder","Change")}</span>`);
+   if(AB.perm=="needed")h+=Rw('<b style="color:var(--ac2)">Permission needed</b>',B("abresume","Allow"))}}
+ h+=Rw("Wi-Fi only",B("abwifi",c.wifi?"On":"Off"),"Don't back up while on mobile data.");
+ h+=Rw("Back up to",B("abdest",dest()=="both"?"MIKA Cloud + Drive":"MIKA Cloud only"),"Tap to change");
+ if(window.LDL&&LDL.hasGallery()){
+  h+=Rw("Phone gallery",B("galall","Save all"),"Save photos to your phone gallery.");
+  h+=Rw("Save new photos to gallery",B("galauto",c.gal?"On":"Off"))}
+ if(!sup)h+=`<p class=mu style="font-size:12px;margin:4px 0 0">Photos shared from your gallery (Share → MIKA) are backed up automatically once MIKA is installed.</p>`;
  if(AB.msg)h+=Rw("Status",`<span class=mu style="text-align:right">${esc(AB.msg)}</span>`);
  return h};
+window.backupSettingsRows=abRows;
 window.driveCard=()=>{const s=D.st,P=S.photos,done=P.filter(p=>p.sp=="supabase"&&p.bs=="done").length,fail=P.filter(p=>p.bs=="failed").length,todo=P.filter(p=>p.sp=="supabase"&&p.bs!="done").length,only=P.filter(p=>p.sp=="drive").length,L=drives();
- const R=(a,b,x="")=>`<div class=row${x}><span>${a}</span>${b}</div>`,B=(k,t,id)=>`<button class=chip data-dr=${k}${id!=null?` data-id="${esc(id)}"`:""}>${t}</button>`;let h;
+ const R=(a,b,x="",d="")=>`<div class=row${x}><span${d?" class=rl":""}>${a}${d?`<small class=rdesc>${d}</small>`:""}</span>${b}</div>`,B=(k,t,id)=>`<button class=chip data-dr=${k}${id!=null?` data-id="${esc(id)}"`:""}>${t}</button>`;let h;
  if(!s)h=R("Status",'<span class=mu>Checking…</span>',' style="border:0"');
  else if(!L.length)h=R('<span class=dot></span>Not connected',B("connect","Connect"),' style="border:0"')+`<p class=mu style="font-size:12px;margin:4px 0 0">MIKA can browse the Google Drive files and folders you authorize. Your originals stay in Google Drive unless you explicitly upload or import them elsewhere. You can connect more than one Google account.</p>`;
  else h=L.map((d,i)=>{const on=d.status=="connected",e=esc(d.email||"Google account");
    return`<div class="dv${i?" dv2":""}">`+R(`<span class="dot ${on?"g":"r"}"></span><span style="color:var(--tx);min-width:0;overflow-wrap:anywhere">${e}</span>${d.is_default?'<span class=mu style="font-size:12px;margin-left:6px">Default</span>':""}`,"",' style="border:0;padding-bottom:2px"')
-   +(on?R("Folder",`<span style="display:flex;gap:6px;align-items:center"><span class="mu v">${esc(d.folder_name||"—")}</span>${B("folder","Change",d.id)}</span>`)
-   +R("Open / share folder",`<span style="display:flex;gap:6px">${B("open","Open",d.id)}${B("share","Share",d.id)}</span>`)
-   +(d.is_default?R("Auto backup to Drive",B("auto",d.auto_backup?"On":"Off",d.id)):""):"")
-   +R("Account",`<span style="display:flex;gap:6px;flex-wrap:wrap">${on?B("connect","Update permissions",d.id):B("connect","Reconnect",d.id)}${on&&L.length>1&&!d.is_default?B("def","Make default",d.id):""}${B("disc","Disconnect",d.id)}</span>`,' style="border:0"')+`</div>`}).join("")
+   +(on?R("Folder",`<span class=acts><span class="mu v">${esc(d.folder_name||"—")}</span>${B("folder","Change",d.id)}</span>`)
+   +R("Open / share folder",`<span class=acts>${B("open","Open",d.id)}${B("share","Share",d.id)}</span>`)
+   +R("Connection",B("disc","Disconnect",d.id))+(d.is_default?R("Auto backup to Drive",B("auto",d.auto_backup?"On":"Off",d.id)):""):"")
+   +(!on?R("Connection",B("connect","Reconnect",d.id),' account-row style="border:0"'):L.length>1&&!d.is_default?R("Account",B("def","Make default",d.id),' account-row style="border:0"'):"")+`</div>`}).join("")
   +R("Add another Google Drive",B("connect","Add"))
-  +R("Import from Google Drive",B("imp","Import"))
-  +abRows()+R("Backup status",`<span class=mu>${done} backed up${only?` · ${only} Drive only`:""}${fail?` · <b style="color:var(--ac2)">${fail} failed</b>`:""}</span>`)
+  +R("Backup status",`<span class=mu>${done} backed up${only?` · ${only} Drive only`:""}${fail?` · <b style="color:var(--ac2)">${fail} failed</b>`:""}</span>`)
   +(fail||todo?R(todo?`${todo} not backed up yet`:"",`<span style="display:flex;gap:6px">${fail?B("retry","Retry"):""}${todo?B("all","Back up all"):""}</span>`):"")
   +(L.some(d=>d.status=="connected")?R("Manual backup",B("manual","Choose files")):"")
   +(LSB.orphans()?R("Pending details",B("orph","Recover")):"");

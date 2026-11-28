@@ -37,7 +37,7 @@ LF.dup=()=>{const g=new Map();S.photos.forEach(p=>{const k=p.hash||p.name+"|"+p.
  const extra=d.flatMap(a=>[...a].sort((x,y)=>(x.up||x.date)-(y.up||y.date)).slice(1));
  sheet(`<h3 style="margin-top:0">${d.length} duplicate group${d.length>1?"s":""}</h3><div class=mas style="columns:3">${d.map(a=>isVid(a[0])?"":`<img src="${T(a[0])}" style="opacity:1">`).join("")}</div><button class=o data-x=go>Move ${extra.length} cop${extra.length>1?"ies":"y"} to Recently Deleted</button>`,x=>{if(x=="go")delPhotos(extra)})};
 document.addEventListener("click",e=>{const b=e.target.closest("[data-lf]");if(b&&LF[b.dataset.lf])LF[b.dataset.lf]()});
-// Aplikasi native (Capacitor): login Google kembali lewat deep link com.lumen.photos://login-callback?code=...
-const cap=window.Capacitor;if(cap&&cap.isNativePlatform&&cap.isNativePlatform()){window.LOGIN_REDIRECT="com.lumen.photos://login-callback";
+// Aplikasi native (Capacitor): login Google kembali lewat deep link com.mika.cloud://login-callback?code=...
+const cap=window.Capacitor;if(cap&&cap.isNativePlatform&&cap.isNativePlatform()){window.LOGIN_REDIRECT="com.mika.cloud://login-callback";
  cap.Plugins.App.addListener("appUrlOpen",async({url})=>{try{const c=new URL(url).searchParams.get("code");if(c){await sb.auth.exchangeCodeForSession(c);try{cap.Plugins.Browser.close()}catch(e){}location.reload()}}catch(e){}})}
 })();

@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Generated web assets
+/www/
+/scripts/media-bridge.bundle.js
+
+# Backups
+*.zip
+*.before-*
+*.bak
+
+# Local revision notes
+MIKA-REVISION-*.txt
+PATCH-NOTES.txt
+PETUNJUK.txt
+
+# Supabase
+supabase/.temp/
+
+# iOS generated files
+ios/App/Pods/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+DerivedData/
+build/
+xcuserdata/
+*.xcuserstate
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.p12
+*.mobileprovision
+*.p8

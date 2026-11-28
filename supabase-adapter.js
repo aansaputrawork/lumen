@@ -58,6 +58,12 @@ const rl=n=>{clearTimeout(TM[n]);TM[n]=setTimeout(()=>load(n).catch(()=>{}),250)
 function watch(n,f,er){(L[n]=L[n]||[]).push(f);if(R[n])f(R[n]);else load(n).catch(er||(()=>{}));
 if(!RT.has(n)){RT.add(n);sb.channel("lumen_"+n).on("postgres_changes",{event:"*",schema:"public",table:n},()=>rl(n)).subscribe()}return()=>{}}
 async function put(n,id,d){
+ if(n==="settings" && id.startsWith("album-cover:")){
+  const {error}=await sb.from(n).upsert({id,user_id:uid,data:d},{onConflict:"user_id,id"});
+  if(error)throw error;
+  rl(n);
+  return;
+ }
  let data=d,cols={};
 
  if(n=="photos"){
@@ -219,7 +225,7 @@ const AS={
  }
 };
 
-const DL={save:async({filename,data})=>{const a=document.createElement("a"),u=URL.createObjectURL(data);a.href=u;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),6e4)}};
+const DL={save:async({filename,data,album})=>window.LDL?LDL.save(data,filename,{album}):(()=>{const a=document.createElement("a"),u=URL.createObjectURL(data);a.href=u;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),6e4);return{kind:"saved",msg:"Saved to Downloads"}})()}; // jalur sebenarnya ada di download.js
 window.claude={use:async n=>{const s=await ses();if(n=="user")return{id:async()=>s.user.id,me:async()=>({name:s.user.user_metadata?.name||"",email:s.user.email})};return{db:DB,assets:AS,downloads:DL}[n]||null}};
 window.LSB={reload:n=>load(n),loaded:n=>!!R[n],docs:n=>(R[n]||[]).map(r=>({...r.doc,id:r.id})),meta:(k,v)=>META.set(k,v),orphans:()=>orph().length,
  async retryOrphans(){const a=orph(),keep=[];for(const r of a){const{error}=await sb.from("photos").insert(r);if(error&&error.code!="23505")keep.push(r)}setOr(keep);await load("photos");return a.length-keep.length},

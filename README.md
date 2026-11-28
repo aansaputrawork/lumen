@@ -102,3 +102,8 @@ Satu font (`--font`) dan satu skala ukuran: **12** keterangan/badge, **13** labe
 - Folder dapat dibuat, diganti nama, atau dipindahkan ke Google Drive Trash (termasuk isinya).
 - Pengaturan koneksi, izin OAuth, akun default, dan backup tetap ada di Profile → Google Drive. Tidak ada lagi halaman terpisah atau tombol Open gallery.
 - Modul baru: `drive-albums.js`; cache PWA dinaikkan ke `mika-v15`. Deploy ulang Edge Function `drive` setelah update.
+
+## Pembaruan 11: download, progres, kategori Drive
+- `download.js`: `LDL.save` (download benar di iPhone/PWA/WebView, tidak lagi pindah ke halaman gambar) dan `LProg` (kartu progres tunggal yang stabil, dipakai impor, backup, kategori Drive, simpan ke galeri).
+- Kategori foto Drive: Profile > Google Drive > "Sort Drive photos into categories", atau tombol "Add to categories" di Albums > Google Drive. File asli tetap di Drive; kuota MIKA Cloud tidak terpakai oleh foto yang hanya ada di Drive.
+- Baris Account/Folder/Open rata kanan; "Watch folder" hanya tampil di peramban desktop; "Send to" diganti "Back up to" dengan penjelasan. Cache PWA `mika-v27`.

@@ -1,0 +1,71 @@
+PODS:
+  - Capacitor (8.6.2):
+    - CapacitorCordova
+  - CapacitorApp (8.1.2):
+    - Capacitor
+  - CapacitorBrowser (8.0.5):
+    - Capacitor
+  - CapacitorCommunityMedia (9.1.0):
+    - Capacitor
+    - SDWebImage
+  - CapacitorCordova (8.6.2)
+  - CapacitorFilesystem (8.1.5):
+    - Capacitor
+    - IONFilesystemLib (= 2.0.1)
+  - CapacitorLocalNotifications (8.3.1):
+    - Capacitor
+  - CapacitorNetwork (8.0.1):
+    - Capacitor
+  - IONFilesystemLib (2.0.1)
+  - SDWebImage (5.21.7):
+    - SDWebImage/Core (= 5.21.7)
+  - SDWebImage/Core (5.21.7)
+
+DEPENDENCIES:
+  - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
+  - "CapacitorCommunityMedia (from `../../node_modules/@capacitor-community/media`)"
+  - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
+  - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
+  - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
+
+SPEC REPOS:
+  trunk:
+    - IONFilesystemLib
+    - SDWebImage
+
+EXTERNAL SOURCES:
+  Capacitor:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../node_modules/@capacitor/app"
+  CapacitorBrowser:
+    :path: "../../node_modules/@capacitor/browser"
+  CapacitorCommunityMedia:
+    :path: "../../node_modules/@capacitor-community/media"
+  CapacitorCordova:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorFilesystem:
+    :path: "../../node_modules/@capacitor/filesystem"
+  CapacitorLocalNotifications:
+    :path: "../../node_modules/@capacitor/local-notifications"
+  CapacitorNetwork:
+    :path: "../../node_modules/@capacitor/network"
+
+SPEC CHECKSUMS:
+  Capacitor: 0a406b8a50b1ddcfe49fbc5795515918d5294708
+  CapacitorApp: 7b7e43debe505bc61beedb83796aa1368c86078b
+  CapacitorBrowser: f94f92654e92a97981bf346b3681af76527dace0
+  CapacitorCommunityMedia: 862ba42957f75b74e403fc3a35bb1b286bfe9410
+  CapacitorCordova: 8e68a712e47128cf5b97e88b9c2b406b9b956b22
+  CapacitorFilesystem: e3bc7123acb1554df1b7b099fa5847064b9e1bd4
+  CapacitorLocalNotifications: e0747a329ddde3074d52dc74a003688af90e42be
+  CapacitorNetwork: 8812ce60d11fb63d8f2e4ba51a49b2e59892ebe2
+  IONFilesystemLib: 306469e4c563f61de82d7bca2bbfed9e64d1b2d2
+  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
+
+PODFILE CHECKSUM: d8d073e71b46b4891f6442da9e99029fb514473e
+
+COCOAPODS: 1.17.0

@@ -1,20 +1,27 @@
 /* ===== TEMA ===== Default = MIKA (warna logo: hitam #0C0A0B + merah #CD0921). Light & Dark tetap tersedia di Profile > Appearance.
    --ac = merah logo (isi tombol/aktif), --ac2 = merah terang untuk teks/ikon kecil di latar gelap. */
-:root{--font:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;--e:cubic-bezier(.22,1,.36,1);--ac:#CD0921;--ac2:#FF4B5C;--bg:#0C0A0B;--sf:#161113;--tx:#F5F1F2;--mu:#9A8F93;--pill:#211A1D;--on:#CD0921;--onx:#fff;--gl:rgba(22,15,18,.74);--na:#CD0921;--nat:#fff;--sh:rgba(255,255,255,.08);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--font:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;--e:cubic-bezier(.22,1,.36,1);--ac:#CD0921;--ac2:#FF4B5C;--bg:#0C0A0B;--sf:#161113;--tx:#F5F1F2;--mu:#9A8F93;--pill:#211A1D;--on:#CD0921;--onx:#fff;--gl:rgba(22,15,18,.74);--na:#CD0921;--nat:#fff;--sh:rgba(255,255,255,.08);color-scheme:dark;box-sizing:border-box}
 :root[data-theme=dark]{--bg:#0E0F11;--sf:#1B1C1F;--tx:#F2F2F2;--mu:#8D8F94;--pill:#232427;--gl:rgba(40,42,46,.7);--sh:rgba(255,255,255,.08)}
 :root[data-theme=light]{--bg:#F6F3F3;--sf:#ECE7E8;--tx:#1A1214;--mu:#7C7074;--pill:#E7E0E1;--gl:rgba(255,255,255,.8);--sh:rgba(0,0,0,.07);color-scheme:light}
 ::selection{background:var(--ac);color:#fff}input,select{accent-color:var(--ac)}
 input:focus,select:focus{box-shadow:0 0 0 2px rgba(205,9,33,.55)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:pan-x pan-y}
+/* Hide native vertical and horizontal scroll indicators throughout the app without disabling scrolling. */
+*{scrollbar-width:none;-ms-overflow-style:none}*::-webkit-scrollbar{display:none;width:0;height:0}
+/* Prevent iOS focus auto-zoom on form controls throughout every app page. */
+input,select,textarea{font-size:16px!important;touch-action:pan-x pan-y}
 body{background:var(--bg);color:var(--tx);font:15px/1.4 var(--font);transition:background .4s,color .4s;overflow:hidden}
 button,select,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer;transition:transform .35s var(--e),opacity .25s,background-color .35s,color .35s}button:active{transform:scale(.94);transition-duration:.12s}
-#app{height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));max-width:520px;margin:auto;position:relative;overflow:hidden}
-.scr{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:0 16px 100px;animation:fadein .45s var(--e);-webkit-overflow-scrolling:touch}
+#app{height:100vh;height:100dvh;width:100%;max-width:520px;margin:auto;position:relative;overflow:hidden}
+.scr{position:absolute;inset:0;min-width:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:env(safe-area-inset-top,0px) 16px 100px;animation:fadein .45s var(--e);-webkit-overflow-scrolling:touch}
 @keyframes in{from{opacity:0;transform:translateY(14px)}}@keyframes up{from{transform:translateY(100%)}}@keyframes pop{from{opacity:0;transform:scale(.96)}}@keyframes rise{from{opacity:0;transform:translateY(26px) scale(.97)}}
 .st0,.st0 *{animation:none!important}.st0 .mas img,.st0 .mas video{opacity:1;transform:none;transition:none}.card{animation:rise .8s var(--e) both;transition:transform .45s var(--e)}.card:nth-child(even){animation-delay:.07s}.card:active{transform:scale(.98)}
 .scr,.nav,.chip,.ic,input,select,.sheet>div,.bar2,.seg,.row{transition:background-color .45s,color .45s,border-color .45s}
 .top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:12px 0;background:linear-gradient(var(--bg) 72%,transparent)}
+/* Albums header: solid black at the top, with a full-bleed fade behind the title and action icons. */
+.top.ht{isolation:isolate;background:transparent}
+.top.ht::before{content:"";position:absolute;z-index:-1;pointer-events:none;left:-16px;right:-16px;top:calc(-1 * env(safe-area-inset-top,0px));height:calc(100% + env(safe-area-inset-top,0px) + 18px);background:linear-gradient(to bottom,#000 0%,#000 48%,rgba(0,0,0,.82) 72%,rgba(0,0,0,0) 100%)}
 .top h1{font-size:15px;margin:0;font-weight:600}
 .chip{background:var(--pill);border-radius:99px;padding:9px 16px;font-size:14px}
 .ic{width:38px;height:38px;border-radius:50%;background:var(--pill);display:grid;place-items:center}
@@ -83,7 +90,8 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .top.sel h1{font-size:17px;font-weight:800;transition:background .3s,color .3s,padding .3s}.top.sel h1.on{background:var(--on);color:var(--onx);padding:6px 16px;border-radius:99px}.top.sel .chip{padding:8px 16px}
 .nav.sb button{display:grid;justify-items:center;gap:2px;font-size:12px;padding:7px 9px;min-width:52px}.nav.sb button small{font-size:12px}
 .dd{position:absolute;left:8px;bottom:8px;z-index:2;background:rgba(0,0,0,.6);color:#fff;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:700}
-.mi.gone{opacity:0;transform:scale(.8);transition:opacity .3s,transform .35s var(--e);pointer-events:none}
+.mi.gone{opacity:0;filter:blur(2px);transform:scale(.94);transition:opacity .28s ease,filter .28s ease,transform .34s var(--e);pointer-events:none}
+.mi:not(.gone) img,.mi:not(.gone) video{opacity:1;transform:none;}
 .card{scroll-margin-top:72px}
 @keyframes dpop{from{opacity:0;transform:translateY(18px) scale(.9)}}@keyframes dpout{to{opacity:0;transform:translateY(10px) scale(.94)}}
 .dlg{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:fadein .3s var(--e)}
@@ -173,3 +181,179 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .dalb-page .dalb-hero{margin:0 0 18px;}
 .dalb-page .dalb-folder-list{margin:0 0 12px;}
 .dalb-page .dalb-grid{margin-top:8px;}
+
+/* Baris pengaturan Drive: tombol selalu rata kanan (juga saat membungkus ke beberapa baris), keterangan kecil di bawah label. */
+.gp .row .acts{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;flex:1 1 auto;min-width:0;margin-left:12px}
+.dv .row>span:first-child:not(.acts){flex:none}
+.gp .row>.rl{display:block;min-width:0;padding-right:12px}
+.rdesc{display:block;font-size:12px;line-height:1.35;color:var(--mu);font-weight:400;margin-top:2px}
+.dalb .sh .chip,.dalb-cat{flex:none}
+.dalb-cat{margin-top:8px}
+
+/* Google Drive account actions: keep Update permissions / Disconnect aligned to the right edge. */
+.dv .row .acts{margin-left:auto;justify-content:flex-end;align-self:center;flex:0 1 auto}
+.dv .row .acts .chip{white-space:nowrap}
+@media(max-width:430px){.dv .row .acts{gap:5px}.dv .row .acts .chip{padding:7px 10px;font-size:12px}}
+
+
+/* Progress panel used by LProg for imports and backups. */
+.lprog{position:fixed;z-index:9999;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:auto;max-width:480px;margin:0 auto;padding:14px 16px;border:1px solid var(--sh);border-radius:16px;background:var(--sf);color:var(--tx);box-shadow:0 10px 36px rgba(0,0,0,.2);opacity:0;transform:translateY(12px);transition:opacity .22s ease,transform .22s ease;pointer-events:none}
+.lprog.in{opacity:1;transform:translateY(0)}.lprog.out{opacity:0;transform:translateY(8px)}.lp-h{display:flex;align-items:center;justify-content:space-between;gap:12px}.lp-t{font-size:14px;font-weight:650}.lp-p{font-size:12px;color:var(--mu);font-variant-numeric:tabular-nums}.lp-s{font-size:12px;color:var(--mu);margin-top:4px;overflow-wrap:anywhere}.lp-bar{height:5px;margin-top:11px;border-radius:8px;background:var(--pill);overflow:hidden}.lp-bar i{display:block;width:100%;height:100%;border-radius:inherit;background:var(--ac);transform:scaleX(0);transform-origin:left center;transition:transform .25s ease}.lprog.ind .lp-bar i{transform:scaleX(.35)!important;animation:lp-ind 1.15s ease-in-out infinite alternate}.lprog.done .lp-bar i{background:#32a66a}.lprog.err .lp-bar i{background:#d65b5b}@keyframes lp-ind{from{transform:translateX(-25%) scaleX(.35)}to{transform:translateX(190%) scaleX(.35)}}
+
+/* Explicit grid layout for the Google Drive account action row. */
+.dv .account-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px;width:100%}
+.dv .account-row>span:first-child{min-width:0;flex:none}
+.dv .account-row>.acts{display:flex;flex:0 0 auto;width:max-content;max-width:100%;min-width:0;margin:0 0 0 auto;justify-content:flex-end;align-items:center;flex-wrap:nowrap;gap:6px}
+.dv .account-row>.acts .chip{flex:0 0 auto;white-space:nowrap}
+@media(max-width:390px){.dv .account-row{column-gap:6px}.dv .account-row>.acts{gap:4px}.dv .account-row>.acts .chip{padding:6px 8px;font-size:11px}}
+
+
+/* MIKA Calendar header: full-bleed gradient to the top and both screen edges. */
+.cal-header{display:block;padding:10px 0 16px;margin:0 0 8px;background:transparent}
+.cal-header::before{left:-16px;right:-16px;top:calc(-1 * env(safe-area-inset-top,0px));height:calc(100% + env(safe-area-inset-top,0px) + 18px)}
+.cal-head-row{display:flex;align-items:center;gap:12px;min-height:40px}
+.cal-head-row .cal-back{flex:none;margin-left:10px}
+.cal-head-row h1{flex:1;min-width:0;text-align:center;white-space:nowrap}
+.cal-today{flex:none;margin-right:10px;padding:8px 12px;border-radius:99px;background:var(--pill);font-size:13px;font-weight:600}
+.cal-search{display:flex;align-items:center;gap:10px;height:44px;margin:12px 0 0;padding:0 14px;border-radius:16px;background:var(--pill);color:var(--mu)}
+.cal-search>span{display:grid;place-items:center;flex:none}
+.cal-search input{width:100%;min-width:0;height:100%;padding:0;border:0;outline:0;background:transparent;color:var(--tx);font-size:14px;box-shadow:none!important}
+.cal-search input::placeholder{color:var(--mu);opacity:1}
+
+/* Consistent 26px side rhythm on photo/album detail content. */
+.detail-edge{margin-left:26px!important;margin-right:26px!important;}
+.detail-edge.hero{padding-left:0;padding-right:0;}
+
+
+/* MIKA album detail: full-bleed page surface, with content inset exactly 26px. */
+.scr.album-detail-screen{padding-left:0!important;padding-right:0!important;background:var(--bg)}
+.scr.album-detail-screen>.top.detail-edge,
+.scr.album-detail-screen>.hero.detail-edge{margin-left:26px!important;margin-right:26px!important}
+.scr.album-detail-screen>.top.detail-edge{position:sticky;isolation:isolate;background:transparent}
+.scr.album-detail-screen>.top.detail-edge::before{
+  content:"";position:absolute;z-index:-1;pointer-events:none;left:50%;
+  top:calc(-1 * env(safe-area-inset-top,0px));width:100vw;
+  height:calc(100% + env(safe-area-inset-top,0px) + 22px);transform:translateX(-50%);
+  background:linear-gradient(to bottom,#000 0%,#000 48%,rgba(0,0,0,.82) 72%,rgba(0,0,0,0) 100%)
+}
+.scr.album-detail-screen>.pills,
+.scr.album-detail-screen>.mas{margin-left:26px!important;margin-right:26px!important}
+.scr.album-detail-screen>.mas{width:auto}
+
+/* Google Drive folder detail: full-bleed page with the same 26px content inset. */
+.dalb-page{padding-left:0!important;padding-right:0!important}
+.dalb-page>.dalb-detail-top,.dalb-page>.dalb-crumbs,.dalb-page>.dalb-hero,
+.dalb-page>.dalb-folder-list,.dalb-page>.dalb-grid,.dalb-page>.dalb-empty,
+.dalb-page>.dalb-moreload{margin-left:26px!important;margin-right:26px!important}
+.dalb-page>.dalb-detail-top{width:auto;padding-left:0;padding-right:0}
+.dalb-page>.dalb-detail-top::before{
+  content:"";position:absolute;z-index:-1;pointer-events:none;left:50%;
+  top:calc(-1 * env(safe-area-inset-top,0px));width:100vw;
+  height:calc(100% + env(safe-area-inset-top,0px) + 22px);transform:translateX(-50%);
+  background:linear-gradient(to bottom,#000 0%,#000 48%,rgba(0,0,0,.82) 72%,rgba(0,0,0,0) 100%)
+}
+
+/* Album detail hardening — preserve full-bleed surfaces while keeping all interactive content inside iPhone safe areas. */
+.scr.album-detail-screen{
+  padding-top:env(safe-area-inset-top,0px)!important;
+  padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important;
+  padding-left:0!important;
+  padding-right:0!important;
+  overflow-x:hidden;
+  overscroll-behavior-y:contain;
+}
+.scr.album-detail-screen>.top.detail-edge{
+  top:env(safe-area-inset-top,0px);
+  width:auto;
+  max-width:100%;
+}
+.scr.album-detail-screen>.top.detail-edge::before{
+  left:50%;right:auto;width:100vw;max-width:none;
+  top:calc(-1 * env(safe-area-inset-top,0px));
+}
+.scr.album-detail-screen>.hero.detail-edge{
+  min-width:0;max-width:calc(100% - 52px);
+}
+.scr.album-detail-screen>.hero.detail-edge>div{flex:1;min-width:0;overflow-wrap:anywhere}
+.scr.album-detail-screen>.pills{width:auto;max-width:100%;min-width:0}
+.scr.album-detail-screen>.mas{min-width:0;max-width:calc(100% - 52px)}
+.scr.album-detail-screen>.mas img,
+.scr.album-detail-screen>.mas video{max-width:100%;height:auto}
+
+.dalb-page{
+  padding-top:calc(8px + env(safe-area-inset-top,0px))!important;
+  padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important;
+  padding-left:0!important;padding-right:0!important;
+  overflow-x:hidden;
+  overscroll-behavior-y:contain;
+}
+.dalb-page>.dalb-detail-top{
+  top:env(safe-area-inset-top,0px);
+  width:auto;max-width:calc(100% - 52px);min-width:0;
+}
+.dalb-page>.dalb-detail-top::before{
+  left:50%;right:auto;width:100vw;max-width:none;
+  top:calc(-1 * env(safe-area-inset-top,0px));
+}
+.dalb-page>.dalb-detail-top h1{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.dalb-page>.dalb-hero{min-width:0;max-width:calc(100% - 52px)}
+.dalb-page>.dalb-hero>div{flex:1;min-width:0;overflow-wrap:anywhere}
+.dalb-page>.dalb-grid{min-width:0;max-width:calc(100% - 52px)}
+.dalb-page>.dalb-grid>*{min-width:0;max-width:100%}
+
+/* ============================================================
+   MIKA GLOBAL SCREEN INSET + FULL-BLEED TOP GRADIENTS
+   Global content edge: exactly 26px from the left and right.
+   Page/background surfaces remain full-width; only content is inset.
+   ============================================================ */
+:root{--page-inset:26px}
+.scr:not(.album-detail-screen){padding-left:var(--page-inset)!important;padding-right:var(--page-inset)!important;padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+/* The inner wrapper must not add a second horizontal inset. */
+.mc{padding-left:0!important;padding-right:0!important}
+/* Header text/actions align to the same 26px content edge. */
+.ht{padding-left:0!important;padding-right:0!important}
+/* Every black top-gradient header bleeds to the screen's left/right edges
+   and continues behind the iOS top safe area. Its lower edge is unchanged. */
+.top.ht{position:sticky;isolation:isolate;background:transparent}
+.top.ht::before{left:calc(-1 * var(--page-inset));right:calc(-1 * var(--page-inset));top:calc(-1 * env(safe-area-inset-top,0px));height:calc(100% + env(safe-area-inset-top,0px) + 18px)}
+.cal-header::before{left:calc(-1 * var(--page-inset));right:calc(-1 * var(--page-inset));top:calc(-1 * env(safe-area-inset-top,0px));height:calc(100% + env(safe-area-inset-top,0px) + 18px)}
+/* Horizontal carousels bleed out of the 26px content column while retaining
+   a 26px starting/ending inset, so their first/last cards align to the edge. */
+.hs:not(.sl2):not(.sl3){margin-left:calc(-1 * var(--page-inset));margin-right:calc(-1 * var(--page-inset));padding-left:var(--page-inset);padding-right:var(--page-inset)}
+.hc{width:calc((100% + 52px)*.523)}
+.rc{width:calc((100% + 52px)*.293)}
+/* Full-screen media viewer controls use the same horizontal safe margin. */
+.bar{padding-left:var(--page-inset);padding-right:var(--page-inset)}
+.bar.b{padding-left:var(--page-inset);padding-right:var(--page-inset)}
+/* Floating progress surface should not sit closer to the screen edge than content. */
+.lprog{left:var(--page-inset);right:var(--page-inset)}
+/* Google Drive detail already owns a full-bleed page surface; keep its content
+   at 26px and preserve the full-width top gradient. */
+.dalb-page{padding-left:0!important;padding-right:0!important}
+
+/* Unified screen geometry: content inset, independent header surface. */
+.nav{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.scr.album-detail-screen{padding:env(safe-area-inset-top,0px) 26px calc(100px + env(safe-area-inset-bottom,0px))!important}
+.scr.album-detail-screen>.top.detail-edge,.scr.album-detail-screen>.hero.detail-edge,.scr.album-detail-screen>.pills{margin-inline:0!important;max-width:none;min-width:0}
+.scr.album-detail-screen>.mas{margin-inline:-21px!important;max-width:none;width:auto}
+.scr .top.ht,.scr.album-detail-screen>.top.detail-edge,.dalb-page>.dalb-detail-top{position:relative;top:auto;isolation:isolate;background:transparent;z-index:2}
+.scr .top.ht::before,.scr.album-detail-screen>.top.detail-edge::before,.dalb-page>.dalb-detail-top::before{left:-26px!important;right:-26px!important;width:auto!important;max-width:none;transform:none!important;top:calc(-1 * env(safe-area-inset-top,0px));height:calc(100% + env(safe-area-inset-top,0px));background:linear-gradient(#000 0%,#000 55%,transparent 100%);pointer-events:none}
+.scr.album-detail-screen>.top.detail-edge:not(.sel) h1,.dalb-detail-top h1{visibility:hidden}
+.card.al{isolation:isolate}.card.al .bg{z-index:0}.card.al::after{z-index:1;opacity:1;animation:none!important;transition:none!important;pointer-events:none;background:linear-gradient(transparent 28%,rgba(0,0,0,.55))}.card.al b{z-index:2;color:transparent;background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.3));-webkit-background-clip:text;background-clip:text;font-family:var(--font);font-weight:800;letter-spacing:-.045em;text-shadow:none}
+.dalb-page{margin-inline:-26px;padding-top:0!important;padding-bottom:0!important}.dalb-page>.dalb-grid{margin-inline:5px!important;max-width:none}.dalb-page>.dalb-detail-top{max-width:none}
+.profile-identity{text-align:center;display:grid;justify-items:center;gap:10px;padding:24px 16px}.profile-identity h2{margin:0;font-size:24px}.profile-avatar{width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--pill);font-size:28px;font-weight:700;padding:0}.profile-avatar img{width:100%;height:100%;object-fit:cover}.profile-link{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;padding:14px 0;border-bottom:1px solid var(--sh);font-weight:500;gap:12px}.profile-link:last-child{border-bottom:0}.profile-link small{display:block;color:var(--mu);font-size:12px;font-weight:400;margin-top:3px}.profile-link>span:last-child{color:var(--mu)}.profile-signout{color:var(--ac2)}.pfp>.tt{margin-top:20px}
+/* UPDATE-06: stable text and shared geometry */
+.yl select{font-size:28px;font-weight:700}
+.card.al b{background:none!important;color:#fff!important;-webkit-text-fill-color:#fff;background-clip:border-box!important;-webkit-background-clip:border-box!important;text-shadow:0 2px 8px #0008;animation:none!important;transition:none!important;bottom:12px;line-height:1.1}
+.card.al,.card.sm,.hc,.hero img,.hero .e,.dalb-hero-empty,.dalb-media,.mi,.mi img,.mi video,.rc img,.rc video,.cm-month-card{border-radius:20px!important}
+.scr.album-detail-screen>.hero,.dalb-hero{gap:14px;margin-bottom:24px!important;animation:none!important}
+.scr.album-detail-screen>.hero h3,.dalb-hero h3{font-size:20px;font-weight:600;line-height:1.2;margin:0 0 4px}
+.scr.album-detail-screen>.hero .mu,.dalb-hero .mu{font-size:14px;line-height:1.4}
+.scr.album-detail-screen>.top.detail-edge{padding-top:20px;padding-bottom:20px}
+.dalb-page{position:fixed!important;inset:0!important;margin:0!important;width:100%!important;max-width:none!important;padding:calc(env(safe-area-inset-top,0px) + 20px) 0 calc(env(safe-area-inset-bottom,0px) + 24px)!important;box-sizing:border-box}
+.dalb-page>.dalb-detail-top{margin:0 26px 20px!important;padding:0!important;display:flex;align-items:center;min-height:44px;position:relative!important}
+.dalb-page>.dalb-detail-top .ic{width:44px;height:44px;display:grid;place-items:center;flex:none}
+.dalb-page>.dalb-hero{margin-inline:26px!important;max-width:none!important}
+.dalb-page>.dalb-grid{margin-inline:5px!important;gap:8px;max-width:none!important}
+.dalb-page>.dalb-detail-top::before,.scr .top.ht::before,.scr.album-detail-screen>.top.detail-edge::before,.cal-header::before{display:none!important}
+.dalb-page>.dalb-detail-top,.scr .top.ht,.scr.album-detail-screen>.top.detail-edge,.cal-header{background:var(--bg)!important}
