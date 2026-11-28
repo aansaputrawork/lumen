@@ -223,7 +223,7 @@ window.LViewer=function(id,list,srcEl,opts={}){
  /* ----- video: tombol play melayang. Video Drive dimuat lewat URL stream (bisa seek); jika gagal, unduh lalu putar dari blob ----- */
  const fallbackVideoUrls=[];
  sl.forEach((s,k)=>{const vd=s.querySelector("video");if(!vd)return;const p=list[k];
-  const bt=s.querySelector(".vpl"),sk=s.querySelector(".vsk");let seeking=0,fallbackPromise=null,failed=0;
+  const bt=s.querySelector(".vpl"),sk=s.querySelector(".vsk");let seeking=0,fallbackPromise=null,loadingPromise=null,failed=0;
   const sync=()=>s.classList.toggle("playing",!vd.paused&&!vd.ended),busy=on=>s.classList.toggle("ld",on);
   const fail=()=>{if(failed)return;failed=1;busy(false);s.classList.remove("playing");toast("Video couldn't be loaded. Check file access or video format.")};
   // Fallback berlaku untuk semua sumber (MIKA Cloud maupun Google Drive), bukan Drive saja.
@@ -231,16 +231,16 @@ window.LViewer=function(id,list,srcEl,opts={}){
   const viaBlob=()=>{
    if(fallbackPromise)return fallbackPromise;
    fallbackPromise=(async()=>{busy(true);try{
-    const b=await getBlob(p);if(!b||!b.size)throw new Error("Empty video file");
+    const b=await getBlob(p);if(closing||!v.isConnected)return;if(!b||!b.size)throw new Error("Empty video file");
     const mime=b.type&&b.type.startsWith("video/")?b.type:(p.type&&p.type.startsWith("video/")?p.type:"video/mp4");
     const playable=b.type===mime?b:new Blob([b],{type:mime});
     const u=URL.createObjectURL(playable);fallbackVideoUrls.push(u);vd.src=u;vd.load();
-    try{await vd.play();failed=0}catch(e){if(e.name!=="NotAllowedError")throw e;busy(false);vd.controls=true;}
+    if(k!==i){busy(false);return}try{await vd.play();failed=0}catch(e){if(e.name!=="NotAllowedError")throw e;busy(false);vd.controls=true;}
    }catch(e){console.warn("MIKA video fallback failed",{id:p.id,source:p.sp,type:p.type,error:e});fail()}})();
    return fallbackPromise;
   };
-  const load=async()=>{if(vd.getAttribute("src"))return true;busy(true);try{vd.src=await vidSrc(p);vd.load();return true}catch(e){console.warn("MIKA video stream URL failed",{id:p.id,source:p.sp,error:e});await viaBlob();return false}};
-  const toggle=async()=>{if(!vd.paused&&!vd.ended)return vd.pause();if(!(await load()))return;busy(true);vd.play().catch(e=>{if(e&&e.name==="NotAllowedError"){busy(false);vd.controls=true;toast("Tap the video play control to start.")}else viaBlob()})};
+  const load=async()=>{if(closing)return false;if(vd.getAttribute("src"))return true;if(loadingPromise)return loadingPromise;busy(true);loadingPromise=(async()=>{try{const url=await vidSrc(p);if(closing||!v.isConnected)return false;vd.src=url;vd.load();return true}catch(e){if(!closing){console.warn("MIKA video stream URL failed",{id:p.id,source:p.sp,error:e});await viaBlob()}return false}finally{loadingPromise=null;busy(false)}})();return loadingPromise};
+  const toggle=async()=>{if(!vd.paused&&!vd.ended)return vd.pause();if(!(await load())||closing||k!==i)return;busy(true);vd.play().catch(e=>{if(e&&e.name==="NotAllowedError"){busy(false);vd.controls=true;toast("Tap the video play control to start.")}else viaBlob()})};
   // Resolve protected video URLs before the user taps Play, preserving iOS user activation.
   const prepare=()=>{if(!vd.getAttribute("src")&&!fallbackPromise)load().then(()=>busy(false)).catch(()=>busy(false))};
   if(k===i)prepare();
@@ -331,7 +331,7 @@ window.LViewer=function(id,list,srcEl,opts={}){
   s.onclick=e=>{if(e.target==s)return closeS(s);
    if(e.target.closest("[data-alb]")){closeS(s);albumPick();return}
    if(e.target.closest("[data-rn]")){closeS(s);ask("Rename photo",p.name,async n=>{p.name=n;info();await save(null,p.id,{...p},"photos")});return}
-   if(e.target.closest("[data-map]")){closeS(s);pauseAll();S.mv={lat:p.lat,lng:p.lng,z:15};v.remove();S.view="map";render()}}};
+   if(e.target.closest("[data-map]")){closeS(s);pauseAll();S.mv={lat:p.lat,lng:p.lng,z:15};closeP();S.view="map";render()}}};
  v.querySelectorAll("[data-i]").forEach(b=>b.onclick=detail);
 
  /* ----- aksi ----- */
