@@ -218,6 +218,7 @@
   route = next;
   S.view = "albdrive";
   render();
+  document.getElementById("scr").scrollTop = 0;
  }
 
  function fromHash(hash) {
