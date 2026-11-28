@@ -225,7 +225,7 @@ function render0(){
   const header=S.selOn?'<div class="top sel detail-edge"><button class=chip data-sx>Cancel</button><button class=chip data-sall>All</button></div>':
    detailHeader(`<button class=ic data-go="${a?"alb":v==="albsm"?(S.sm.back||"alb"):"home"}" aria-label=Back>${ico("back")}</button>`,
    `<button class=ic data-selb title="Select">${ico("check")}</button><button class=ic data-go=search>${ico("search")}</button><button class=ic data-up aria-label="Upload">${ico("plus")}</button>`);
-  const actions=(a?'<button class=chip data-albmenu>Manage</button>':"")+(coverKey?'<button class=chip data-cover>Change Cover</button>':"");
+  const actions=(a?'<button class=chip data-albmenu>Manage</button>':"")+(!a&&coverKey?'<button class=chip data-cover>Change Cover</button>':"");
   h=header+detailHero(coverKey,v==="albsm"?S.sm.t:a?a.name:MON[S.mon],cov?T(cov):"",
    `<div class=mu>${pl(all.length,"item")} · ${mb(sz)}</div><div class=mu>${ds.length?fd(ds[0])+" – "+fd(ds.at(-1)):"No dates"}</div>`,actions,cov?vta(cov):"")+
    (v==="albsm"?"":`<div class=pills>${CATS.map(c=>`<button class="pill ${c===S.cat?"a":""}" data-cat=${c}>${c}</button>`).join("")}</div>`)+masonry(l)}
