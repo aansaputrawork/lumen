@@ -10,23 +10,34 @@ const ses=()=>SP||(SP=sb.auth.getSession().then(async r=>{const s=r.data.session
 
 sb.auth.onAuthStateChange(ev=>{
   if(ev=="SIGNED_OUT"&&uid){
+    signedCache.clear();
     location.replace(location.pathname+location.search+"#home");
   }
 });
 
+// Session-scoped signed URL cache: metadata changes must not reload unchanged media.
+const signedCache=new Map();
+let signedOwner="";
 async function sign(rows,raw){
- const P=[];
+ if(signedOwner!==uid){signedCache.clear();signedOwner=uid}
+ const owner=uid,now=Date.now(),P=new Set(),M=Object.create(null);
  raw.forEach(r=>{
-  if(r.storage_path)P.push(r.storage_path);
-  if(r.data?.tid)P.push(r.data.tid);
+  if(r.storage_path)P.add(r.storage_path);
+  if(r.data?.tid)P.add(r.data.tid);
  });
- const M={};
- if(P.length){
-  const{data}=await sb.storage.from("photos").createSignedUrls([...new Set(P)],86400);
+ const missing=[];
+ for(const path of P){
+  const entry=signedCache.get(path);
+  if(entry&&entry.expires>now+300000)M[path]=entry.url;
+  else missing.push(path);
+ }
+ if(missing.length){
+  const {data}=await sb.storage.from("photos").createSignedUrls(missing,86400);
   (data||[]).forEach(x=>{
-   if(x.signedUrl)M[x.path]=x.signedUrl;
+   if(x.signedUrl){M[x.path]=x.signedUrl;if(uid===owner&&signedOwner===owner)signedCache.set(x.path,{url:x.signedUrl,expires:now+86400000})}
   });
  }
+ for(const [path,entry] of signedCache)if(entry.expires<=now)signedCache.delete(path);
  rows.forEach((x,i)=>{
   const r=raw[i];
   x.doc.th=r.data.tid?M[r.data.tid]||"":"";
