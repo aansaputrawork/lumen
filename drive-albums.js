@@ -152,13 +152,13 @@
   if (S.view === "alb" && rootSlot?.isConnected) {
    const ds = drives();
    if (!ds.length) {
-    setContent(rootSlot, '<div class=sh><h3>Google Drive Albums</h3></div><div class=dalb-empty>Connect Google Drive in Profile to see its folders here.</div>');
+    setContent(rootSlot, '<div class=sh><h3>Gdrive Albums</h3></div><div class=dalb-empty>Connect Google Drive in Profile to see its folders here.</div>');
     return;
    }
    if (!ds.some(d => d.id === account)) account = (ds.find(d => d.is_default) || ds[0]).id;
    if (rootSlot.dataset.account !== account) {
     rootSlot.dataset.account = account;
-    setContent(rootSlot, '<div class=sh><h3>Google Drive Albums</h3><div data-drive-accounts></div></div><div class=gp style="padding:4px 16px;margin-top:0" data-drive-folders></div><div data-drive-status></div>');
+    setContent(rootSlot, '<div class=sh><h3>Gdrive Albums</h3><div data-drive-accounts></div></div><div class=gp style="padding:4px 16px;margin-top:0" data-drive-folders></div><div data-drive-status></div>');
    }
    const p = page(account, "root");
    setContent(rootSlot.querySelector("[data-drive-accounts]"), ds.length > 1 ? `<label>Account <select data-drive-account>${ds.map(d => `<option value="${esc(d.id)}" ${d.id === account ? "selected" : ""}>${esc(d.email || "Google Drive")}</option>`).join("")}</select></label>` : "");
