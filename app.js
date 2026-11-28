@@ -203,6 +203,8 @@ function albUI(){IC.sort="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4";
  const extra=`<div class=sh><h3>Recent</h3><span class=mu data-sm=all style="cursor:pointer">${S.photos.length} ›</span></div><div class="hs sl3">${rcs}</div><div class=sh><h3>Media Types</h3></div><div class=gp style="padding:4px 16px;margin-top:0">${mt}</div><section class=dalb data-drive-root></section>${ct?`<div class=sh><h3>Categories</h3></div><div class=gp style="padding:4px 16px;margin-top:0">${ct}</div>`:""}<div class=sh style="margin-top:48px"><h3>Utilities</h3></div><div class=gp style="padding:4px 16px;margin-top:0"><div class=ar data-trash><span class=ph style="display:grid;place-items:center;color:var(--mu)">${ico("tr",20)}</span><span style="flex:1">Recently Deleted</span><span class=mu>${S.trash.length} \u203a</span></div></div>`;
  return `<div class="top ht"><span class=yl>Albums</span><span style="display:flex"><button class=cb data-sort>${ico("sort",26)}</button><button class=cb data-up>${ico("up",26)}</button><button class=cb data-newalb>${ico("plus",28)}</button></span></div><div class=mc><div class="hs sl2" data-album-track>${collectionCards[2]}${big}<div class="card nw pt" data-card-key=new data-newalb><div style="text-align:center">${ico("plus",26)}<div>New album</div></div></div></div>${extra}</div>`}
 function render(){const v=S.view;if(S._v!=null&&S._v!==v&&false&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.startViewTransition(()=>render0());return}render0()}
+const screenScrollMemory=new Map();
+let renderedScrollKey="";
 function render0(){
  if(!S.ready){app.innerHTML=`<div class=empty style="padding-top:40vh">Loading your library…</div>`;return}
  const v=S.view;let h="";if(!["col","album","albsm","albtrash"].includes(v)){S.selOn=false;S.sel.clear()}else if(v=="albtrash"&&!S.selOn)S.selOn=true;
@@ -247,10 +249,14 @@ function render0(){
   <div class=gp><div class=tt>Connected Services</div>${link("drive","Manage connected accounts")}</div><div class=gp><div class=tt>Account</div><div class=row><span class=pfl>${u.photo?`<img src="${u.photo}" alt="">`:`<i>${esc(nm[0].toUpperCase())}</i>`}<span class=pfm><span>Edit profile</span><span class=mu>Photo and name</span></span></span><button class=chip data-pfe>Edit</button></div><div class=row><span>Notifications</span><button class=chip data-pref=notif>${S.prefs.notif!==false?"On":"Off"}</button></div><div class=row><span class=pfl><span class=pfm><span>Photo categories</span><span class=mu>Default for uploads: ${esc(S.prefs.cat||"Auto")}</span></span></span><button class=chip data-pcat>Manage</button></div><div class=row><span>Plan</span><span class=mu>${esc((p=>({Gratis:"Free",Bisnis:"Business"}[p]||p||"Free"))(window.LQ&&LQ.plan))}</span></div><div class=row><span>Upload on Wi-Fi only</span><button class=chip data-pref=wifi>${S.prefs.wifi?"On":"Off"}</button></div><div class=row><span>Duplicate photos</span><button class=chip data-lf=dup>Check</button></div><div class=row style="border:0"><span class=pfm style="min-width:0;overflow-wrap:anywhere"><span>Sign out</span>${u.email?`<span class=mu>${esc(u.email)}</span>`:""}</span><button class=chip data-dr=logout>Sign out</button></div></div></div>`}
  const same=S._v===v,oldScreen=document.getElementById("scr");
  const driveDetail=v==="albdrive", routeHash=driveDetail?DriveAlbums.hash():v;
+ const scrollKey=v==="album"?v+":"+S.album:v==="albsm"?v+":"+(S.sm?.key||S.sm?.t||""):v==="col"?v+":"+S.year+":"+S.mon:v==="me"?v+":"+(S.profileSection||""):routeHash;
+ const readScroll=el=>({t:el.scrollTop,h:[...el.querySelectorAll(".hs,.pills")].map(x=>x.scrollLeft)});
+ if(oldScreen&&renderedScrollKey)screenScrollMemory.set(renderedScrollKey,readScroll(oldScreen));
  const screenClass=`scr${same?" st0":""}${S.selOn?" sm":""}${["album","albsm","albdrive"].includes(v)?" album-detail-screen":""}`;
  const _n=`<div class="${screenClass}" id=scr>${S.demo&&v==="home"?'<div class=mu style="text-align:center;font-size:12px;padding-top:6px">Sample photos. Your own uploads replace them.</div>':""}${h}</div>${S.selOn?selBar():nav()}`;
- if(same&&S._n===_n&&S._routeHash===routeHash){window.DriveAlbums?.mount();return}
- const keep=same&&oldScreen?{t:oldScreen.scrollTop,h:[...oldScreen.querySelectorAll(".hs,.pills")].map(el=>el.scrollLeft)}:null;
+ if(same&&renderedScrollKey===scrollKey&&S._n===_n&&S._routeHash===routeHash){window.DriveAlbums?.mount();return}
+ const keep=screenScrollMemory.get(scrollKey)||null;
+ renderedScrollKey=scrollKey;
  S._v=v;S._n=_n;S._routeHash=routeHash;
  document.body.classList.toggle("hm",["home","alb","me","map"].includes(v));
  if(same&&v==="alb"&&oldScreen?.querySelector("[data-album-track]")){
@@ -311,7 +317,7 @@ function bind(){
   else if(S.sm?.key)AlbumCovers.edit(AlbumCovers.key("category",S.sm.key),()=>S.photos.filter(S.sm.f));
  });
 
- document.querySelectorAll("[data-profile-section]").forEach(e=>e.onclick=()=>{S.profileSection=e.dataset.profileSection;render();document.getElementById("scr").scrollTop=0});
+ document.querySelectorAll("[data-profile-section]").forEach(e=>e.onclick=()=>{S.profileSection=e.dataset.profileSection;render()});
  const AL={sort:"Sort",newalb:"New album",up:"Upload",menu:"More options",albc:"Album options"};
  app.querySelectorAll("button").forEach(b=>{if(!b.textContent.trim()&&!b.getAttribute("aria-label"))b.setAttribute("aria-label",b.title||(b.dataset.go?(b.dataset.go=="search"?"Search":"Back"):Object.keys(b.dataset).map(k=>AL[k]).find(Boolean)||"Button"))});
  const sc=document.getElementById("scr"),$$=(s,f)=>app.querySelectorAll(s).forEach(f);
