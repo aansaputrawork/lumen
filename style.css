@@ -357,3 +357,13 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .dalb-page>.dalb-grid{margin-inline:5px!important;gap:8px;max-width:none!important}
 .dalb-page>.dalb-detail-top::before,.scr .top.ht::before,.scr.album-detail-screen>.top.detail-edge::before,.cal-header::before{display:none!important}
 .dalb-page>.dalb-detail-top,.scr .top.ht,.scr.album-detail-screen>.top.detail-edge,.cal-header{background:var(--bg)!important}
+
+/* UPDATE-07: shared album heading and stable cover overlay. */
+.top.ht .yl select{font-family:var(--font);font-size:28px;font-weight:700;letter-spacing:-.03em}
+.card.al.album-slide{isolation:isolate;border-radius:20px!important}
+.card.al.album-slide .album-art{position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:inherit}
+.card.al.album-slide .album-art img{display:block;width:100%;height:100%;object-fit:cover}
+.card.al.album-slide::after{z-index:1;background:linear-gradient(to bottom,transparent 28%,rgba(0,0,0,.55) 100%);opacity:1;animation:none!important;transition:none!important;pointer-events:none}
+.card.al.album-slide b.album-title{z-index:2;font-family:var(--font);font-size:15px!important;font-weight:600;letter-spacing:0;line-height:1.2;bottom:12px;left:12px;right:12px;overflow:hidden;text-overflow:ellipsis;color:#fff!important;-webkit-text-fill-color:#fff;background:none!important;animation:none!important;transition:none!important}
+.card.al.album-slide .glass{z-index:3}
+.hero .detail-cover{width:104px;height:104px;flex:none;border-radius:20px!important;object-fit:cover}
