@@ -375,3 +375,7 @@ html.tt *,html.tt *::before,html.tt *::after{transition:background-color .5s var
 .hs,.pills{scroll-behavior:auto}
 @media(prefers-reduced-motion:no-preference){.ar,.nav button,.chip,.ic{transition:background-color 160ms ease,opacity 160ms ease,transform 180ms var(--e)}.nav button:active,.chip:active,.ic:active{transform:scale(.96)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* Keep detail toolbar actions horizontal on web and native. */
+.top.detail-edge>.detail-actions,.dalb-detail-top>.detail-actions{display:flex;flex-direction:row;align-items:center;justify-content:flex-end;flex-wrap:nowrap;gap:8px;min-width:0}
+.top.detail-edge>.detail-actions>button,.dalb-detail-top>.detail-actions>button{flex:0 0 auto}
